@@ -4,25 +4,23 @@
   <meta charset="utf-8">
   
   
-  <title>Windows上搭建SOCKS代理 | 听雨</title>
+  <title>spring-data-mongodb源码阅读笔记 | 听雨</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="问题提出：驻厂深圳后，办公地点的网络不再是专线，因此IP不再是固定的，而是由运营商动态分配，而线上某些业务都开启了IP白名单，如果仍然通过添加白名单的方式，那么将会非常麻烦。总结一下受限的业务场景，包括：  ssh连接腾讯云服务器 http访问蓝鲸运维平台 Jenkins Slave（Windows 7）服务器拷贝服务器版本到腾讯云  方案思路：考虑到ssh提供了socks代理，因此可以在北京公司">
+  <meta name="description" content="spring-data-mongodb向mongodb-driver执行find指令时，后者解析后返回一个BsonDocument，BsonDocument继承自BsonValue，并且implements了Map&lt;String, Bsonvalue&gt;接口（内部通过LinkedHashMap实现），其成员如下，可以参考mongodb API： 123456waitedMS		--&amp;g">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Windows上搭建SOCKS代理">
-<meta property="og:url" content="http://blog.gamedo.org/2020/05/11/Windows%E4%B8%8A%E6%90%AD%E5%BB%BASOCKS%E4%BB%A3%E7%90%86/index.html">
+<meta property="og:title" content="spring-data-mongodb源码阅读笔记">
+<meta property="og:url" content="http://blog.gamedo.org/2020/12/13/spring-data-mongodb%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/index.html">
 <meta property="og:site_name" content="听雨">
-<meta property="og:description" content="问题提出：驻厂深圳后，办公地点的网络不再是专线，因此IP不再是固定的，而是由运营商动态分配，而线上某些业务都开启了IP白名单，如果仍然通过添加白名单的方式，那么将会非常麻烦。总结一下受限的业务场景，包括：  ssh连接腾讯云服务器 http访问蓝鲸运维平台 Jenkins Slave（Windows 7）服务器拷贝服务器版本到腾讯云  方案思路：考虑到ssh提供了socks代理，因此可以在北京公司">
+<meta property="og:description" content="spring-data-mongodb向mongodb-driver执行find指令时，后者解析后返回一个BsonDocument，BsonDocument继承自BsonValue，并且implements了Map&lt;String, Bsonvalue&gt;接口（内部通过LinkedHashMap实现），其成员如下，可以参考mongodb API： 123456waitedMS		--&amp;g">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://s3.ax1x.com/2021/03/08/6QUzVI.png">
-<meta property="og:image" content="https://s3.ax1x.com/2021/03/08/6QUvqA.png">
-<meta property="article:published_time" content="2020-05-11T14:00:00.000Z">
-<meta property="article:modified_time" content="2021-03-13T11:27:42.066Z">
+<meta property="article:published_time" content="2020-12-13T14:00:00.000Z">
+<meta property="article:modified_time" content="2021-03-13T11:37:15.837Z">
 <meta property="article:author" content="pcloves">
-<meta property="article:tag" content="经验积累">
-<meta property="article:tag" content="SSH">
-<meta property="article:tag" content="Socks Proxy">
+<meta property="article:tag" content="源码阅读">
+<meta property="article:tag" content="SpringFramework">
+<meta property="article:tag" content="持久化">
+<meta property="article:tag" content="SpringData">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://s3.ax1x.com/2021/03/08/6QUzVI.png">
   
     <link rel="alternate" href="/atom.xml" title="听雨" type="application/atom+xml">
   
@@ -79,16 +77,12 @@
 </header>
 
       <div class="outer">
-        <section id="main"><article id="post-Windows上搭建SOCKS代理" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+        <section id="main"><article id="post-spring-data-mongodb源码阅读笔记" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2020/05/11/Windows%E4%B8%8A%E6%90%AD%E5%BB%BASOCKS%E4%BB%A3%E7%90%86/" class="article-date">
-  <time class="dt-published" datetime="2020-05-11T14:00:00.000Z" itemprop="datePublished">2020-05-11</time>
+    <a href="/2020/12/13/spring-data-mongodb%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" class="article-date">
+  <time class="dt-published" datetime="2020-12-13T14:00:00.000Z" itemprop="datePublished">2020-12-13</time>
 </a>
     
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E5%AE%9E%E8%B7%B5%E7%BB%8F%E9%AA%8C/">实践经验</a>
-  </div>
-
   </div>
   <div class="article-inner">
     
@@ -97,7 +91,7 @@
         
   
     <h1 class="p-name article-title" itemprop="headline name">
-      Windows上搭建SOCKS代理
+      spring-data-mongodb源码阅读笔记
     </h1>
   
 
@@ -105,32 +99,40 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <h4 id="问题提出："><a href="#问题提出：" class="headerlink" title="问题提出："></a>问题提出：</h4><p>驻厂深圳后，办公地点的网络不再是专线，因此IP不再是固定的，而是由运营商动态分配，而线上某些业务都开启了IP白名单，如果仍然通过添加白名单的方式，那么将会非常麻烦。总结一下受限的业务场景，包括：</p>
-<ol>
-<li>ssh连接腾讯云服务器</li>
-<li>http访问蓝鲸运维平台</li>
-<li>Jenkins Slave（Windows 7）服务器拷贝服务器版本到腾讯云</li>
+        <ol>
+<li><p>spring-data-mongodb向mongodb-driver执行find指令时，后者解析后返回一个BsonDocument，BsonDocument继承自BsonValue，并且implements了Map&lt;String, Bsonvalue&gt;接口（内部通过LinkedHashMap实现），其成员如下，可以参考<a target="_blank" rel="noopener" href="https://docs.mongodb.com/manual/reference/command/find/index.html#output">mongodb API</a>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">waitedMS		--&gt; BsonInt64</span><br><span class="line">cursor			--&gt; BsonDocument</span><br><span class="line">firstBatch	--&gt; BsonArrayWrapper	//第一批读取到的document列表（ArrayList&lt;Document&gt;），当decode后被wrapper到BsonArrayWrapper</span><br><span class="line">id					--&gt; BsonInt64					//游标的Id，</span><br><span class="line">ns					--&gt; BsonString				//NameSpace的缩写，组成为：数据库名.文档名，例如：test.Bag</span><br><span class="line">ok					--&gt; bsonDouble				//标明命令是否执行成功：1：成功；0：失败</span><br></pre></td></tr></table></figure></li>
+<li><p>spring-data-mongodb的基础事件：<code>org.springframework.data.mongodb.core.mapping.event.MongoMappingEvent</code>，可以继承<code>AbstractMongoEventListener</code>，当执行document在进行删除前、删除后、存储前、存储后、转换前、转换后、加载后时，可以执行自定义操作。</p>
+</li>
+<li><p>MongoDb生成唯一Id最佳实践（<a target="_blank" rel="noopener" href="https://www.baeldung.com/spring-boot-mongodb-auto-generated-field">来源</a>）：</p>
+<ul>
+<li><p>定义生成唯一Id的java类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Document(collection = &quot;database_sequences&quot;)</span></span><br><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DatabaseSequence</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Id</span></span><br><span class="line">    <span class="keyword">private</span> String id;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">long</span> seq;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>定义生成唯一Id的函数：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">generateSequence</span><span class="params">(String seqName)</span> </span>&#123;</span><br><span class="line">    DatabaseSequence counter = mongoOperations.findAndModify(query(where(<span class="string">&quot;_id&quot;</span>).is(seqName)),</span><br><span class="line">      <span class="keyword">new</span> Update().inc(<span class="string">&quot;seq&quot;</span>,<span class="number">1</span>), options().returnNew(<span class="keyword">true</span>).upsert(<span class="keyword">true</span>),</span><br><span class="line">      DatabaseSequence.class);</span><br><span class="line">    <span class="keyword">return</span> !Objects.isNull(counter) ? counter.getSeq() : <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>可以使用<code>AbstractMongoEventListener</code>实现自动化设置，例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">User user = <span class="keyword">new</span> User();</span><br><span class="line">user.setId(sequenceGenerator.generateSequence(User.SEQUENCE_NAME));	<span class="comment">//User.SEQUENCE_NAME为static string类型</span></span><br><span class="line">user.setEmail(<span class="string">&quot;john.doe@example.com&quot;</span>);</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
 </ol>
-<h3 id="方案思路："><a href="#方案思路：" class="headerlink" title="方案思路："></a>方案思路：</h3><p>考虑到ssh提供了socks代理，因此可以在北京公司部署一台固定IP且已经加入IP白名单的服务器（假设为HostA，IP为：10.12.28.114，OS为Windows 10），然后开启socks代理，受限业务的流量都通过socks代理。</p>
-<h3 id="方案实施："><a href="#方案实施：" class="headerlink" title="方案实施："></a>方案实施：</h3><ol>
-<li>安装OpenSSH（windows 10 version 1803及以后的版本已经集成），在HostA上：设置–&gt;应用–&gt;应用和功能–&gt;可选功能–&gt;添加功能–&gt;OpenSSH服务器</li>
-<li>开启sshd服务：在HostA上，控制面板–&gt;系统和安全-&gt;管理工具–&gt;服务–&gt;OpenSSH SSH Server</li>
-<li>开启socks代理：ssh -f -N -D 0.0.0.0:1080 <a href="mailto:&#119;&#105;&#x6e;&#x31;&#x30;&#64;&#x31;&#50;&#x37;&#x2e;&#48;&#46;&#x30;&#46;&#x31;">&#119;&#105;&#x6e;&#x31;&#x30;&#64;&#x31;&#50;&#x37;&#x2e;&#48;&#46;&#x30;&#46;&#x31;</a>，此命令会在1080端口上开启sockets代理（关于如何使用ssh-key登录，可以参考这篇文章：<a target="_blank" rel="noopener" href="http://woshub.com/using-ssh-key-based-authentication-on-windows/">Configuring SSH Key-Based Authentication on Windows 10/ Server 2019</a>，并着重关注：** How to Login Windows Using SSH Key Under Local Admin? **）</li>
-</ol>
-<h3 id="问题解决："><a href="#问题解决：" class="headerlink" title="问题解决："></a>问题解决：</h3><ol>
-<li>受限场景1：SSH连接工具上设置socks代理，如图所示：<br> <a target="_blank" rel="noopener" href="https://imgtu.com/i/6QUzVI"><img src="https://s3.ax1x.com/2021/03/08/6QUzVI.png" alt="6QUzVI.png"></a></li>
-<li>受限场景2：到<strong>控制面板–&gt;Internet选项–&gt;连接–&gt;局域网设置–&gt;代理服务器–&gt;高级</strong> 里设置socks代理，然后使用IE访问蓝鲸运维平台<br> <a target="_blank" rel="noopener" href="https://imgtu.com/i/6QUvqA"><img src="https://s3.ax1x.com/2021/03/08/6QUvqA.png" alt="6QUvqA.png"></a></li>
-<li>受限场景3：由于jenkins slave机器是windows 7系统，本身没有集成OpenSSH Client组件，因此考虑在slave上安装ssh客户端，最终考虑使用git附带的Unix tools中的ssh功能（安装时需要把Unix tools加入环境变量），在<code>%USERPROFILE%/.ssh/config</code>内增加ProxyCommand命令行进行代理，命令如下：<code>ProxyCommand connect -S 10.12.28.114:1080 %h %p</code> 如果要是用http代理，需要把**-S<strong>改为</strong>-H**，回到jenkins配置界面，配置scp命令拷贝版本即可。</li>
+<ol start="4">
+<li><p>spring-data-mongodb实例化entity的算法如下所示：</p>
+<ul>
+<li>如果包含无参构造参数，则使用该构造函数，其他有参构造函数被忽视</li>
+<li>如果只有一个含有参数的构造函数，将该构造函数将会被使用</li>
+<li>如果有多个有参构造函数，那么含有<code>@PersistenceConstructor</code>注解的构造函数将会被使用。</li>
+</ul>
+</li>
 </ol>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://blog.gamedo.org/2020/05/11/Windows%E4%B8%8A%E6%90%AD%E5%BB%BASOCKS%E4%BB%A3%E7%90%86/" data-id="ckm7owigg0006s46ha9sa75m9" data-title="Windows上搭建SOCKS代理" class="article-share-link">分享</a>
+      <a data-url="http://blog.gamedo.org/2020/12/13/spring-data-mongodb%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" data-id="ckm7owigh0008s46hbqsw66xw" data-title="spring-data-mongodb源码阅读笔记" class="article-share-link">分享</a>
       
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SSH/" rel="tag">SSH</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Socks-Proxy/" rel="tag">Socks Proxy</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%BB%8F%E9%AA%8C%E7%A7%AF%E7%B4%AF/" rel="tag">经验积累</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringData/" rel="tag">SpringData</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringFramework/" rel="tag">SpringFramework</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%8C%81%E4%B9%85%E5%8C%96/" rel="tag">持久化</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" rel="tag">源码阅读</a></li></ul>
 
     </footer>
   </div>
@@ -138,19 +140,19 @@
     
 <nav id="article-nav">
   
-    <a href="/2020/05/11/SED%E5%91%BD%E4%BB%A4%E5%AE%9E%E8%B7%B5/" id="article-nav-newer" class="article-nav-link-wrap">
+    <a href="/2020/12/15/Maven%E9%A1%B9%E7%9B%AE%E5%BC%80%E6%BA%90%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97/" id="article-nav-newer" class="article-nav-link-wrap">
       <strong class="article-nav-caption">前一篇</strong>
       <div class="article-nav-title">
         
-          SED命令实践
+          Maven项目开源操作指南
         
       </div>
     </a>
   
   
-    <a href="/2020/03/15/C#%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2020/12/06/AQS%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">后一篇</strong>
-      <div class="article-nav-title">C#高级特性</div>
+      <div class="article-nav-title">AQS源码阅读笔记</div>
     </a>
   
 </nav>

@@ -4,15 +4,19 @@
   <meta charset="utf-8">
   
   
-  <title>标签: Linux | 听雨</title>
+  <title>C#高级特性 | 听雨</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="听雨">
-<meta property="og:url" content="http://blog.gamedo.org/tags/Linux/index.html">
+  <meta name="description" content="Conditional(“条件”) 可以优雅地替代宏定义  泛型类中的static字段和非泛型类的字段有所区别，后者中该static字段属于该类，而前者中该static字段仅属于该泛型类，例如Generic&lt;A&gt;.staticField和Generic&lt;B&gt;.staticField是不同的。对于这个特性，可以有比较进阶的用法，例如： 1234567public class">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C#高级特性">
+<meta property="og:url" content="http://blog.gamedo.org/2020/03/15/C#%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7/index.html">
 <meta property="og:site_name" content="听雨">
+<meta property="og:description" content="Conditional(“条件”) 可以优雅地替代宏定义  泛型类中的static字段和非泛型类的字段有所区别，后者中该static字段属于该类，而前者中该static字段仅属于该泛型类，例如Generic&lt;A&gt;.staticField和Generic&lt;B&gt;.staticField是不同的。对于这个特性，可以有比较进阶的用法，例如： 1234567public class">
 <meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-03-15T14:00:00.000Z">
+<meta property="article:modified_time" content="2021-03-13T11:36:40.939Z">
 <meta property="article:author" content="pcloves">
-<meta property="article:tag" content="GameDev">
+<meta property="article:tag" content="C#">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternate" href="/atom.xml" title="听雨" type="application/atom+xml">
@@ -70,39 +74,89 @@
 </header>
 
       <div class="outer">
-        <section id="main">
-  
-  
-    
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2020" class="archive-year">2020</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      <a href="/2020/05/11/SED%E5%91%BD%E4%BB%A4%E5%AE%9E%E8%B7%B5/" class="archive-article-date">
-  <time class="dt-published" datetime="2020-05-11T14:00:00.000Z" itemprop="datePublished">5月 11</time>
+        <section id="main"><article id="post-C#高级特性" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/03/15/C#%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7/" class="article-date">
+  <time class="dt-published" datetime="2020-03-15T14:00:00.000Z" itemprop="datePublished">2020-03-15</time>
 </a>
-      
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E6%B2%89%E6%B7%80/">技术沉淀</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2020/05/11/SED%E5%91%BD%E4%BB%A4%E5%AE%9E%E8%B7%B5/">SED命令实践</a>
+    <h1 class="p-name article-title" itemprop="headline name">
+      C#高级特性
     </h1>
   
 
-    </header>
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <ol>
+<li><p>Conditional(“条件”) 可以优雅地替代宏定义</p>
+</li>
+<li><p>泛型类中的static字段和非泛型类的字段有所区别，后者中该static字段属于该类，而前者中该static字段仅属于该泛型类，例如<code>Generic&lt;A&gt;.staticField</code>和<code>Generic&lt;B&gt;.staticField</code>是不同的。对于这个特性，可以有比较进阶的用法，例如：</p>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Foo</span> &#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="built_in">int</span> lastId;</span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Foo</span>&lt;<span class="title">T</span>&gt; : <span class="title">Foo</span> &#123; </span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="built_in">int</span> id = ++lastId;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>   那么对于每一个<code>Foo&lt;T&gt;</code>的子类，启id都是唯一的，从而实现id自我管理（而这里的泛型T只是被借壳而已，没有任何用处）。</p>
+</li>
+<li><p>使用<code>Type.MakeGenericType</code>，可以在运行时生成泛型类，这是一个java不具备的特性，举例：</p>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> type = <span class="keyword">typeof</span>(Dictionary&lt;,&gt;);</span><br><span class="line">Type[] typeArgs = &#123;<span class="keyword">typeof</span>(<span class="built_in">string</span>), <span class="keyword">typeof</span>(<span class="built_in">int</span>)&#125;;</span><br><span class="line"><span class="keyword">var</span> genericType = type.MakeGenericType(typeArgs)</span><br></pre></td></tr></table></figure></li>
+<li><p>default关键字：在泛型类和泛型方法中产生的一个问题，给定参数化类型 T 的一个变量 t，只有当 T 为引用类型时，语句 t = null 才有效；只有当 T 为数值类型而不是结构时，语句 t = 0 才能正常使用。 解决方案是使用default 关键字，此关键字对于引用类型会返回 null，对于数值类型会返回零。</p>
+</li>
+<li><p>对于<code>ManualResetEvent</code>：</p>
+<ol>
+<li><p>可以通过构造函数初始化为有信号或无信号状态。</p>
+</li>
+<li><p>当且仅当<code>ManualResetEvent</code>处于无信号状态时（也即Set没有被调用或者初始化为无信号状态），其他线程调用了<code>ManualResetEvent.WaitOne</code>才会被阻塞。</p>
+</li>
+<li><p>调用<code>ManualResetEvent.Reset</code>可以阻塞所有其他调用了<code>ManualResetEvent.WaitOne</code>的线程</p>
+</li>
+<li><p>应用场景：工作A和B需要并发执行，但是需要A执行完毕后再执行B。最佳实践：a、A线程（称之为<code>ManualResetEvent</code>控制线程）调用<code>ManualResetEvent.Reset</code>使之进入非信号状态；b、B线程（称之为被控制线程或等待线程？阻塞线程？）在适当位置调用<code>ManualResetEvent.WaitOne</code>等待信号；c、A线程调用ManualResetEvent.Set通知B线程继续执行。</p>
+</li>
+<li><p>可以通过实现一个public的无参的返回<code>IEnumerator</code>的<code>GetEnumerator()</code>为一个类扩展foreach语法，例如（<a target="_blank" rel="noopener" href="https://youtu.be/94ZElZQhu88?t=1782">详情</a>）：</p>
+   <figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> IEnumerator&lt;Tile&gt; <span class="title">GetEnumerator</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">  <span class="keyword">for</span>(<span class="built_in">int</span> x = <span class="number">0</span>; x &lt; <span class="keyword">this</span>.size.x; x++) &#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="built_in">int</span> y = <span class="number">0</span>; y &lt; <span class="keyword">this</span>.size.y; y++) &#123;</span><br><span class="line">      <span class="keyword">yield</span> <span class="keyword">return</span> <span class="keyword">this</span>[x, y];</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.gamedo.org/2020/03/15/C#%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7/" data-id="ckm7owigb0001s46hactj13aa" data-title="C#高级特性" class="article-share-link">分享</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C#</a></li></ul>
+
+    </footer>
   </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/05/11/Windows%E4%B8%8A%E6%90%AD%E5%BB%BASOCKS%E4%BB%A3%E7%90%86/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">前一篇</strong>
+      <div class="article-nav-title">
+        
+          Windows上搭建SOCKS代理
+        
+      </div>
+    </a>
+  
+  
+</nav>
+
+  
 </article>
-  
-  
-    </div></section>
-  
 
 
 </section>
