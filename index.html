@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>听雨</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="听雨">
+<meta property="og:url" content="http://blog.gamedo.org/index.html">
+<meta property="og:site_name" content="听雨">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="pcloves">
+<meta property="article:tag" content="GameDev">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="听雨" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">听雨</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS 订阅"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="搜索"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://blog.gamedo.org"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-Windows上搭建SOCKS代理" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/12/10/Windows%E4%B8%8A%E6%90%AD%E5%BB%BASOCKS%E4%BB%A3%E7%90%86/" class="article-date">
+  <time class="dt-published" datetime="2021-12-10T03:00:00.000Z" itemprop="datePublished">2021-12-10</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E8%BF%90%E7%BB%B4%E6%8A%80%E6%9C%AF/">运维技术</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/12/10/Windows%E4%B8%8A%E6%90%AD%E5%BB%BASOCKS%E4%BB%A3%E7%90%86/">Windows上搭建SOCKS代理</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h4 id="问题提出："><a href="#问题提出：" class="headerlink" title="问题提出："></a>问题提出：</h4><p>驻厂深圳后，办公地点的网络不再是专线，因此IP不再是固定的，而是由运营商动态分配，而线上某些业务都开启了IP白名单，如果仍然通过添加白名单的方式，那么将会非常麻烦。总结一下受限的业务场景，包括：</p>
+<ol>
+<li>ssh连接腾讯云服务器</li>
+<li>http访问蓝鲸运维平台</li>
+<li>Jenkins Slave（Windows 7）服务器拷贝服务器版本到腾讯云</li>
+</ol>
+<h3 id="方案思路："><a href="#方案思路：" class="headerlink" title="方案思路："></a>方案思路：</h3><p>考虑到ssh提供了socks代理，因此可以在北京公司部署一台固定IP且已经加入IP白名单的服务器（假设为HostA，IP为：10.12.28.114，OS为Windows 10），然后开启socks代理，受限业务的流量都通过socks代理。</p>
+<h3 id="方案实施："><a href="#方案实施：" class="headerlink" title="方案实施："></a>方案实施：</h3><ol>
+<li>安装OpenSSH（windows 10 version 1803及以后的版本已经集成），在HostA上：设置–&gt;应用–&gt;应用和功能–&gt;可选功能–&gt;添加功能–&gt;OpenSSH服务器</li>
+<li>开启sshd服务：在HostA上，控制面板–&gt;系统和安全-&gt;管理工具–&gt;服务–&gt;OpenSSH SSH Server</li>
+<li>开启socks代理：ssh -f -N -D 0.0.0.0:1080 <a href="mailto:&#119;&#105;&#110;&#x31;&#48;&#x40;&#x31;&#x32;&#x37;&#x2e;&#x30;&#46;&#x30;&#x2e;&#x31;">&#119;&#105;&#110;&#x31;&#48;&#x40;&#x31;&#x32;&#x37;&#x2e;&#x30;&#46;&#x30;&#x2e;&#x31;</a>，此命令会在1080端口上开启sockets代理（关于如何使用ssh-key登录，可以参考这篇文章：<a target="_blank" rel="noopener" href="http://woshub.com/using-ssh-key-based-authentication-on-windows/">Configuring SSH Key-Based Authentication on Windows 10/ Server 2019</a>，并着重关注：** How to Login Windows Using SSH Key Under Local Admin? **）</li>
+</ol>
+<h3 id="问题解决："><a href="#问题解决：" class="headerlink" title="问题解决："></a>问题解决：</h3><ol>
+<li>受限场景1：SSH连接工具上设置socks代理，如图所示：<br><a target="_blank" rel="noopener" href="https://imgtu.com/i/6QUzVI"><img src="https://s3.ax1x.com/2021/03/08/6QUzVI.png" alt="6QUzVI.png"></a></li>
+<li>受限场景2：到<strong>控制面板–&gt;Internet选项–&gt;连接–&gt;局域网设置–&gt;代理服务器–&gt;高级</strong> 里设置socks代理，然后使用IE或Edge浏览器访问蓝鲸运维平台<br><a target="_blank" rel="noopener" href="https://imgtu.com/i/6QUvqA"><img src="https://s3.ax1x.com/2021/03/08/6QUvqA.png" alt="6QUvqA.png"></a></li>
+<li>受限场景3：由于jenkins slave机器是windows 7系统，本身没有集成OpenSSH Client组件，因此考虑在slave上安装ssh客户端，最终考虑使用git附带的Unix tools中的ssh功能（安装时需要把Unix tools加入环境变量），在<code>%USERPROFILE%/.ssh/config</code>内增加ProxyCommand命令行进行代理，命令如下：<code>ProxyCommand connect -S 10.12.28.114:1080 %h %p</code> 如果要是用http代理，需要把**-S<strong>改为</strong>-H**，回到jenkins配置界面，配置scp命令拷贝版本即可。</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.gamedo.org/2021/12/10/Windows%E4%B8%8A%E6%90%AD%E5%BB%BASOCKS%E4%BB%A3%E7%90%86/" data-id="ckm7htvu00001f06hasmmdsu8" data-title="Windows上搭建SOCKS代理" class="article-share-link">分享</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SSH/" rel="tag">SSH</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Socks-Proxy/" rel="tag">Socks Proxy</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%BB%8F%E9%AA%8C%E7%A7%AF%E7%B4%AF/" rel="tag">经验积累</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-SED命令实践" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/03/01/SED%E5%91%BD%E4%BB%A4%E5%AE%9E%E8%B7%B5/" class="article-date">
+  <time class="dt-published" datetime="2020-02-29T16:00:00.000Z" itemprop="datePublished">2020-03-01</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E8%BF%90%E7%BB%B4%E6%8A%80%E6%9C%AF/">运维技术</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/03/01/SED%E5%91%BD%E4%BB%A4%E5%AE%9E%E8%B7%B5/">SED命令实践</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <ol>
+<li><p>sed命令执行时包含了若干个循环（cycle），而每个循环又包含若干个命令（command），完整的执行流程图为（<a target="_blank" rel="noopener" href="https://linux.cn/article-10232-1.html">图片来源</a>）：</p>
+<p><img src="https://img.linux.net.cn/data/attachment/album/201811/14/190635j1ycygaxrcj1vege.png" alt="The Sed execution model"></p>
+</li>
+<li><p><strong>tips:</strong> 如果sed语法的第一个字符是“/”，那么表示这是一个正则表达式的地址定位方式。（细品）</p>
+</li>
+<li><p>sed使用场景示例：</p>
+<blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3&#x27;</span> | sed <span class="string">&#x27;s/line/&quot;&amp;&quot;/g&#x27;</span> <span class="comment">#将所有的line加上双引号</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line\t1\nline\t2\nline\t3&#x27;</span> | sed -n <span class="string">&#x27;l&#x27;</span> <span class="comment">#显示文本中的控制字符</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3&#x27;</span> | sed -n <span class="string">&#x27;/1/=&#x27;</span> <span class="comment">#显示包含1的行的行号，输出：1</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 1\nline 2\nline 3&#x27;</span> | sed -n <span class="string">&#x27;$=&#x27;</span> <span class="comment">#显示总行数，输出：3</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#删除某几行文字（可以延伸到保留某几行，或删除或保留匹配的行）</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3&#x27;</span> | sed  <span class="string">&#x27;1d&#x27;</span> <span class="comment">#删除第1行</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3&#x27;</span> | sed -n <span class="string">&#x27;1!p&#x27;</span> <span class="comment">#功能同上</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#sed默认会将pattern space中的数据输出到屏幕，如果使用FLAG p，还会每次额外把current pattern space输出到屏幕，举例</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3&#x27;</span> | sed  <span class="string">&#x27;/.*/p&#x27;</span> <span class="comment">#匹配所有的字符，并且会把pattern space和current pattern space中的内容都输出到屏幕上，因此每一行文字都会重复输出两次</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3&#x27;</span> | sed -n <span class="string">&#x27;/1/p&#x27;</span> <span class="comment">#匹配包含“1”的行，但是-n选项会禁止pattern space输出到屏幕，而FLAG p又会把current pattern space中的内容都输出到屏幕上，因此屏幕上显示的是：line 1，也即实现了grep的功能。记住：option -n和command p是一家。</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#在日常工作中，经常需要使用sed进行替换（例如部署服务器时，进行模板变量的替换），而需求是屏幕上只输出被修改的行，可以使用FLAG w将修改内容输出的stdout，如下所示：</span></span><br><span class="line">☺  cat 1.txt</span><br><span class="line">123</span><br><span class="line">456</span><br><span class="line">789</span><br><span class="line">zhengtongshan@DESKTOP-R7DT0R0 /mnt/e/Tetris/src/1_Branches/rtm_tetris_zhugan</span><br><span class="line">☺  sed -i <span class="string">&#x27;s/1/s/gw /dev/stdout&#x27;</span> 1.txt</span><br><span class="line">s23</span><br><span class="line">zhengtongshan@DESKTOP-R7DT0R0 /mnt/e/Tetris/src/1_Branches/rtm_tetris_zhugan</span><br><span class="line">☺  cat 1.txt</span><br><span class="line">s23</span><br><span class="line">456</span><br><span class="line">789</span><br><span class="line"></span><br><span class="line"><span class="comment">#在日常工作中，会遇到将制定的两行合并为一行的情况，情景为：如果发现某行包含某个字符，则将下面一行和本行合并，如下面的例子，如果行的第一个字符为a，则将后面的一行合并过来</span></span><br><span class="line">☺  <span class="built_in">echo</span> <span class="string">&#x27;a\nb\nc\na\nb&#x27;</span>  |sed -e <span class="string">&#x27;/^a/N&#x27;</span> -e <span class="string">&#x27;s/\n//&#x27;</span></span><br><span class="line">ab</span><br><span class="line">c</span><br><span class="line">ab</span><br><span class="line"></span><br><span class="line"><span class="comment">#下面两个语句是等效的：（细品）</span></span><br><span class="line">man cp | sed <span class="string">&#x27;s/copy/&#123;&amp;&#125;/w cp.txt&#x27;</span>  <span class="comment">#将man page中的〝copy〞字串加上大括号〝&#123;&#125;〞，并将current pattern space写入“cp.txt”</span></span><br><span class="line">man cp | sed -n <span class="string">&#x27;s/copy/&#123;&amp;&#125;/p&#x27;</span> &gt; cp.txt</span><br><span class="line"></span><br><span class="line"><span class="comment">#多个FLAG可以叠加使用，但是和其他Linux指令一样，与文件有关的FLAG要放在最后</span></span><br><span class="line">man cp | sed <span class="string">&#x27;s/copy/&#123;&amp;&#125;/Igpw cp.txt&#x27;</span> <span class="comment">#不区分大小写（FLAG I）将每行	（FLAG g）的“copy”加上大括号（Command s），将pattern space输出到屏幕（FLAG p），并将current pattern space写入文件“cp.txt”(FLAG w)</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\n\nline 2\nline 3&#x27;</span> | sed  <span class="string">&#x27;/^$/d&#x27;</span> <span class="comment">#删除空白行</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3\nline 4&#x27;</span> | sed -e <span class="string">&#x27;N&#x27;</span> -e <span class="string">&#x27;N&#x27;</span> -e <span class="string">&#x27;s/\n/+/g&#x27;</span> <span class="comment">#用两次N连续读取两个下一行（此时pattern space里有三行），然后把换行符都换成+，执行完毕后，输出为：</span></span><br><span class="line">line 1+line 2+line 3</span><br><span class="line">line 4 </span><br></pre></td></tr></table></figure></blockquote>
+</li>
+<li><p>使用t label可以实现事务性的修改，比如两个替换要么同时进行，要么就都不做。</p>
+</li>
+<li><p>command n命令的流程是：1、如果没有配置地址或匹配则输出pattern space（如果不满足则跳过下一步）；2、然后读取下一行到pattern space。详情参考：<a target="_blank" rel="noopener" href="https://linux.cn/article-10232-1.html">Sed 命令完全指南</a>中的<strong>次行命令</strong>一节，例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3\nline 4\nline 5\nline 6&#x27;</span> | sed -e <span class="string">&#x27;n&#x27;</span> -e <span class="string">&#x27;n&#x27;</span> -ne <span class="string">&#x27;p&#x27;</span> <span class="comment">#当第1个n执行后，pattern space变成：line 2，当第2个n执行后，pattern space变成：line 3，然后执行p后，打印current pattern space：line 3，然后进入下一个循环，打印出：line 6，上述sed可以简写成：sed -ne &#x27;n;n;p&#x27;，此外我们发现p命令的n选项是一个全局选项，它对整个sed语句生效而不仅限于p命令自己</span></span><br></pre></td></tr></table></figure></li>
+<li><p>command N、D可以实现联合多行条件判断（例如：满足某一行有ID字符串，且下面两行分别包含NAME和ADDRESS字符串，则执行删除ID行的操作），实现更复杂的操作，如果不使用command N、D，那么sed的操作仅限于行内。</p>
+</li>
+<li><p>command D为删除current pattern space的第一个字符到换行，而command P类似，只是将删除变为打印。</p>
+</li>
+<li><p>command c和s的区别在于，前者是整行替换，后者还需要指定要替换的pattern。</p>
+</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://blog.gamedo.org/2020/03/01/SED%E5%91%BD%E4%BB%A4%E5%AE%9E%E8%B7%B5/" data-id="ckm7htvtw0000f06hcb0kaerd" data-title="SED命令实践" class="article-share-link">分享</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SED/" rel="tag">SED </a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%BF%90%E7%BB%B4%E6%8A%80%E6%9C%AF/">运维技术</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SED/" rel="tag">SED </a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SSH/" rel="tag">SSH</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Socks-Proxy/" rel="tag">Socks Proxy</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BB%8F%E9%AA%8C%E7%A7%AF%E7%B4%AF/" rel="tag">经验积累</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Linux/" style="font-size: 10px;">Linux</a> <a href="/tags/SED/" style="font-size: 10px;">SED </a> <a href="/tags/SSH/" style="font-size: 10px;">SSH</a> <a href="/tags/Socks-Proxy/" style="font-size: 10px;">Socks Proxy</a> <a href="/tags/%E7%BB%8F%E9%AA%8C%E7%A7%AF%E7%B4%AF/" style="font-size: 10px;">经验积累</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">十二月 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">三月 2020</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/12/10/Windows%E4%B8%8A%E6%90%AD%E5%BB%BASOCKS%E4%BB%A3%E7%90%86/">Windows上搭建SOCKS代理</a>
+          </li>
+        
+          <li>
+            <a href="/2020/03/01/SED%E5%91%BD%E4%BB%A4%E5%AE%9E%E8%B7%B5/">SED命令实践</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2021 pcloves<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
