@@ -953,6 +953,96 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2020/05/11/Windows%E4%B8%8A%E6%90%AD%E5%BB%BASOCKS%E4%BB%A3%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="临江听雨">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="听雨">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/05/11/Windows%E4%B8%8A%E6%90%AD%E5%BB%BASOCKS%E4%BB%A3%E7%90%86/" class="post-title-link" itemprop="url">Windows上搭建SOCKS代理</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-05-11 22:00:00" itemprop="dateCreated datePublished" datetime="2020-05-11T22:00:00+08:00">2020-05-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-03-13 19:27:42" itemprop="dateModified" datetime="2021-03-13T19:27:42+08:00">2021-03-13</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%AE%9E%E8%B7%B5%E7%BB%8F%E9%AA%8C/" itemprop="url" rel="index"><span itemprop="name">实践经验</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="问题提出："><a href="#问题提出：" class="headerlink" title="问题提出："></a>问题提出：</h4><p>驻厂深圳后，办公地点的网络不再是专线，因此IP不再是固定的，而是由运营商动态分配，而线上某些业务都开启了IP白名单，如果仍然通过添加白名单的方式，那么将会非常麻烦。总结一下受限的业务场景，包括：</p>
+<ol>
+<li>ssh连接腾讯云服务器</li>
+<li>http访问蓝鲸运维平台</li>
+<li>Jenkins Slave（Windows 7）服务器拷贝服务器版本到腾讯云</li>
+</ol>
+<h3 id="方案思路："><a href="#方案思路：" class="headerlink" title="方案思路："></a>方案思路：</h3><p>考虑到ssh提供了socks代理，因此可以在北京公司部署一台固定IP且已经加入IP白名单的服务器（假设为HostA，IP为：10.12.28.114，OS为Windows 10），然后开启socks代理，受限业务的流量都通过socks代理。</p>
+<h3 id="方案实施："><a href="#方案实施：" class="headerlink" title="方案实施："></a>方案实施：</h3><ol>
+<li>安装OpenSSH（windows 10 version 1803及以后的版本已经集成），在HostA上：设置–&gt;应用–&gt;应用和功能–&gt;可选功能–&gt;添加功能–&gt;OpenSSH服务器</li>
+<li>开启sshd服务：在HostA上，控制面板–&gt;系统和安全-&gt;管理工具–&gt;服务–&gt;OpenSSH SSH Server</li>
+<li>开启socks代理：ssh -f -N -D 0.0.0.0:1080 <a href="mailto:&#119;&#105;&#x6e;&#49;&#48;&#x40;&#x31;&#x32;&#55;&#x2e;&#48;&#46;&#48;&#x2e;&#49;">&#119;&#105;&#x6e;&#49;&#48;&#x40;&#x31;&#x32;&#55;&#x2e;&#48;&#46;&#48;&#x2e;&#49;</a>，此命令会在1080端口上开启sockets代理（关于如何使用ssh-key登录，可以参考这篇文章：<a target="_blank" rel="noopener" href="http://woshub.com/using-ssh-key-based-authentication-on-windows/">Configuring SSH Key-Based Authentication on Windows 10/ Server 2019</a>，并着重关注：** How to Login Windows Using SSH Key Under Local Admin? **）</li>
+</ol>
+<h3 id="问题解决："><a href="#问题解决：" class="headerlink" title="问题解决："></a>问题解决：</h3><ol>
+<li>受限场景1：SSH连接工具上设置socks代理，如图所示：<br> <a target="_blank" rel="noopener" href="https://imgtu.com/i/6QUzVI"><img src="https://s3.ax1x.com/2021/03/08/6QUzVI.png" alt="6QUzVI.png"></a></li>
+<li>受限场景2：到<strong>控制面板–&gt;Internet选项–&gt;连接–&gt;局域网设置–&gt;代理服务器–&gt;高级</strong> 里设置socks代理，然后使用IE访问蓝鲸运维平台<br> <a target="_blank" rel="noopener" href="https://imgtu.com/i/6QUvqA"><img src="https://s3.ax1x.com/2021/03/08/6QUvqA.png" alt="6QUvqA.png"></a></li>
+<li>受限场景3：由于jenkins slave机器是windows 7系统，本身没有集成OpenSSH Client组件，因此考虑在slave上安装ssh客户端，最终考虑使用git附带的Unix tools中的ssh功能（安装时需要把Unix tools加入环境变量），在<code>%USERPROFILE%/.ssh/config</code>内增加ProxyCommand命令行进行代理，命令如下：<code>ProxyCommand connect -S 10.12.28.114:1080 %h %p</code> 如果要是用http代理，需要把**-S<strong>改为</strong>-H**，回到jenkins配置界面，配置scp命令拷贝版本即可。</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2020/05/11/SED%E5%91%BD%E4%BB%A4%E5%AE%9E%E8%B7%B5/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1027,96 +1117,6 @@
 </li>
 <li><p>command c和s的区别在于，前者是整行替换，后者还需要指定要替换的pattern。</p>
 </li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2020/05/11/Windows%E4%B8%8A%E6%90%AD%E5%BB%BASOCKS%E4%BB%A3%E7%90%86/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="临江听雨">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="听雨">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/05/11/Windows%E4%B8%8A%E6%90%AD%E5%BB%BASOCKS%E4%BB%A3%E7%90%86/" class="post-title-link" itemprop="url">Windows上搭建SOCKS代理</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-05-11 22:00:00" itemprop="dateCreated datePublished" datetime="2020-05-11T22:00:00+08:00">2020-05-11</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-13 19:27:42" itemprop="dateModified" datetime="2021-03-13T19:27:42+08:00">2021-03-13</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%AE%9E%E8%B7%B5%E7%BB%8F%E9%AA%8C/" itemprop="url" rel="index"><span itemprop="name">实践经验</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="问题提出："><a href="#问题提出：" class="headerlink" title="问题提出："></a>问题提出：</h4><p>驻厂深圳后，办公地点的网络不再是专线，因此IP不再是固定的，而是由运营商动态分配，而线上某些业务都开启了IP白名单，如果仍然通过添加白名单的方式，那么将会非常麻烦。总结一下受限的业务场景，包括：</p>
-<ol>
-<li>ssh连接腾讯云服务器</li>
-<li>http访问蓝鲸运维平台</li>
-<li>Jenkins Slave（Windows 7）服务器拷贝服务器版本到腾讯云</li>
-</ol>
-<h3 id="方案思路："><a href="#方案思路：" class="headerlink" title="方案思路："></a>方案思路：</h3><p>考虑到ssh提供了socks代理，因此可以在北京公司部署一台固定IP且已经加入IP白名单的服务器（假设为HostA，IP为：10.12.28.114，OS为Windows 10），然后开启socks代理，受限业务的流量都通过socks代理。</p>
-<h3 id="方案实施："><a href="#方案实施：" class="headerlink" title="方案实施："></a>方案实施：</h3><ol>
-<li>安装OpenSSH（windows 10 version 1803及以后的版本已经集成），在HostA上：设置–&gt;应用–&gt;应用和功能–&gt;可选功能–&gt;添加功能–&gt;OpenSSH服务器</li>
-<li>开启sshd服务：在HostA上，控制面板–&gt;系统和安全-&gt;管理工具–&gt;服务–&gt;OpenSSH SSH Server</li>
-<li>开启socks代理：ssh -f -N -D 0.0.0.0:1080 <a href="mailto:&#119;&#105;&#x6e;&#49;&#48;&#64;&#49;&#x32;&#55;&#46;&#x30;&#46;&#48;&#x2e;&#49;">&#119;&#105;&#x6e;&#49;&#48;&#64;&#49;&#x32;&#55;&#46;&#x30;&#46;&#48;&#x2e;&#49;</a>，此命令会在1080端口上开启sockets代理（关于如何使用ssh-key登录，可以参考这篇文章：<a target="_blank" rel="noopener" href="http://woshub.com/using-ssh-key-based-authentication-on-windows/">Configuring SSH Key-Based Authentication on Windows 10/ Server 2019</a>，并着重关注：** How to Login Windows Using SSH Key Under Local Admin? **）</li>
-</ol>
-<h3 id="问题解决："><a href="#问题解决：" class="headerlink" title="问题解决："></a>问题解决：</h3><ol>
-<li>受限场景1：SSH连接工具上设置socks代理，如图所示：<br> <a target="_blank" rel="noopener" href="https://imgtu.com/i/6QUzVI"><img src="https://s3.ax1x.com/2021/03/08/6QUzVI.png" alt="6QUzVI.png"></a></li>
-<li>受限场景2：到<strong>控制面板–&gt;Internet选项–&gt;连接–&gt;局域网设置–&gt;代理服务器–&gt;高级</strong> 里设置socks代理，然后使用IE访问蓝鲸运维平台<br> <a target="_blank" rel="noopener" href="https://imgtu.com/i/6QUvqA"><img src="https://s3.ax1x.com/2021/03/08/6QUvqA.png" alt="6QUvqA.png"></a></li>
-<li>受限场景3：由于jenkins slave机器是windows 7系统，本身没有集成OpenSSH Client组件，因此考虑在slave上安装ssh客户端，最终考虑使用git附带的Unix tools中的ssh功能（安装时需要把Unix tools加入环境变量），在<code>%USERPROFILE%/.ssh/config</code>内增加ProxyCommand命令行进行代理，命令如下：<code>ProxyCommand connect -S 10.12.28.114:1080 %h %p</code> 如果要是用http代理，需要把**-S<strong>改为</strong>-H**，回到jenkins配置界面，配置scp命令拷贝版本即可。</li>
 </ol>
 
       
