@@ -151,6 +151,126 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2021/03/22/gamedo.persistence%E6%8C%81%E4%B9%85%E5%8C%96%E6%A1%86%E6%9E%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="临江听雨">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="听雨">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/03/22/gamedo.persistence%E6%8C%81%E4%B9%85%E5%8C%96%E6%A1%86%E6%9E%B6/" class="post-title-link" itemprop="url">gamedo.persistence持久化框架</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-03-22 13:00:00 / 修改时间：12:58:30" itemprop="dateCreated datePublished" datetime="2021-03-22T13:00:00+08:00">2021-03-22</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%AE%9E%E8%B7%B5%E7%BB%8F%E9%AA%8C/" itemprop="url" rel="index"><span itemprop="name">实践经验</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%AE%9E%E8%B7%B5%E7%BB%8F%E9%AA%8C/%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91/" itemprop="url" rel="index"><span itemprop="name">游戏开发</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p><img src="https://img.shields.io/github/license/pcloves/gamedo.persistence?style=flat-square" alt="GitHub"><img src="https://img.shields.io/github/v/tag/pcloves/gamedo.persistence?style=flat-square" alt="GitHub tag (latest by date)"><img src="https://img.shields.io/maven-central/v/org.gamedo/persistence?style=flat-square" alt="Maven Central"><img src="https://img.shields.io/github/workflow/status/pcloves/gamedo.persistence/Java%20CI%20with%20Maven?style=flat-square" alt="GitHub Workflow Status"></p>
+<h1 id="gamedo-persistence"><a href="#gamedo-persistence" class="headerlink" title="gamedo.persistence"></a>gamedo.persistence</h1><p>gamedo.persistence是gamedo游戏服务器框架的持久化模块。它底层依赖于spring-data-mongodb，致力于构建一个 <strong>高性能、简单易用、易于维护</strong> 的游戏服务器持久化模块。同时，gamedo.persistence吸收了ECS设计模式的思想，也即：“组合优于继承”（这也是开发中的gamedo.ecs模块的一大个特性）。通过对底层的设计，将游戏持久化对象数据约束为Entity-Components（也即一个实体由多个组件组合而成）的形式，从而统一团队成员对于游戏对象数据的规范化设计和使用。</p>
+<h2 id="开始使用"><a href="#开始使用" class="headerlink" title="开始使用"></a>开始使用</h2><h3 id="Maven配置"><a href="#Maven配置" class="headerlink" title="Maven配置"></a>Maven配置</h3><p>增加Maven依赖：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.gamedo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>persistence<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.2.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="使用说明"><a href="#使用说明" class="headerlink" title="使用说明"></a>使用说明</h3><ol>
+<li>定义游戏对象数据使之继承自<strong>EntityDbData</strong>，并使用 <strong>@Document</strong>注解来指定该持久化对象数据要持久化到MongoDB的哪一个Document中，一般情况下，该类内不再增加新的成员变量，因为数据应该存储在<strong>ComponentDbData</strong>的子类中，例如定义个玩家类：</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Document(&quot;player&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">EntityDbPlayer</span> <span class="keyword">extends</span> <span class="title">EntityDbData</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">EntityDbPlayer</span><span class="params">(String id, Map&lt;String, ComponentDbData&gt; componentDbDataMap)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(id, componentDbDataMap);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>根据开发需求，定义不同的组件数据类，也即是 <strong>ComponentDbData</strong>的子类，并使用和<strong>EntityDbPlayer</strong>相同的 <strong>@Document</strong>注解，确保被持久化到同一个Document中，例如定义一个背包类</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@EqualsAndHashCode(callSuper = true)</span></span><br><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="meta">@Document(&quot;player&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ComponentDbBag</span> <span class="keyword">extends</span> <span class="title">ComponentDbData</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">final</span> List&lt;Integer&gt; itemList = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ComponentDbBag</span><span class="params">(<span class="keyword">final</span> List&lt;Integer&gt; itemList)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.itemList.addAll(itemList != <span class="keyword">null</span> ? itemList : Collections.emptyList());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>定义<strong>EntityDbPlayer</strong>的转换器（属于样板代码，不需要实现逻辑），由于gamedo.persistence在设计过程中，使用了使用了自定义转换器对EntityDbData类进行序列化和反序列化，因此其子类也需要继承 <strong>AbstractEntityDbDataReadingConverter</strong>和 <strong>AbstractEntityDbDataWritingConverter</strong>并加上**@Component**注解，目的可以正确加载到spring的IOC容器中</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@ReadingConverter</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">EntityDbPlayerReadingConverter</span> <span class="keyword">extends</span> <span class="title">AbstractEntityDbDataReadingConverter</span>&lt;<span class="title">EntityDbPlayer</span>&gt; </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">EntityDbPlayerReadingConverter</span><span class="params">(MongoConfiguration configuration)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(configuration);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@WritingConverter</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">EntityDbPlayerWriterConverter</span> <span class="keyword">extends</span> <span class="title">AbstractEntityDbDataWritingConverter</span>&lt;<span class="title">EntityDbPlayer</span>&gt; </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">EntityDbPlayerWriterConverter</span><span class="params">(MongoConfiguration configuration)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(configuration);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>搞定！接下来就是使用gamedo.persistence了</li>
+</ol>
+ <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="meta">@SpringBootApplication(scanBasePackages = &#123;&quot;org.gamedo&quot;, &quot;org.gamedo.persistence&quot;&#125;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Application</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> ConfigurableApplicationContext applicationContext = SpringApplication.run(Application.class, args);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//1、从容器中获取DbDataMongoTemplate（不能通过new操作符获取DbDataMongoTemplate，否则不具有异步持久化能力）</span></span><br><span class="line">        <span class="keyword">final</span> DbDataMongoTemplate dataMongoTemplate = applicationContext.getBean(DbDataMongoTemplate.class);</span><br><span class="line">        <span class="comment">//2、创建一个玩家持久化对象类：EntityDbPlayer</span></span><br><span class="line">        <span class="keyword">final</span> EntityDbPlayer entityDbPlayer = <span class="keyword">new</span> EntityDbPlayer(<span class="keyword">new</span> ObjectId().toString(), <span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//3、为该持久化对象数据增加一个组件数据：ComponentDbData</span></span><br><span class="line">        entityDbPlayer.addComponentDbData(<span class="keyword">new</span> ComponentDbBag(<span class="keyword">new</span> ArrayList&lt;&gt;()));</span><br><span class="line"></span><br><span class="line">        <span class="comment">//4、调用同步save函数，将完整的EntityDbPlayer持久化到MongoDB中，同样可以调用dataMongoTemplate.saveAsync(entityDbPlayer)</span></span><br><span class="line">        <span class="comment">//实现异步存储，可以参考接下来的示例，当然，仍然可以使用spring-data-mongodb提供的MongoTemplate也是可以的</span></span><br><span class="line">        dataMongoTemplate.save(entityDbPlayer);</span><br><span class="line">        <span class="comment">//4.1、调用异步save函数，该方法会把entityDbPlayer安全地发布到db线程后，就直接返回。</span></span><br><span class="line">        dataMongoTemplate.saveAsync(entityDbPlayer);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        <span class="comment">//接下来是gamedo.persistence提供的增量更新功能------------------------------------------------------------------</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//5、获取组件数据</span></span><br><span class="line">        <span class="keyword">final</span> ComponentDbBag componentDbData = entityDbPlayer.getComponentDbData(ComponentDbBag.class);</span><br><span class="line">        <span class="comment">//6、修改数据</span></span><br><span class="line">        componentDbData.getItemList().add(<span class="number">1</span>);</span><br><span class="line">        <span class="comment">//7、对修改的变量进行标脏</span></span><br><span class="line">        componentDbData.setDirty(<span class="string">&quot;itemList&quot;</span>, componentDbData.getItemList());</span><br><span class="line">        <span class="comment">//8、进行异步更新，并通过CompletableFuture检查执行结果</span></span><br><span class="line">        <span class="keyword">final</span> CompletableFuture&lt;UpdateResult&gt; future = dataMongoTemplate.updateFirstAsync(componentDbData);</span><br><span class="line">        <span class="comment">//9、如果比较关心结果，可以检查执行结果，如果不关心的话，这一步可以省略掉，直接执行接下来的操作</span></span><br><span class="line">        future.whenCompleteAsync((result, t) -&gt; &#123;</span><br><span class="line">            <span class="keyword">if</span> (t != <span class="keyword">null</span>) &#123;</span><br><span class="line">                log.error(<span class="string">&quot;&quot;</span>, t);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                log.info(<span class="string">&quot;update async finish, result:&#123;&#125;&quot;</span>, result);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            applicationContext.close();</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        log.info(<span class="string">&quot;application run finish.&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当执行完第4步后，MongoDB中数据为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123; </span><br><span class="line">    &quot;_id&quot; : ObjectId(&quot;604f485ce3d58d6ff1fd6f1f&quot;), </span><br><span class="line">    &quot;_class&quot; : &quot;org.gamedo.db.EntityDbPlayer&quot;, </span><br><span class="line">    &quot;ComponentDbBag&quot; : &#123;</span><br><span class="line">        &quot;itemList&quot; : [], </span><br><span class="line">        &quot;_class&quot; : &quot;org.gamedo.db.ComponentDbBag&quot;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第5<del>9步骤属于gamedo.persistence提供的<strong>异步</strong>的<strong>局部增量更新</strong>的特性，在团队协作开发中，一般会把第8</del>9步封装到一个单独的模块中，进行统一的持久化操作，比如每隔5秒检查 **DbData.isDirty()**，并进行异步局部增量更新，而对于上层使用者只需要进行标脏操作即可。</p>
+<p>当程序运行结束后，MongoDB中数据为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123; </span><br><span class="line">    &quot;_id&quot; : ObjectId(&quot;604f485ce3d58d6ff1fd6f1f&quot;), </span><br><span class="line">    &quot;_class&quot; : &quot;org.gamedo.db.EntityDbPlayer&quot;, </span><br><span class="line">    &quot;ComponentDbBag&quot; : &#123;</span><br><span class="line">        &quot;itemList&quot; : [ NumberInt(1) ], </span><br><span class="line">        &quot;_class&quot; : &quot;org.gamedo.db.ComponentDbBag&quot;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过对比可知，文档中仅仅ComponentDbBag.itemList里增加了一个NumberInt(1)，而控制台日志输出为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">2021-03-16 15:21:05.265  INFO 36044 --- [           main] org.gamedo.Application                   : application run finish.</span><br><span class="line">2021-03-16 15:21:05.275  INFO 36044 --- [nPool-worker-19] org.gamedo.Application                   : updateFirstAsync finish, result:AcknowledgedUpdateResult&#123;matchedCount&#x3D;1, modifiedCount&#x3D;1, upsertedId&#x3D;null&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过日志可知：</p>
+<ol>
+<li>持久化发生在nPool-worker-19线程，而非main主线程</li>
+<li>持久化日志在主线程日志之后打印，也即不会阻塞main主线程的业务逻辑</li>
+</ol>
+<h2 id="设计思想"><a href="#设计思想" class="headerlink" title="设计思想"></a>设计思想</h2><h3 id="ECS：组合优于继承"><a href="#ECS：组合优于继承" class="headerlink" title="ECS：组合优于继承"></a>ECS：组合优于继承</h3><p>在gamedo.persistence中，游戏持久化对象数据被定义为：EntityDbData。它对应于ECS中的E（Entity），并且和ECS中的Entity相同的是：EntityDbData仅仅只是一个数据容器（当然，如果非得在EntityDbData的子类内增加成员变量也是可以的），真正要存储的数据都放在ComponentDbData中，对应于ECS中的C（Component），同时，EntityDbData和ComponentDbData都实现了DbData接口，通过观察DbData接口的定义，可以知道：</p>
+<ul>
+<li>它包含一个String类型的Id，映射到MongoDB的Document的_id字段</li>
+<li>它包含一个更新器，代表着这个DbData内的属性都可以通过$set操作符进标脏</li>
+</ul>
+<p>在gamedo.persistence的实现中，EntityDbData中含有一个Map&lt;String, ComponentDbData&gt;的成员变量，其中Key为ComponentDbData所代表的java.lang.Class的getSimpleName()返回值，Value为ComponentDbData的子类实现。DbData、EntityDbData、ComponentDbData的继承关系如图所示：</p>
+<p><img src="https://raw.githubusercontent.com/pcloves/gamedo.persistence/main/images/gamedo.persistence.DbData-UML.png" alt="gamedo.persistence.DbData-UML.png"></p>
+<h3 id="高性能：化整为零"><a href="#高性能：化整为零" class="headerlink" title="高性能：化整为零"></a>高性能：化整为零</h3><p>在游戏服务器框架的持久化业务场景中，一般情况都是游戏逻辑线程负责对游戏持久化对象数据进行修改，而在另外一个线程（以下简称为db线程）对该持久化数据进行读操作，并将之持久化到db中。这样读写分离的操作是为了带来更好的性能，假设对于持久化数据的修改和持久化操作都在业务线程中，这将会极大地影响业务线程。而读写操作不在同一个线程也带来了java编程中最常见的多线程问题：内存可见性和并发竞争。总而言之，就是要解决如何将游戏持久化对象数据安全地发布到db线程中，一种经典的做法是先将持久化对象数据序列化成中间状态，发布到db线程后再反序列化为原来状态后执行持久化操作。而这种操作带来了一个缺点，就是：带来了无谓的性能损耗。当持久化对象数据非常大时，这种性能损耗将会更加明显，即使仅修改一个简单的成员变量，也要执行全局序列化/反序列化。</p>
+<p>由于gamedo.persistence模块的底层数据库是MongoDB，而后者提供了 <strong>“$set”</strong>操作符，这允许用户可以对MongoDB中文档（甚至是内嵌的文档）的字段进行局部更新，gamedo.persistence正是利用了这个特性，设计了一个线程安全的更新器（Updater），并为每个Entity和Component配备了一个独立的Updater， 并通过一系列的封装和设计，使之具有简单易用的特性。此外Updater内部使用了spring-data-mongodb的Update，当安全地发布到db线程后，可以直接执行持久化操作，而不会带来额外的性能反序列化性能开销。这种化整为零的拆分思想保证了只有需要更新的字段才会进行持久化操作，而无需进行无谓的全局序列化/反序列化。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2020/12/15/Maven%E9%A1%B9%E7%9B%AE%E5%BC%80%E6%BA%90%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -182,7 +302,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-13 20:12:49" itemprop="dateModified" datetime="2021-03-13T20:12:49+08:00">2021-03-13</time>
+                <time title="修改时间：2021-03-15 15:19:42" itemprop="dateModified" datetime="2021-03-15T15:19:42+08:00">2021-03-15</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -227,9 +347,9 @@
 <ol>
 <li><p>开发，开发，开发</p>
 </li>
-<li><p>发布snapshots版本：<code>mvn clean deploy -P nexus-release</code>（需要保证版本号以**-SNAPSHOT**结尾）</p>
+<li><p>发布snapshots版本：<code>mvn clean deploy -P nexus-release</code>（需要保证版本号以 <strong>-SNAPSHOT</strong> 结尾）</p>
 </li>
-<li><p>版本稳定，准备发布release版本，设置新版本：<code>export newVersion=1.0.0 &amp;&amp; mvn versions:set -DnewVersion=$&#123;newVersion&#125;</code>（该操作是去掉**-SNAPSHOT**后缀）</p>
+<li><p>版本稳定，准备发布release版本，设置新版本：<code>export newVersion=1.0.0 &amp;&amp; mvn versions:set -DnewVersion=$&#123;newVersion&#125;</code>（该操作是去掉 <strong>-SNAPSHOT</strong> 后缀）</p>
 </li>
 <li><p>发布新版本到nexus：<code>mvn clean deploy -P nexus-release</code>，由于<code>nexus-staging-maven-plugin</code>插件中的<code>autoReleaseAfterClose</code>设置为false，发布后会驻留在staging库，不会自动同步到release库</p>
 </li>
@@ -292,7 +412,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-13 19:37:15" itemprop="dateModified" datetime="2021-03-13T19:37:15+08:00">2021-03-13</time>
+                <time title="修改时间：2021-03-20 10:38:59" itemprop="dateModified" datetime="2021-03-20T10:38:59+08:00">2021-03-20</time>
               </span>
 
           
@@ -323,11 +443,37 @@
 </li>
 </ol>
 <ol start="4">
-<li><p>spring-data-mongodb实例化entity的算法如下所示：</p>
+<li><p>spring-data-mongodb实例化entity的算法如下所示（<a target="_blank" rel="noopener" href="https://docs.spring.io/spring-data/mongodb/docs/3.1.6/reference/html/#mapping.object-creation">原文地址</a>）：</p>
 <ul>
 <li>如果包含无参构造参数，则使用该构造函数，其他有参构造函数被忽视</li>
 <li>如果只有一个含有参数的构造函数，将该构造函数将会被使用</li>
 <li>如果有多个有参构造函数，那么含有<code>@PersistenceConstructor</code>注解的构造函数将会被使用。</li>
+</ul>
+</li>
+<li><p>在加载数据并创建领域对象时，Spring Data会在运行时生成对象工厂（继承自接口：<strong>ObjectInstantiator</strong>），并且调用领域对象的构造函数，而并没有使用反射，这提升了10%性能，但是如果要是用该特性必须满足以下条件（<a target="_blank" rel="noopener" href="https://docs.spring.io/spring-data/mongodb/docs/3.1.6/reference/html/#mapping.object-creation">原文地址</a>）：</p>
+<ul>
+<li>不能是私有类</li>
+<li>不是是非静态的内部类</li>
+<li>不能是CGLib代理类</li>
+<li>被Spring Data选中的构造函数不能是私有的</li>
+</ul>
+</li>
+<li><p>Spring Data给予的一般性建议（(原文地址)[<a target="_blank" rel="noopener" href="https://docs.spring.io/spring-data/mongodb/docs/3.1.6/reference/html/#mapping.general-recommendations]%EF%BC%89%EF%BC%9A">https://docs.spring.io/spring-data/mongodb/docs/3.1.6/reference/html/#mapping.general-recommendations]）：</a></p>
+<ul>
+<li>尽量使用不可变实体对象（<em>immutable objects</em>）</li>
+<li>如果无法将实体设计为不可变对象，那么提供一个全参构造函数，如此一来Spring Data可以将对象属性一次性赋值成功，从而跳过属性设置，最终获得最佳性能。</li>
+<li>全参构造函数可以提供最佳的性能，所以要尽量避免由于出现多个重载构造函数而使用*<code>@PersistenceConstructor</code>* 注解，而要防止多个重载的构造函数，那就尽量使用静态的工厂方法</li>
+<li>确保Spring Data的对象工厂（<em>instantiator</em> ）和属性访问器（<em>property accessor classes</em>）可以正常被使用，也即第5条的4个条件都要被满足</li>
+<li>对于标识符字段（也即将会被序列化为_id字段的属性），声明为final，并且优先使用全参构造函数，其次使用with…方法</li>
+<li>使用<em>Lombok</em> 来避免样板代码，并且使用*<code>@AllArgsConstructor</code>*来生成全参构造函数</li>
+</ul>
+</li>
+<li><p>Spring Data在映射层处理_id字段的规则</p>
+<ul>
+<li>如果类的成员变量被增加了<code>@Id</code> （<code>org.springframework.data.annotation.Id</code>）注解，那么将会被映射为MongoDB的_id字段</li>
+<li>如果类的成员变量没有<code>@Id</code>注解，但是被命名为id，那么也会被解析映射为_id字段</li>
+<li>作为标识符字段的默认类成员变量名_id，并且可以被<code>@Field</code>字段注解</li>
+<li></li>
 </ul>
 </li>
 </ol>
@@ -953,96 +1099,6 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2020/05/11/Windows%E4%B8%8A%E6%90%AD%E5%BB%BASOCKS%E4%BB%A3%E7%90%86/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="临江听雨">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="听雨">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/05/11/Windows%E4%B8%8A%E6%90%AD%E5%BB%BASOCKS%E4%BB%A3%E7%90%86/" class="post-title-link" itemprop="url">Windows上搭建SOCKS代理</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-05-11 22:00:00" itemprop="dateCreated datePublished" datetime="2020-05-11T22:00:00+08:00">2020-05-11</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-13 19:27:42" itemprop="dateModified" datetime="2021-03-13T19:27:42+08:00">2021-03-13</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%AE%9E%E8%B7%B5%E7%BB%8F%E9%AA%8C/" itemprop="url" rel="index"><span itemprop="name">实践经验</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="问题提出："><a href="#问题提出：" class="headerlink" title="问题提出："></a>问题提出：</h4><p>驻厂深圳后，办公地点的网络不再是专线，因此IP不再是固定的，而是由运营商动态分配，而线上某些业务都开启了IP白名单，如果仍然通过添加白名单的方式，那么将会非常麻烦。总结一下受限的业务场景，包括：</p>
-<ol>
-<li>ssh连接腾讯云服务器</li>
-<li>http访问蓝鲸运维平台</li>
-<li>Jenkins Slave（Windows 7）服务器拷贝服务器版本到腾讯云</li>
-</ol>
-<h3 id="方案思路："><a href="#方案思路：" class="headerlink" title="方案思路："></a>方案思路：</h3><p>考虑到ssh提供了socks代理，因此可以在北京公司部署一台固定IP且已经加入IP白名单的服务器（假设为HostA，IP为：10.12.28.114，OS为Windows 10），然后开启socks代理，受限业务的流量都通过socks代理。</p>
-<h3 id="方案实施："><a href="#方案实施：" class="headerlink" title="方案实施："></a>方案实施：</h3><ol>
-<li>安装OpenSSH（windows 10 version 1803及以后的版本已经集成），在HostA上：设置–&gt;应用–&gt;应用和功能–&gt;可选功能–&gt;添加功能–&gt;OpenSSH服务器</li>
-<li>开启sshd服务：在HostA上，控制面板–&gt;系统和安全-&gt;管理工具–&gt;服务–&gt;OpenSSH SSH Server</li>
-<li>开启socks代理：ssh -f -N -D 0.0.0.0:1080 <a href="mailto:&#119;&#105;&#x6e;&#49;&#48;&#x40;&#x31;&#x32;&#55;&#x2e;&#48;&#46;&#48;&#x2e;&#49;">&#119;&#105;&#x6e;&#49;&#48;&#x40;&#x31;&#x32;&#55;&#x2e;&#48;&#46;&#48;&#x2e;&#49;</a>，此命令会在1080端口上开启sockets代理（关于如何使用ssh-key登录，可以参考这篇文章：<a target="_blank" rel="noopener" href="http://woshub.com/using-ssh-key-based-authentication-on-windows/">Configuring SSH Key-Based Authentication on Windows 10/ Server 2019</a>，并着重关注：** How to Login Windows Using SSH Key Under Local Admin? **）</li>
-</ol>
-<h3 id="问题解决："><a href="#问题解决：" class="headerlink" title="问题解决："></a>问题解决：</h3><ol>
-<li>受限场景1：SSH连接工具上设置socks代理，如图所示：<br> <a target="_blank" rel="noopener" href="https://imgtu.com/i/6QUzVI"><img src="https://s3.ax1x.com/2021/03/08/6QUzVI.png" alt="6QUzVI.png"></a></li>
-<li>受限场景2：到<strong>控制面板–&gt;Internet选项–&gt;连接–&gt;局域网设置–&gt;代理服务器–&gt;高级</strong> 里设置socks代理，然后使用IE访问蓝鲸运维平台<br> <a target="_blank" rel="noopener" href="https://imgtu.com/i/6QUvqA"><img src="https://s3.ax1x.com/2021/03/08/6QUvqA.png" alt="6QUvqA.png"></a></li>
-<li>受限场景3：由于jenkins slave机器是windows 7系统，本身没有集成OpenSSH Client组件，因此考虑在slave上安装ssh客户端，最终考虑使用git附带的Unix tools中的ssh功能（安装时需要把Unix tools加入环境变量），在<code>%USERPROFILE%/.ssh/config</code>内增加ProxyCommand命令行进行代理，命令如下：<code>ProxyCommand connect -S 10.12.28.114:1080 %h %p</code> 如果要是用http代理，需要把**-S<strong>改为</strong>-H**，回到jenkins配置界面，配置scp命令拷贝版本即可。</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2020/05/11/SED%E5%91%BD%E4%BB%A4%E5%AE%9E%E8%B7%B5/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1137,6 +1193,96 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2020/05/11/Windows%E4%B8%8A%E6%90%AD%E5%BB%BASOCKS%E4%BB%A3%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="临江听雨">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="听雨">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/05/11/Windows%E4%B8%8A%E6%90%AD%E5%BB%BASOCKS%E4%BB%A3%E7%90%86/" class="post-title-link" itemprop="url">Windows上搭建SOCKS代理</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-05-11 22:00:00" itemprop="dateCreated datePublished" datetime="2020-05-11T22:00:00+08:00">2020-05-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-03-15 15:21:25" itemprop="dateModified" datetime="2021-03-15T15:21:25+08:00">2021-03-15</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%AE%9E%E8%B7%B5%E7%BB%8F%E9%AA%8C/" itemprop="url" rel="index"><span itemprop="name">实践经验</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h4 id="问题提出："><a href="#问题提出：" class="headerlink" title="问题提出："></a>问题提出：</h4><p>驻厂深圳后，办公地点的网络不再是专线，因此IP不再是固定的，而是由运营商动态分配，而线上某些业务都开启了IP白名单，如果仍然通过添加白名单的方式，那么将会非常麻烦。总结一下受限的业务场景，包括：</p>
+<ol>
+<li>ssh连接腾讯云服务器</li>
+<li>http访问蓝鲸运维平台</li>
+<li>Jenkins Slave（Windows 7）服务器拷贝服务器版本到腾讯云</li>
+</ol>
+<h3 id="方案思路："><a href="#方案思路：" class="headerlink" title="方案思路："></a>方案思路：</h3><p>考虑到ssh提供了socks代理，因此可以在北京公司部署一台固定IP且已经加入IP白名单的服务器（假设为HostA，IP为：10.12.28.114，OS为Windows 10），然后开启socks代理，受限业务的流量都通过socks代理。</p>
+<h3 id="方案实施："><a href="#方案实施：" class="headerlink" title="方案实施："></a>方案实施：</h3><ol>
+<li>安装OpenSSH（windows 10 version 1803及以后的版本已经集成），在HostA上：设置–&gt;应用–&gt;应用和功能–&gt;可选功能–&gt;添加功能–&gt;OpenSSH服务器</li>
+<li>开启sshd服务：在HostA上，控制面板–&gt;系统和安全-&gt;管理工具–&gt;服务–&gt;OpenSSH SSH Server</li>
+<li>开启socks代理：ssh -f -N -D 0.0.0.0:1080 <a href="mailto:&#119;&#105;&#110;&#49;&#48;&#64;&#x31;&#x32;&#x37;&#46;&#x30;&#46;&#48;&#46;&#x31;">&#119;&#105;&#110;&#49;&#48;&#64;&#x31;&#x32;&#x37;&#46;&#x30;&#46;&#48;&#46;&#x31;</a>，此命令会在1080端口上开启sockets代理（关于如何使用ssh-key登录，可以参考这篇文章：<a target="_blank" rel="noopener" href="http://woshub.com/using-ssh-key-based-authentication-on-windows/">Configuring SSH Key-Based Authentication on Windows 10/ Server 2019</a>，并着重关注： <strong>How to Login Windows Using SSH Key Under Local Admin?</strong> ）</li>
+</ol>
+<h3 id="问题解决："><a href="#问题解决：" class="headerlink" title="问题解决："></a>问题解决：</h3><ol>
+<li>受限场景1：SSH连接工具上设置socks代理，如图所示：<br> <a target="_blank" rel="noopener" href="https://imgtu.com/i/6QUzVI"><img src="https://s3.ax1x.com/2021/03/08/6QUzVI.png" alt="6QUzVI.png"></a></li>
+<li>受限场景2：到<strong>控制面板–&gt;Internet选项–&gt;连接–&gt;局域网设置–&gt;代理服务器–&gt;高级</strong> 里设置socks代理，然后使用IE访问蓝鲸运维平台<br> <a target="_blank" rel="noopener" href="https://imgtu.com/i/6QUvqA"><img src="https://s3.ax1x.com/2021/03/08/6QUvqA.png" alt="6QUvqA.png"></a></li>
+<li>受限场景3：由于jenkins slave机器是windows 7系统，本身没有集成OpenSSH Client组件，因此考虑在slave上安装ssh客户端，最终考虑使用git附带的Unix tools中的ssh功能（安装时需要把Unix tools加入环境变量），在<code>%USERPROFILE%/.ssh/config</code>内增加ProxyCommand命令行进行代理，命令如下：<code>ProxyCommand connect -S 10.12.28.114:1080 %h %p</code> 如果要是用http代理，需要把 <strong>-S</strong> 改为 <strong>-H</strong> ，回到jenkins配置界面，配置scp命令拷贝版本即可。</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2020/03/15/C#%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1151,7 +1297,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/03/15/C#%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7/" class="post-title-link" itemprop="url">C#高级特性</a>
+            <a href="/2020/03/15/C#%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7/" class="post-title-link" itemprop="url">C#高级特性拾遗</a>
         </h2>
 
         <div class="post-meta">
@@ -1168,7 +1314,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-13 19:36:40" itemprop="dateModified" datetime="2021-03-13T19:36:40+08:00">2021-03-13</time>
+                <time title="修改时间：2021-03-15 15:17:30" itemprop="dateModified" datetime="2021-03-15T15:17:30+08:00">2021-03-15</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1299,19 +1445,19 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-count">9</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-count">3</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-count">24</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
