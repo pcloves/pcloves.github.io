@@ -151,6 +151,454 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2021/04/06/spring%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="临江听雨">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="听雨">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/04/06/spring%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">spring启动流程分析</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-04-06 17:50:00" itemprop="dateCreated datePublished" datetime="2021-04-06T17:50:00+08:00">2021-04-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-07 11:54:08" itemprop="dateModified" datetime="2021-04-07T11:54:08+08:00">2021-04-07</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">SpringApplication-&gt;SpringApplication#SpringApplication: 1-构造函数</span><br><span class="line">SpringApplication#SpringApplication-&gt;SpringApplication#SpringApplication: 检测服务器类型</span><br><span class="line">SpringApplication#SpringApplication-&gt;SpringApplication#SpringApplication: 2-META-INF&#x2F;spring.factories</span><br><span class="line">SpringApplication#SpringApplication-&gt;SpringApplication#SpringApplication: 3-实例化初始化器、监听器等</span><br><span class="line">SpringApplication#SpringApplication-&gt;SpringApplication:</span><br><span class="line">SpringApplication-&gt;SpringApplication#run:</span><br><span class="line">SpringApplication#run-&gt;DefaultBootstrapContext: new DefaultBootstrapContext()</span><br><span class="line">SpringApplication#run-&gt;SpringApplicationRunListener:starting</span><br><span class="line">SpringApplication#run-&gt;SpringApplication#run:prepareEnvironment</span><br><span class="line">SpringApplication#run-&gt;SpringApplicationRunListener:environmentPrepared</span><br><span class="line">SpringApplication#run-&gt;AbstractApplicationContext:createApplicationContext</span><br><span class="line">SpringApplication#run-&gt;SpringApplication#run:4-prepareContext</span><br><span class="line">SpringApplication#run-&gt;ApplicationContextInitializer:5-initialize(ConfigurableApplicationContext applicationContext)</span><br><span class="line">SpringApplication#run-&gt;SpringApplicationRunListener:contextPrepared</span><br><span class="line">SpringApplication#run-&gt;SpringApplication#run:load</span><br><span class="line">SpringApplication#run-&gt;SpringApplicationRunListener:contextLoaded</span><br><span class="line">SpringApplication#run-&gt;AbstractApplicationContext:refresh</span><br><span class="line">AbstractApplicationContext-&gt;AbstractApplicationContext: prepareBeanFactory</span><br><span class="line">AbstractApplicationContext-&gt;AbstractApplicationContext: 6-invokeBeanFactoryPostProcessors</span><br><span class="line">AbstractApplicationContext-&gt;AbstractApplicationContext: XXX一大堆东西，偷懒不写，改天补上</span><br><span class="line">SpringApplication#run-&gt;SpringApplicationRunListener:started</span><br><span class="line">SpringApplication#run-&gt;SpringApplication#run:7-callRunners</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>1-SpringApplication(ResourceLoader, Class&lt;?&gt;[])</li>
+<li>2-读取classpath下所有jar包内META-INF/spring.factories文件</li>
+<li>3-实例化：Bootstrapper、ApplicationContextInitializer、ApplicationListener</li>
+<li>5-这一步的最佳实践是：调用入参applicationContext的addBeanFactoryPostProcessor函数，也即注册自定义的BeanFactoryPostProcessor</li>
+<li>6-这一步中，会遍历AbstractApplicationContext内的列表：beanFactoryPostProcessors，并且当且仅当某一个BeanFactoryPostProcessor同时还是BeanDefinitionRegistryPostProcessor时，才会执行BeanDefinitionRegistryPostProcessor#postProcessBeanDefinitionRegistry，这两个接口的继承关系如图所示（beanFactoryPostProcessors列表的添加时机可以看上面第5步）：</li>
+</ul>
+<p><img src="https://ftp.bmp.ovh/imgs/2021/04/d222851e2b7a29ce.png"></p>
+<ul>
+<li>7-先调用所有的ApplicationRunner，再调用所有的CommandLineRunner</li>
+</ul>
+<p>spring bean生命周期（来源：<a target="_blank" rel="noopener" href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/beans/factory/BeanFactory.html">spring docs</a>）：</p>
+<ol>
+<li>BeanNameAware’s setBeanName</li>
+<li>BeanClassLoaderAware’s setBeanClassLoader</li>
+<li>BeanFactoryAware’s setBeanFactory</li>
+<li>EnvironmentAware’s setEnvironment</li>
+<li>EmbeddedValueResolverAware’s setEmbeddedValueResolver</li>
+<li>ResourceLoaderAware’s setResourceLoader (only applicable when running in an application context)</li>
+<li>ApplicationEventPublisherAware’s setApplicationEventPublisher (only applicable when running in an application context)</li>
+<li>MessageSourceAware’s setMessageSource (only applicable when running in an application context)</li>
+<li>ApplicationContextAware’s setApplicationContext (only applicable when running in an application context)</li>
+<li>ServletContextAware’s setServletContext (only applicable when running in a web application context)</li>
+<li>postProcessBeforeInitialization methods of BeanPostProcessors</li>
+<li>InitializingBean’s afterPropertiesSet</li>
+<li>a custom init-method definition</li>
+<li>postProcessAfterInitialization methods of BeanPostProcessors</li>
+</ol>
+<p>On shutdown of a bean factory, the following lifecycle methods apply:</p>
+<ol>
+<li>postProcessBeforeDestruction methods of DestructionAwareBeanPostProcessors</li>
+<li>DisposableBean’s destroy</li>
+<li>a custom destroy-method definition</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2021/04/01/%E5%83%8F%E7%B4%A0%E7%94%BB%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="临江听雨">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="听雨">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/04/01/%E5%83%8F%E7%B4%A0%E7%94%BB%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">像素画学习笔记</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-04-01 20:00:00" itemprop="dateCreated datePublished" datetime="2021-04-01T20:00:00+08:00">2021-04-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-03 01:27:44" itemprop="dateModified" datetime="2021-04-03T01:27:44+08:00">2021-04-03</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <ul>
+<li><p>给出了画出干净的曲线轮廓的方法：不管是垂直方向还是水平方向上的像素，其过渡是渐进的，例如一个干净的倒角的曲线中（如<a target="_blank" rel="noopener" href="https://www.deviantart.com/rhlpixels/art/Clean-Lines-Tutorial-759260186">本文</a>中第4个对话气泡中的曲线），垂直方向的像素个数分别是：4、3、2、1、2、3、4，另外一个曲线举例（如<a target="_blank" rel="noopener" href="https://www.deviantart.com/rhlpixels/art/Clean-Lines-Tutorial-759260186">本文</a>中第5个对话气泡中的曲线）：5、4、4、3、2、2、1、1、1、1、1，也就是说前后两个像素不能出现大的跳跃（来源：<a target="_blank" rel="noopener" href="https://www.deviantart.com/rhlpixels">RHLPixels的像素画教程</a>）。</p>
+</li>
+<li><p>对于IsoMetric风格正方体上方的菱形，顶部和底部的角使用3个像素，这样的情况下，两个角之间的棱线就可以画在中间像素上了，详情可以参考<a target="_blank" rel="noopener" href="https://www.deviantart.com/rhlpixels/art/Isometric-Tutorial-535600679">本文</a>的第4段描述（来源：<a target="_blank" rel="noopener" href="https://www.deviantart.com/rhlpixels/art/Isometric-Tutorial-535600679">RHLPixels的像素画教程</a></p>
+</li>
+<li><p>Isometric风格人物的其他的Isometric风格的原则一样（来源：<a target="_blank" rel="noopener" href="https://www.deviantart.com/rhlpixels/art/Isometric-Peoples-822662906">RHLPixels的像素画教程</a>）：</p>
+<ul>
+<li>水平线和垂直线保持2:1像素的坡度</li>
+<li>有3个面可以被看到，因此头顶、肩膀都要画出厚度</li>
+</ul>
+</li>
+<li><p>颜色渐变技巧：一个分成5个色带，左右两侧为分别为纯色A和纯色B，中间色带为A和B混合后的纯色X，左侧第2个色带为A和X的抖动颜色，右侧第2个色带为B和X的抖动颜色（来源：<a target="_blank" rel="noopener" href="https://www.deviantart.com/rhlpixels/art/Bridging-colors-together-822662695">RHLPixels的像素画教程</a>）</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2021/03/27/Pixels%20and%20voxels,%20the%20long%20answer/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="临江听雨">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="听雨">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/03/27/Pixels%20and%20voxels,%20the%20long%20answer/" class="post-title-link" itemprop="url">关于像素和体素的你想要知道的一切</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-03-27 14:20:00 / 修改时间：15:38:20" itemprop="dateCreated datePublished" datetime="2021-03-27T14:20:00+08:00">2021-03-27</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>本文翻译自：<a target="_blank" rel="noopener" href="https://medium.com/retronator-magazine/pixels-and-voxels-the-long-answer-5889ecc18190">Pixels and voxels, the long answer</a></p>
+</blockquote>
+<hr>
+<p>今年早些时候，有人在<a target="_blank" rel="noopener" href="https://www.quora.com/What-is-the-difference-between-pixel-and-voxel">Quora</a>上问：</p>
+<blockquote>
+<p><em>像素和体素有什么区别？</em></p>
+</blockquote>
+<p>这个问题很让我抓狂，以至于我一直没有给出直接答案，而是写了一篇有关该主题的整篇文章。</p>
+<p>我明白你的问题了。你会看到一些像素电影海报之类的东西，这会让你很困惑。这是一个像素？是体素？它是一只鸟？它是一架飞机吗？这会把你弄得很狼狈。</p>
+<p><img src="https://miro.medium.com/max/1000/1*LNBHCTyTdmGiDc-bTGUwsA.jpeg"></p>
+<center><font size=2>我仍然无法决定是因为我对怀旧游戏的热爱，（导致）我应该去看这部电影还是绝对*不*看这部电影。</font></center>
+
+<p>别担心，你现在安全了。当你读完这篇文章的时候，你就会知道关于像素和体素以及两者之间的一切。不着急，吃块饼干先。</p>
+<p>(这是一篇很长的文章，但我向你保证，你正在阅读《Retronator》杂志，这意味着图片多于文字。)</p>
+<hr>
+<p>我先给你们讲一点背景知识，这样你们就能了解全貌。在计算机上表示图形有两种主要的方法：矢量和位图。</p>
+<p><img src="https://miro.medium.com/max/575/1*1AWhdKTlJVftXJUA3LCPUw.gif"></p>
+<center><font size=2>矢量图形的数学精度（左）和栅格图的离散性（右）。</font></center>
+
+<p>矢量图形通过数学方程式描述图像，通常用直线，曲线和形状等形式表示。相反，位图将图像描述为颜色值的数组，这些颜色值一个接一个地定位在网格图案中。</p>
+<p>在计算机图形学第二个区别是表示2D和3D空间。包括矢量与位图划分，一共得到四个象限：</p>
+<p><img src="https://miro.medium.com/max/575/1*UCXcMq6rXDhmG1eI9dcYuQ.png"></p>
+<center><font size=2>所有人都喜欢象限</font></center>
+
+<h1 id="矢量图形"><a href="#矢量图形" class="headerlink" title="矢量图形"></a>矢量图形</h1><p>在2D矢量图形中，直线或形状上的每个点都用一个有两个分量(x和y)的矢量来描述。这就是为什么它是2D的(两个分量-二维)。</p>
+<p><img src="https://miro.medium.com/max/700/1*2KZTAXHLcJeM5cCBWtkiTA.gif"></p>
+<center><font size=2>这就是二维向量描述二维向量图形中所有点的方式。</font></center>
+
+<p>下面是一个被称为低多边形二维矢量图像的例子。</p>
+<p><img src="https://miro.medium.com/max/640/1*HpaeVwfgDiC9W33XNqJEtw.jpeg"></p>
+<center><font size=2>Uluru the Mighty Dreamer, Anh Tran, 2015</font></center>
+
+<p>它完全由2D多边形（在本例中为三角形）构成。术语“低多边形”是指用于制作图像的多边形数量相对较小，较低。这使得三角形很容易注意到。</p>
+<p>让我们添加一个维度。在3D矢量图形中情况是相同的，但是每个矢量使用三个分量(x, y和z)。</p>
+<p>让我们看一下3D低多边形图稿。</p>
+<p><img src="https://miro.medium.com/max/700/1*5fUTsAJEcnHlsaqYxCZBow.jpeg"></p>
+<center><font size=2>Racetrack iOS Game Concept, Timothy J. Reynolds, 2013</font></center>
+
+<p>上面的艾尔斯岩（Ayers Rock）的2D图像与此处的3D赛道之间的最大区别是：我们可以从所需的任何位置查看赛道。</p>
+<p><img src="https://miro.medium.com/max/1240/1*h9mP97QFjtz0LcQSib1qgw.png"></p>
+<center><font size=2>Racetrack iOS Game Concept, Timothy J. Reynolds, 2013</font></center>
+
+<p>为了在屏幕（2D表面）上显示跑道，我们必须选择一个特定的视点并将3D几何体从该视点投影到2D。</p>
+<p><img src="https://miro.medium.com/max/546/1*vfDeX9HH5TGwY2cgyBuuFA.png"></p>
+<center><font size=2>从3D到2D的转换称为投影</font></center>
+
+<p>这就是我们获取一张特定2D图像的方式。</p>
+<p>但我们可以使用一个技巧来展示3D几何的体积性质，甚至在2d中——我们可以制作一个动画，在对象周围移动视点(或保留视点，同时旋转对象本身，如下所示)。</p>
+<p><img src="https://miro.medium.com/max/500/1*XnHTPnDMHpgMcN36efrJIQ.gif"></p>
+<center><font size=2>Wagon, Timothy J. Reynolds, 2013</font></center>
+
+<p>耶，我们可以看到它确实是3D，不需要眼镜！</p>
+<h1 id="位图图形"><a href="#位图图形" class="headerlink" title="位图图形"></a>位图图形</h1><p>这只是热身。让我们从向量继续，看看位图图形如何处理2D和3D。</p>
+<p>在2D位图图形中，图像被分成若干大小相等的行和列:</p>
+<p><img src="https://miro.medium.com/max/700/1*k-UfoL3tcZCwGNSEmNUPOQ.png"></p>
+<center><font size=2>Turbo Esprit Sprite, Matej ‘Retro’ Jan, 2014</font></center>
+
+<p>每个单元格称为像素(来自于图像中的一个元素)。除了在网格（x，y）内的2D坐标外，它的主要属性是放置在该坐标上的颜色。</p>
+<p>我们已经看到了低多边形矢量作品如何使用引人注目的大多边形。如果我们在位图图形中做同样的事情（使用引人注目的大像素），我们将获得像素作品。</p>
+<p><img src="https://miro.medium.com/max/700/1*MTwKdk_Abppft-SYKBCi3g.png"></p>
+<center><font size=2>Turbo Esprit Sprite, Matej ‘Retro’ Jan, 2014</font></center>
+
+<p>对于2D像素图像，即使它们试图表示三维对象(Lotus Esprit或X-wing)，它们也会直接绘制到2D像素网格上。你不能像上面的3D旅行车那样旋转这个图像。同样，文章开头的艾尔斯岩（Ayers Rock）图像也不能旋转。尽管它是由多边形构成的，但它们不是被放置在3D空间，而是直接放置在2D空间。</p>
+<hr>
+<p>到目前为止，我们已经介绍了2D和3D矢量图形以及2D位图图像。最后一步是3D位图图形。</p>
+<p><img src="https://miro.medium.com/max/575/1*W_DR0YFtog8zbqiGJy0VsQ.png"></p>
+<center><font size=2>前方就是激动人心的时刻！</font></center>
+
+<p>在3D位图图形中，体块被均匀地划分为行和列，覆盖所有三个不同的方向(上下、左右、内外)。这将三维空间划分为立方体，也称为体素（体积元素或体积像素）。每个体素由一个3D坐标和该坐标上的颜色定义。</p>
+<p>就像像素作品一样（这是一种精心放置像素的艺术），我们现在有了体素作品，每个立方体都经过了仔细的考虑。</p>
+<p><img src="https://miro.medium.com/max/700/1*dUgTNounfrnvMlbN0qDp7Q.jpeg"></p>
+<center><font size=2>星际大战场景，@Sir_Carma，2015年</font></center>
+
+<p>这很像乐高积木，你不觉得吗?</p>
+<p>注意，因为我们在3D空间，体素也可以从任何角度观察。下面是对体素Tatooine的另一种观察：</p>
+<p><img src="https://miro.medium.com/max/1920/1*p-eu_ozx6toxlNr7Bgj1RA.jpeg"></p>
+<center><font size=2>星球大战场景（另一种视角），@Sir_Carma，2015</font></center>
+
+<p>我们甚至可以做成动画！以下是 <a target="_blank" rel="noopener" href="https://twitter.com/Sir_carma">@Sir Carma</a>的一个体素动画角色：</p>
+<p><img src="https://miro.medium.com/max/552/1*1_odYAqzEskdqVEIAJ5KAw.gif"></p>
+<center><font size=2>骑士奔跑，@Sir_Carma，2015年</font></center>
+
+<p>与2D像素角色进行比较：</p>
+<p><img src="https://miro.medium.com/max/600/1*aUXEUMD82iRPsoZFOP4F7Q.gif"></p>
+<center><font size=2>Final Element中的精灵，Glauber Kotaki，2015年</font></center>
+
+<p>你可以看到在体素作品中，动画如何改变小立方体（体素）的存在（颜色），而在像素作品中，颜色的变化发生在小方块（像素）上。</p>
+<p>现在你知道像素和体素之间的区别了（其实还有更多……哈哈，抱歉）。</p>
+<p>但是现在还不是停下来的时候。瞧，我之所以解释了矢量/位图，2D/3D性质的原因是，在我们的现代显示器上，每种图形类型最终都最终显示为2D栅格图像。</p>
+<p><img src="https://miro.medium.com/max/575/1*nK5jyQku62k7clN79dAPZA.png"></p>
+<p>我们在像素作品杂志中讨论这一点原因是，我们可以使用非像素风格的资源进行一些类型的变换，从而创建现代风格的像素作品。</p>
+<p>“我可以用体素或3D模型制作像素艺术？”当然可以！巧妙的着色和渲染技术使我们能够创建独特的视觉风格，将像素艺术带入未来。</p>
+<h1 id="矢量显示和投影"><a href="#矢量显示和投影" class="headerlink" title="矢量显示和投影"></a>矢量显示和投影</h1>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2021/03/26/netty%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="临江听雨">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="听雨">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/03/26/netty%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">netty源码学习笔记</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-03-26 15:00:00" itemprop="dateCreated datePublished" datetime="2021-03-26T15:00:00+08:00">2021-03-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-01 19:47:36" itemprop="dateModified" datetime="2021-04-01T19:47:36+08:00">2021-04-01</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="ChannelId的那些事儿"><a href="#ChannelId的那些事儿" class="headerlink" title="ChannelId的那些事儿"></a>ChannelId的那些事儿</h2><h3 id="ChannelId组成"><a href="#ChannelId组成" class="headerlink" title="ChannelId组成"></a>ChannelId组成</h3><p><code>ChannelId</code>默认由<code>io.netty.channel.DefaultChannelId</code>实现，最终结果存储在一个<code>data</code>的byte数组中，data数组内由5个字段组成，从低位到高位分别是：6或8字节的<code>MACHINE_ID</code>，4字节的<code>PROCESS_ID</code>，4字节的<code>SEQUENCE</code>，8字节的<code>TIMESTAMP</code>和4字节的<code>RANDOM</code>，下表以8字节的`MACHINE_ID举例：</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段</th>
+<th align="center">RANDOM</th>
+<th align="center">TIMESTAMP</th>
+<th align="center">SEQUENCE</th>
+<th align="center">PROCESS_ID</th>
+<th align="center">MACHINE_ID</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">字节</td>
+<td align="center">[27-24]（4字节）</td>
+<td align="center">[23-16]（8字节）</td>
+<td align="center">[15-12]（4字节）</td>
+<td align="center">[11-8]（4字节）</td>
+<td align="center">[7-0]（6或8字节）</td>
+</tr>
+<tr>
+<td align="center">说明</td>
+<td align="center">随机</td>
+<td align="center">自定义</td>
+<td align="center">初值为0，每次递增1</td>
+<td align="center">优先从系统属性<strong>io.netty.processId</strong>获取，类型为int</td>
+<td align="center">优先从系统属性<strong>io.netty.machineId</strong>获取，类型为String，长度为17或23</td>
+</tr>
+</tbody></table>
+<p>在DefaultChannelId的实现中，**<code>TIMESTAMP</code>**字段并没有直接使用系统的时间戳，例如：<code>System.nanoTime()</code>，而是自定义了一个时间戳生成方法：<code>Long.reverse(System.nanoTime()) ^ System.currentTimeMillis()</code>，举例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="keyword">long</span> nanoTime = System.nanoTime();</span><br><span class="line"><span class="keyword">final</span> <span class="keyword">long</span> timeMillis = System.currentTimeMillis();</span><br><span class="line"><span class="keyword">final</span> <span class="keyword">long</span> xorValue = nanoTime ^ timeMillis;</span><br><span class="line"><span class="keyword">final</span> <span class="keyword">long</span> reverse = Long.reverse(xor);</span><br><span class="line"></span><br><span class="line">log.info(<span class="string">&quot;&#123;&#125;&quot;</span>, String.format(<span class="string">&quot;%64s&quot;</span>, Long.toBinaryString(nanoTime)));</span><br><span class="line">log.info(<span class="string">&quot;&#123;&#125;&quot;</span>, String.format(<span class="string">&quot;%64s&quot;</span>, Long.toBinaryString(timeMillis)));</span><br><span class="line">log.info(<span class="string">&quot;&#123;&#125;&quot;</span>, String.format(<span class="string">&quot;%64s&quot;</span>, Long.toBinaryString(xorValue)));</span><br><span class="line">log.info(<span class="string">&quot;&#123;&#125;&quot;</span>, String.format(<span class="string">&quot;%64s&quot;</span>, Long.toBinaryString(reverse)));</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出如下所示</span></span><br><span class="line"><span class="comment">:                   1111111100000110011110111010001111000001000000   -nanoTime</span></span><br><span class="line"><span class="comment">:                        10111100001101101100000001000101100110110   -timeMillis</span></span><br><span class="line"><span class="comment">:                   1111101011100111110011011010000111101101110110   -xorValue</span></span><br><span class="line"><span class="comment">:  110111011011110000101101100111110011101011111000000000000000000   -reverse，也即将xorValue换成2进制后，头尾互掉后的值</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>至于Netty为什么这么设计，只是在源码中有一句简单的注释：<code>// timestamp (kind of)</code>，翻译过来就是一种（Netty式的）时间戳，可能就是想这么实现吧。</p>
+<h3 id="ChannelId的表示"><a href="#ChannelId的表示" class="headerlink" title="ChannelId的表示"></a>ChannelId的表示</h3><p><code>ChannelId</code>有两个函数：<code>asShortText()</code>和<code>asLongText()</code>，</p>
+<ul>
+<li><p><code>asShortText()</code>使用懒加载的方式，输出**<code>RANDOM</code><strong>字段转换成16进制并存储到<code>String shortValue</code>，例如：</strong>60fb0e5f**</p>
+</li>
+<li><p><code>asLongText()</code>也采用懒加载的方式，将data数组中的5个字段转换成16进制以后，从**<code>MACHINE_ID</code><strong>开始，到</strong><code>RANDOM</code><strong>结束，用“-”连起来，最后存储到<code>String longValue</code>中，例如：</strong>00000000000000e0-00003738-00000000-3a5715eac38e517e-60fb0e5f**</p>
+</li>
+</ul>
+<h2 id="bind那些事儿"><a href="#bind那些事儿" class="headerlink" title="bind那些事儿"></a>bind那些事儿</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ServerBootstrap-&gt;ReflectiveChannelFactory: newChannel()</span><br><span class="line">ServerBootstrap-&gt;ServerBootstrap: 1. initChannel(Channel)</span><br><span class="line">ServerBootstrap-&gt;EventLoopGroup: register(Channel)</span><br></pre></td></tr></table></figure>
+
+<p>在上述的<code>1. initChannel(Channel)</code>中，执行了了一个重要的操作：new了一个匿名的<code>ChannelInitializer</code>并且addLast到传入的<code>Channel</code>的<code>ChannelPipeline</code>中，该<code>ChannelInitializer</code>主要执行了两件事：</p>
+<ul>
+<li>当<code>ChannelInitializer.initChannel</code>回调被调用时，将<code>ServerBootstrap</code>的<code>ChannelHandler</code> addList到<code>Channel.pipeline()</code>，而<code>ServerBootstrap</code>的<code>ChannelHanlder</code>可以在构造时通过<code>handler(ChannelHandler)</code>传入，例如传入一个<code>new LoggingHandler(LogLevel.INFO)</code>，从而实现log输出，有两点需要注意：<ul>
+<li><code>ChannelInitializer.initChannel</code>回调时，发生在<code>ServerBootstrap.group</code>中（也即大家常用的BossGroup），此时还没有注册到<code>ServerBootstrap.childGroup</code>中（也即大家常用的WorkerGroup）。</li>
+<li>该ChannelHandler全局只有一个，会被所有的EventLoop共享包括<code>ServerBootstrap.group</code>和<code>ServerBootstrap.childGroup</code>在内的所有<code>EventLoop</code></li>
+</ul>
+</li>
+<li>当<code>ChannelInitializer.initChannel</code>回调被调用时，调用了<code>Channel</code>的<code>EventLoop</code>（该<code>EventLoop</code>隶属于父线程池）并执行了一个异步任务：向<code>Channel.pipeline()</code>中addLast了一个<code>new ServerBootstrapAcceptor</code>，<code>ServerBootstrapAcceptor</code>执行了两件重要的事情：<ul>
+<li>将<code>ServerBootstrap.childHandler</code> addLast到<code>Channel.pipeline()</code></li>
+<li>调用<code>ServerBootstrap.childGroup.register(Channel)</code>将<code>Channel</code>注册到子线程池（所以<code>AbstractChannel</code>声明成员变量<code>eventLoop</code>时使用了<code>volatile</code>关键字修饰）</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2021/03/22/gamedo.persistence%E6%8C%81%E4%B9%85%E5%8C%96%E6%A1%86%E6%9E%B6/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -412,7 +860,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-20 10:38:59" itemprop="dateModified" datetime="2021-03-20T10:38:59+08:00">2021-03-20</time>
+                <time title="修改时间：2021-04-01 19:48:01" itemprop="dateModified" datetime="2021-04-01T19:48:01+08:00">2021-04-01</time>
               </span>
 
           
@@ -625,7 +1073,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-13 17:50:55" itemprop="dateModified" datetime="2021-03-13T17:50:55+08:00">2021-03-13</time>
+                <time title="修改时间：2021-04-01 19:47:45" itemprop="dateModified" datetime="2021-04-01T19:47:45+08:00">2021-04-01</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -768,7 +1216,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-13 17:51:00" itemprop="dateModified" datetime="2021-03-13T17:51:00+08:00">2021-03-13</time>
+                <time title="修改时间：2021-04-01 19:47:42" itemprop="dateModified" datetime="2021-04-01T19:47:42+08:00">2021-04-01</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1095,292 +1543,11 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2020/05/11/SED%E5%91%BD%E4%BB%A4%E5%AE%9E%E8%B7%B5/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="临江听雨">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="听雨">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/05/11/SED%E5%91%BD%E4%BB%A4%E5%AE%9E%E8%B7%B5/" class="post-title-link" itemprop="url">SED命令实践</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-05-11 22:00:00" itemprop="dateCreated datePublished" datetime="2020-05-11T22:00:00+08:00">2020-05-11</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-13 19:39:30" itemprop="dateModified" datetime="2021-03-13T19:39:30+08:00">2021-03-13</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%AE%9E%E8%B7%B5%E7%BB%8F%E9%AA%8C/" itemprop="url" rel="index"><span itemprop="name">实践经验</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <ol>
-<li><p>sed命令执行时包含了若干个循环（cycle），而每个循环又包含若干个命令（command），完整的执行流程图为（<a target="_blank" rel="noopener" href="https://linux.cn/article-10232-1.html">图片来源</a>）：</p>
-<p><img src="https://img.linux.net.cn/data/attachment/album/201811/14/190635j1ycygaxrcj1vege.png" alt="The Sed execution model"></p>
-</li>
-<li><p><strong>tips:</strong> 如果sed语法的第一个字符是“/”，那么表示这是一个正则表达式的地址定位方式。（细品）</p>
-</li>
-<li><p>sed使用场景示例：</p>
-<blockquote>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3&#x27;</span> | sed <span class="string">&#x27;s/line/&quot;&amp;&quot;/g&#x27;</span> <span class="comment">#将所有的line加上双引号</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line\t1\nline\t2\nline\t3&#x27;</span> | sed -n <span class="string">&#x27;l&#x27;</span> <span class="comment">#显示文本中的控制字符</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3&#x27;</span> | sed -n <span class="string">&#x27;/1/=&#x27;</span> <span class="comment">#显示包含1的行的行号，输出：1</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 1\nline 2\nline 3&#x27;</span> | sed -n <span class="string">&#x27;$=&#x27;</span> <span class="comment">#显示总行数，输出：3</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#删除某几行文字（可以延伸到保留某几行，或删除或保留匹配的行）</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3&#x27;</span> | sed  <span class="string">&#x27;1d&#x27;</span> <span class="comment">#删除第1行</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3&#x27;</span> | sed -n <span class="string">&#x27;1!p&#x27;</span> <span class="comment">#功能同上</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#sed默认会将pattern space中的数据输出到屏幕，如果使用FLAG p，还会每次额外把current pattern space输出到屏幕，举例</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3&#x27;</span> | sed  <span class="string">&#x27;/.*/p&#x27;</span> <span class="comment">#匹配所有的字符，并且会把pattern space和current pattern space中的内容都输出到屏幕上，因此每一行文字都会重复输出两次</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3&#x27;</span> | sed -n <span class="string">&#x27;/1/p&#x27;</span> <span class="comment">#匹配包含“1”的行，但是-n选项会禁止pattern space输出到屏幕，而FLAG p又会把current pattern space中的内容都输出到屏幕上，因此屏幕上显示的是：line 1，也即实现了grep的功能。记住：option -n和command p是一家。</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#在日常工作中，经常需要使用sed进行替换（例如部署服务器时，进行模板变量的替换），而需求是屏幕上只输出被修改的行，可以使用FLAG w将修改内容输出的stdout，如下所示：</span></span><br><span class="line">☺  cat 1.txt</span><br><span class="line">123</span><br><span class="line">456</span><br><span class="line">789</span><br><span class="line">zhengtongshan@DESKTOP-R7DT0R0 /mnt/e/Tetris/src/1_Branches/rtm_tetris_zhugan</span><br><span class="line">☺  sed -i <span class="string">&#x27;s/1/s/gw /dev/stdout&#x27;</span> 1.txt</span><br><span class="line">s23</span><br><span class="line">zhengtongshan@DESKTOP-R7DT0R0 /mnt/e/Tetris/src/1_Branches/rtm_tetris_zhugan</span><br><span class="line">☺  cat 1.txt</span><br><span class="line">s23</span><br><span class="line">456</span><br><span class="line">789</span><br><span class="line"></span><br><span class="line"><span class="comment">#在日常工作中，会遇到将制定的两行合并为一行的情况，情景为：如果发现某行包含某个字符，则将下面一行和本行合并，如下面的例子，如果行的第一个字符为a，则将后面的一行合并过来</span></span><br><span class="line">☺  <span class="built_in">echo</span> <span class="string">&#x27;a\nb\nc\na\nb&#x27;</span>  |sed -e <span class="string">&#x27;/^a/N&#x27;</span> -e <span class="string">&#x27;s/\n//&#x27;</span></span><br><span class="line">ab</span><br><span class="line">c</span><br><span class="line">ab</span><br><span class="line"></span><br><span class="line"><span class="comment">#下面两个语句是等效的：（细品）</span></span><br><span class="line">man cp | sed <span class="string">&#x27;s/copy/&#123;&amp;&#125;/w cp.txt&#x27;</span>  <span class="comment">#将man page中的〝copy〞字串加上大括号〝&#123;&#125;〞，并将current pattern space写入“cp.txt”</span></span><br><span class="line">man cp | sed -n <span class="string">&#x27;s/copy/&#123;&amp;&#125;/p&#x27;</span> &gt; cp.txt</span><br><span class="line"></span><br><span class="line"><span class="comment">#多个FLAG可以叠加使用，但是和其他Linux指令一样，与文件有关的FLAG要放在最后</span></span><br><span class="line">man cp | sed <span class="string">&#x27;s/copy/&#123;&amp;&#125;/Igpw cp.txt&#x27;</span> <span class="comment">#不区分大小写（FLAG I）将每行	（FLAG g）的“copy”加上大括号（Command s），将pattern space输出到屏幕（FLAG p），并将current pattern space写入文件“cp.txt”(FLAG w)</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\n\nline 2\nline 3&#x27;</span> | sed  <span class="string">&#x27;/^$/d&#x27;</span> <span class="comment">#删除空白行</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3\nline 4&#x27;</span> | sed -e <span class="string">&#x27;N&#x27;</span> -e <span class="string">&#x27;N&#x27;</span> -e <span class="string">&#x27;s/\n/+/g&#x27;</span> <span class="comment">#用两次N连续读取两个下一行（此时pattern space里有三行），然后把换行符都换成+，执行完毕后，输出为：</span></span><br><span class="line">line 1+line 2+line 3</span><br><span class="line">line 4 </span><br></pre></td></tr></table></figure></blockquote>
-</li>
-<li><p>使用t label可以实现事务性的修改，比如两个替换要么同时进行，要么就都不做。</p>
-</li>
-<li><p>command n命令的流程是：1、如果没有配置地址或匹配则输出pattern space（如果不满足则跳过下一步）；2、然后读取下一行到pattern space。详情参考：<a target="_blank" rel="noopener" href="https://linux.cn/article-10232-1.html">Sed 命令完全指南</a>中的<strong>次行命令</strong>一节，例如：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3\nline 4\nline 5\nline 6&#x27;</span> | sed -e <span class="string">&#x27;n&#x27;</span> -e <span class="string">&#x27;n&#x27;</span> -ne <span class="string">&#x27;p&#x27;</span> <span class="comment">#当第1个n执行后，pattern space变成：line 2，当第2个n执行后，pattern space变成：line 3，然后执行p后，打印current pattern space：line 3，然后进入下一个循环，打印出：line 6，上述sed可以简写成：sed -ne &#x27;n;n;p&#x27;，此外我们发现p命令的n选项是一个全局选项，它对整个sed语句生效而不仅限于p命令自己</span></span><br></pre></td></tr></table></figure></li>
-<li><p>command N、D可以实现联合多行条件判断（例如：满足某一行有ID字符串，且下面两行分别包含NAME和ADDRESS字符串，则执行删除ID行的操作），实现更复杂的操作，如果不使用command N、D，那么sed的操作仅限于行内。</p>
-</li>
-<li><p>command D为删除current pattern space的第一个字符到换行，而command P类似，只是将删除变为打印。</p>
-</li>
-<li><p>command c和s的区别在于，前者是整行替换，后者还需要指定要替换的pattern。</p>
-</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2020/05/11/Windows%E4%B8%8A%E6%90%AD%E5%BB%BASOCKS%E4%BB%A3%E7%90%86/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="临江听雨">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="听雨">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/05/11/Windows%E4%B8%8A%E6%90%AD%E5%BB%BASOCKS%E4%BB%A3%E7%90%86/" class="post-title-link" itemprop="url">Windows上搭建SOCKS代理</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-05-11 22:00:00" itemprop="dateCreated datePublished" datetime="2020-05-11T22:00:00+08:00">2020-05-11</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-15 15:21:25" itemprop="dateModified" datetime="2021-03-15T15:21:25+08:00">2021-03-15</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%AE%9E%E8%B7%B5%E7%BB%8F%E9%AA%8C/" itemprop="url" rel="index"><span itemprop="name">实践经验</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="问题提出："><a href="#问题提出：" class="headerlink" title="问题提出："></a>问题提出：</h4><p>驻厂深圳后，办公地点的网络不再是专线，因此IP不再是固定的，而是由运营商动态分配，而线上某些业务都开启了IP白名单，如果仍然通过添加白名单的方式，那么将会非常麻烦。总结一下受限的业务场景，包括：</p>
-<ol>
-<li>ssh连接腾讯云服务器</li>
-<li>http访问蓝鲸运维平台</li>
-<li>Jenkins Slave（Windows 7）服务器拷贝服务器版本到腾讯云</li>
-</ol>
-<h3 id="方案思路："><a href="#方案思路：" class="headerlink" title="方案思路："></a>方案思路：</h3><p>考虑到ssh提供了socks代理，因此可以在北京公司部署一台固定IP且已经加入IP白名单的服务器（假设为HostA，IP为：10.12.28.114，OS为Windows 10），然后开启socks代理，受限业务的流量都通过socks代理。</p>
-<h3 id="方案实施："><a href="#方案实施：" class="headerlink" title="方案实施："></a>方案实施：</h3><ol>
-<li>安装OpenSSH（windows 10 version 1803及以后的版本已经集成），在HostA上：设置–&gt;应用–&gt;应用和功能–&gt;可选功能–&gt;添加功能–&gt;OpenSSH服务器</li>
-<li>开启sshd服务：在HostA上，控制面板–&gt;系统和安全-&gt;管理工具–&gt;服务–&gt;OpenSSH SSH Server</li>
-<li>开启socks代理：ssh -f -N -D 0.0.0.0:1080 <a href="mailto:&#119;&#x69;&#x6e;&#49;&#x30;&#x40;&#49;&#x32;&#55;&#x2e;&#x30;&#46;&#x30;&#46;&#x31;">&#119;&#x69;&#x6e;&#49;&#x30;&#x40;&#49;&#x32;&#55;&#x2e;&#x30;&#46;&#x30;&#46;&#x31;</a>，此命令会在1080端口上开启sockets代理（关于如何使用ssh-key登录，可以参考这篇文章：<a target="_blank" rel="noopener" href="http://woshub.com/using-ssh-key-based-authentication-on-windows/">Configuring SSH Key-Based Authentication on Windows 10/ Server 2019</a>，并着重关注： <strong>How to Login Windows Using SSH Key Under Local Admin?</strong> ）</li>
-</ol>
-<h3 id="问题解决："><a href="#问题解决：" class="headerlink" title="问题解决："></a>问题解决：</h3><ol>
-<li>受限场景1：SSH连接工具上设置socks代理，如图所示：<br> <a target="_blank" rel="noopener" href="https://imgtu.com/i/6QUzVI"><img src="https://s3.ax1x.com/2021/03/08/6QUzVI.png" alt="6QUzVI.png"></a></li>
-<li>受限场景2：到<strong>控制面板–&gt;Internet选项–&gt;连接–&gt;局域网设置–&gt;代理服务器–&gt;高级</strong> 里设置socks代理，然后使用IE访问蓝鲸运维平台<br> <a target="_blank" rel="noopener" href="https://imgtu.com/i/6QUvqA"><img src="https://s3.ax1x.com/2021/03/08/6QUvqA.png" alt="6QUvqA.png"></a></li>
-<li>受限场景3：由于jenkins slave机器是windows 7系统，本身没有集成OpenSSH Client组件，因此考虑在slave上安装ssh客户端，最终考虑使用git附带的Unix tools中的ssh功能（安装时需要把Unix tools加入环境变量），在<code>%USERPROFILE%/.ssh/config</code>内增加ProxyCommand命令行进行代理，命令如下：<code>ProxyCommand connect -S 10.12.28.114:1080 %h %p</code> 如果要是用http代理，需要把 <strong>-S</strong> 改为 <strong>-H</strong> ，回到jenkins配置界面，配置scp命令拷贝版本即可。</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2020/03/15/C#%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="临江听雨">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="听雨">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/03/15/C#%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7/" class="post-title-link" itemprop="url">C#高级特性拾遗</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-03-15 22:00:00" itemprop="dateCreated datePublished" datetime="2020-03-15T22:00:00+08:00">2020-03-15</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-15 15:17:30" itemprop="dateModified" datetime="2021-03-15T15:17:30+08:00">2021-03-15</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%8A%80%E6%9C%AF%E6%B2%89%E6%B7%80/" itemprop="url" rel="index"><span itemprop="name">技术沉淀</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <ol>
-<li><p>Conditional(“条件”) 可以优雅地替代宏定义</p>
-</li>
-<li><p>泛型类中的static字段和非泛型类的字段有所区别，后者中该static字段属于该类，而前者中该static字段仅属于该泛型类，例如<code>Generic&lt;A&gt;.staticField</code>和<code>Generic&lt;B&gt;.staticField</code>是不同的。对于这个特性，可以有比较进阶的用法，例如：</p>
-<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Foo</span> &#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="built_in">int</span> lastId;</span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">Foo</span>&lt;<span class="title">T</span>&gt; : <span class="title">Foo</span> &#123; </span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="built_in">int</span> id = ++lastId;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>   那么对于每一个<code>Foo&lt;T&gt;</code>的子类，启id都是唯一的，从而实现id自我管理（而这里的泛型T只是被借壳而已，没有任何用处）。</p>
-</li>
-<li><p>使用<code>Type.MakeGenericType</code>，可以在运行时生成泛型类，这是一个java不具备的特性，举例：</p>
-<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> type = <span class="keyword">typeof</span>(Dictionary&lt;,&gt;);</span><br><span class="line">Type[] typeArgs = &#123;<span class="keyword">typeof</span>(<span class="built_in">string</span>), <span class="keyword">typeof</span>(<span class="built_in">int</span>)&#125;;</span><br><span class="line"><span class="keyword">var</span> genericType = type.MakeGenericType(typeArgs)</span><br></pre></td></tr></table></figure></li>
-<li><p>default关键字：在泛型类和泛型方法中产生的一个问题，给定参数化类型 T 的一个变量 t，只有当 T 为引用类型时，语句 t = null 才有效；只有当 T 为数值类型而不是结构时，语句 t = 0 才能正常使用。 解决方案是使用default 关键字，此关键字对于引用类型会返回 null，对于数值类型会返回零。</p>
-</li>
-<li><p>对于<code>ManualResetEvent</code>：</p>
-<ol>
-<li><p>可以通过构造函数初始化为有信号或无信号状态。</p>
-</li>
-<li><p>当且仅当<code>ManualResetEvent</code>处于无信号状态时（也即Set没有被调用或者初始化为无信号状态），其他线程调用了<code>ManualResetEvent.WaitOne</code>才会被阻塞。</p>
-</li>
-<li><p>调用<code>ManualResetEvent.Reset</code>可以阻塞所有其他调用了<code>ManualResetEvent.WaitOne</code>的线程</p>
-</li>
-<li><p>应用场景：工作A和B需要并发执行，但是需要A执行完毕后再执行B。最佳实践：a、A线程（称之为<code>ManualResetEvent</code>控制线程）调用<code>ManualResetEvent.Reset</code>使之进入非信号状态；b、B线程（称之为被控制线程或等待线程？阻塞线程？）在适当位置调用<code>ManualResetEvent.WaitOne</code>等待信号；c、A线程调用ManualResetEvent.Set通知B线程继续执行。</p>
-</li>
-<li><p>可以通过实现一个public的无参的返回<code>IEnumerator</code>的<code>GetEnumerator()</code>为一个类扩展foreach语法，例如（<a target="_blank" rel="noopener" href="https://youtu.be/94ZElZQhu88?t=1782">详情</a>）：</p>
-   <figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> IEnumerator&lt;Tile&gt; <span class="title">GetEnumerator</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">  <span class="keyword">for</span>(<span class="built_in">int</span> x = <span class="number">0</span>; x &lt; <span class="keyword">this</span>.size.x; x++) &#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="built_in">int</span> y = <span class="number">0</span>; y &lt; <span class="keyword">this</span>.size.y; y++) &#123;</span><br><span class="line">      <span class="keyword">yield</span> <span class="keyword">return</span> <span class="keyword">this</span>[x, y];</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-</ol>
-</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+  </nav>
 
 
 
@@ -1445,7 +1612,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-count">13</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1457,7 +1624,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-count">32</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1499,6 +1666,26 @@
   </div>
 
         
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
 
 
 

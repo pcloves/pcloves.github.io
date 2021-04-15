@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.gamedo.org","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="ChannelId的那些事儿ChannelId组成ChannelId默认由io.netty.channel.DefaultChannelId实现，最终结果存储在一个data的byte数组中，data数组内由5个字段组成，从低位到高位分别是：6或8字节的MACHINE_ID，4字节的PROCESS_ID，4字节的SEQUENCE，8字节的TIMESTAMP和4字节的RANDOM，下表以8字节的&#96;MA">
+<meta property="og:type" content="article">
+<meta property="og:title" content="netty源码学习笔记">
+<meta property="og:url" content="https://blog.gamedo.org/2021/03/26/netty%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="听雨">
+<meta property="og:description" content="ChannelId的那些事儿ChannelId组成ChannelId默认由io.netty.channel.DefaultChannelId实现，最终结果存储在一个data的byte数组中，data数组内由5个字段组成，从低位到高位分别是：6或8字节的MACHINE_ID，4字节的PROCESS_ID，4字节的SEQUENCE，8字节的TIMESTAMP和4字节的RANDOM，下表以8字节的&#96;MA">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-03-26T07:00:00.000Z">
+<meta property="article:modified_time" content="2021-04-01T11:47:36.357Z">
+<meta property="article:author" content="临江听雨">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="并发编程">
+<meta property="article:tag" content="多线程">
+<meta property="article:tag" content="源码阅读">
+<meta property="article:tag" content="笔记">
+<meta property="article:tag" content="NIO">
+<meta property="article:tag" content="Netty">
+<meta property="article:tag" content="网络编程">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.gamedo.org/2021/03/26/netty%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>netty源码学习笔记 | 听雨</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">听雨</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2021/03/26/netty%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="临江听雨">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="听雨">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          netty源码学习笔记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-03-26 15:00:00" itemprop="dateCreated datePublished" datetime="2021-03-26T15:00:00+08:00">2021-03-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-01 19:47:36" itemprop="dateModified" datetime="2021-04-01T19:47:36+08:00">2021-04-01</time>
+              </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="ChannelId的那些事儿"><a href="#ChannelId的那些事儿" class="headerlink" title="ChannelId的那些事儿"></a>ChannelId的那些事儿</h2><h3 id="ChannelId组成"><a href="#ChannelId组成" class="headerlink" title="ChannelId组成"></a>ChannelId组成</h3><p><code>ChannelId</code>默认由<code>io.netty.channel.DefaultChannelId</code>实现，最终结果存储在一个<code>data</code>的byte数组中，data数组内由5个字段组成，从低位到高位分别是：6或8字节的<code>MACHINE_ID</code>，4字节的<code>PROCESS_ID</code>，4字节的<code>SEQUENCE</code>，8字节的<code>TIMESTAMP</code>和4字节的<code>RANDOM</code>，下表以8字节的`MACHINE_ID举例：</p>
+<table>
+<thead>
+<tr>
+<th align="center">字段</th>
+<th align="center">RANDOM</th>
+<th align="center">TIMESTAMP</th>
+<th align="center">SEQUENCE</th>
+<th align="center">PROCESS_ID</th>
+<th align="center">MACHINE_ID</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">字节</td>
+<td align="center">[27-24]（4字节）</td>
+<td align="center">[23-16]（8字节）</td>
+<td align="center">[15-12]（4字节）</td>
+<td align="center">[11-8]（4字节）</td>
+<td align="center">[7-0]（6或8字节）</td>
+</tr>
+<tr>
+<td align="center">说明</td>
+<td align="center">随机</td>
+<td align="center">自定义</td>
+<td align="center">初值为0，每次递增1</td>
+<td align="center">优先从系统属性<strong>io.netty.processId</strong>获取，类型为int</td>
+<td align="center">优先从系统属性<strong>io.netty.machineId</strong>获取，类型为String，长度为17或23</td>
+</tr>
+</tbody></table>
+<p>在DefaultChannelId的实现中，**<code>TIMESTAMP</code>**字段并没有直接使用系统的时间戳，例如：<code>System.nanoTime()</code>，而是自定义了一个时间戳生成方法：<code>Long.reverse(System.nanoTime()) ^ System.currentTimeMillis()</code>，举例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="keyword">long</span> nanoTime = System.nanoTime();</span><br><span class="line"><span class="keyword">final</span> <span class="keyword">long</span> timeMillis = System.currentTimeMillis();</span><br><span class="line"><span class="keyword">final</span> <span class="keyword">long</span> xorValue = nanoTime ^ timeMillis;</span><br><span class="line"><span class="keyword">final</span> <span class="keyword">long</span> reverse = Long.reverse(xor);</span><br><span class="line"></span><br><span class="line">log.info(<span class="string">&quot;&#123;&#125;&quot;</span>, String.format(<span class="string">&quot;%64s&quot;</span>, Long.toBinaryString(nanoTime)));</span><br><span class="line">log.info(<span class="string">&quot;&#123;&#125;&quot;</span>, String.format(<span class="string">&quot;%64s&quot;</span>, Long.toBinaryString(timeMillis)));</span><br><span class="line">log.info(<span class="string">&quot;&#123;&#125;&quot;</span>, String.format(<span class="string">&quot;%64s&quot;</span>, Long.toBinaryString(xorValue)));</span><br><span class="line">log.info(<span class="string">&quot;&#123;&#125;&quot;</span>, String.format(<span class="string">&quot;%64s&quot;</span>, Long.toBinaryString(reverse)));</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出如下所示</span></span><br><span class="line"><span class="comment">:                   1111111100000110011110111010001111000001000000   -nanoTime</span></span><br><span class="line"><span class="comment">:                        10111100001101101100000001000101100110110   -timeMillis</span></span><br><span class="line"><span class="comment">:                   1111101011100111110011011010000111101101110110   -xorValue</span></span><br><span class="line"><span class="comment">:  110111011011110000101101100111110011101011111000000000000000000   -reverse，也即将xorValue换成2进制后，头尾互掉后的值</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>至于Netty为什么这么设计，只是在源码中有一句简单的注释：<code>// timestamp (kind of)</code>，翻译过来就是一种（Netty式的）时间戳，可能就是想这么实现吧。</p>
+<h3 id="ChannelId的表示"><a href="#ChannelId的表示" class="headerlink" title="ChannelId的表示"></a>ChannelId的表示</h3><p><code>ChannelId</code>有两个函数：<code>asShortText()</code>和<code>asLongText()</code>，</p>
+<ul>
+<li><p><code>asShortText()</code>使用懒加载的方式，输出**<code>RANDOM</code><strong>字段转换成16进制并存储到<code>String shortValue</code>，例如：</strong>60fb0e5f**</p>
+</li>
+<li><p><code>asLongText()</code>也采用懒加载的方式，将data数组中的5个字段转换成16进制以后，从**<code>MACHINE_ID</code><strong>开始，到</strong><code>RANDOM</code><strong>结束，用“-”连起来，最后存储到<code>String longValue</code>中，例如：</strong>00000000000000e0-00003738-00000000-3a5715eac38e517e-60fb0e5f**</p>
+</li>
+</ul>
+<h2 id="bind那些事儿"><a href="#bind那些事儿" class="headerlink" title="bind那些事儿"></a>bind那些事儿</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ServerBootstrap-&gt;ReflectiveChannelFactory: newChannel()</span><br><span class="line">ServerBootstrap-&gt;ServerBootstrap: 1. initChannel(Channel)</span><br><span class="line">ServerBootstrap-&gt;EventLoopGroup: register(Channel)</span><br></pre></td></tr></table></figure>
+
+<p>在上述的<code>1. initChannel(Channel)</code>中，执行了了一个重要的操作：new了一个匿名的<code>ChannelInitializer</code>并且addLast到传入的<code>Channel</code>的<code>ChannelPipeline</code>中，该<code>ChannelInitializer</code>主要执行了两件事：</p>
+<ul>
+<li>当<code>ChannelInitializer.initChannel</code>回调被调用时，将<code>ServerBootstrap</code>的<code>ChannelHandler</code> addList到<code>Channel.pipeline()</code>，而<code>ServerBootstrap</code>的<code>ChannelHanlder</code>可以在构造时通过<code>handler(ChannelHandler)</code>传入，例如传入一个<code>new LoggingHandler(LogLevel.INFO)</code>，从而实现log输出，有两点需要注意：<ul>
+<li><code>ChannelInitializer.initChannel</code>回调时，发生在<code>ServerBootstrap.group</code>中（也即大家常用的BossGroup），此时还没有注册到<code>ServerBootstrap.childGroup</code>中（也即大家常用的WorkerGroup）。</li>
+<li>该ChannelHandler全局只有一个，会被所有的EventLoop共享包括<code>ServerBootstrap.group</code>和<code>ServerBootstrap.childGroup</code>在内的所有<code>EventLoop</code></li>
+</ul>
+</li>
+<li>当<code>ChannelInitializer.initChannel</code>回调被调用时，调用了<code>Channel</code>的<code>EventLoop</code>（该<code>EventLoop</code>隶属于父线程池）并执行了一个异步任务：向<code>Channel.pipeline()</code>中addLast了一个<code>new ServerBootstrapAcceptor</code>，<code>ServerBootstrapAcceptor</code>执行了两件重要的事情：<ul>
+<li>将<code>ServerBootstrap.childHandler</code> addLast到<code>Channel.pipeline()</code></li>
+<li>调用<code>ServerBootstrap.childGroup.register(Channel)</code>将<code>Channel</code>注册到子线程池（所以<code>AbstractChannel</code>声明成员变量<code>eventLoop</code>时使用了<code>volatile</code>关键字修饰）</li>
+</ul>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"># Java</a>
+              <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag"># 并发编程</a>
+              <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag"># 多线程</a>
+              <a href="/tags/%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" rel="tag"># 源码阅读</a>
+              <a href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag"># 笔记</a>
+              <a href="/tags/NIO/" rel="tag"># NIO</a>
+              <a href="/tags/Netty/" rel="tag"># Netty</a>
+              <a href="/tags/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/" rel="tag"># 网络编程</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/03/22/gamedo.persistence%E6%8C%81%E4%B9%85%E5%8C%96%E6%A1%86%E6%9E%B6/" rel="prev" title="gamedo.persistence持久化框架">
+      <i class="fa fa-chevron-left"></i> gamedo.persistence持久化框架
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/03/27/Pixels%20and%20voxels,%20the%20long%20answer/" rel="next" title="关于像素和体素的你想要知道的一切">
+      关于像素和体素的你想要知道的一切 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#ChannelId%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%84%BF"><span class="nav-number">1.</span> <span class="nav-text">ChannelId的那些事儿</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ChannelId%E7%BB%84%E6%88%90"><span class="nav-number">1.1.</span> <span class="nav-text">ChannelId组成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ChannelId%E7%9A%84%E8%A1%A8%E7%A4%BA"><span class="nav-number">1.2.</span> <span class="nav-text">ChannelId的表示</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bind%E9%82%A3%E4%BA%9B%E4%BA%8B%E5%84%BF"><span class="nav-number">2.</span> <span class="nav-text">bind那些事儿</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">临江听雨</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/pcloves" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;pcloves" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">临江听雨</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.gamedo.org","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文翻译自：Pixels and voxels, the long answer   今年早些时候，有人在Quora上问：  像素和体素有什么区别？  这个问题很让我抓狂，以至于我一直没有给出直接答案，而是写了一篇有关该主题的整篇文章。 我明白你的问题了。你会看到一些像素电影海报之类的东西，这会让你很困惑。这是一个像素？是体素？它是一只鸟？它是一架飞机吗？这会把你弄得很狼狈。  我仍然无法决定是">
+<meta property="og:type" content="article">
+<meta property="og:title" content="关于像素和体素的你想要知道的一切">
+<meta property="og:url" content="https://blog.gamedo.org/2021/03/27/Pixels%20and%20voxels,%20the%20long%20answer/index.html">
+<meta property="og:site_name" content="听雨">
+<meta property="og:description" content="本文翻译自：Pixels and voxels, the long answer   今年早些时候，有人在Quora上问：  像素和体素有什么区别？  这个问题很让我抓狂，以至于我一直没有给出直接答案，而是写了一篇有关该主题的整篇文章。 我明白你的问题了。你会看到一些像素电影海报之类的东西，这会让你很困惑。这是一个像素？是体素？它是一只鸟？它是一架飞机吗？这会把你弄得很狼狈。  我仍然无法决定是">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://miro.medium.com/max/1000/1*LNBHCTyTdmGiDc-bTGUwsA.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/575/1*1AWhdKTlJVftXJUA3LCPUw.gif">
+<meta property="og:image" content="https://miro.medium.com/max/575/1*UCXcMq6rXDhmG1eI9dcYuQ.png">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*2KZTAXHLcJeM5cCBWtkiTA.gif">
+<meta property="og:image" content="https://miro.medium.com/max/640/1*HpaeVwfgDiC9W33XNqJEtw.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*5fUTsAJEcnHlsaqYxCZBow.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/1240/1*h9mP97QFjtz0LcQSib1qgw.png">
+<meta property="og:image" content="https://miro.medium.com/max/546/1*vfDeX9HH5TGwY2cgyBuuFA.png">
+<meta property="og:image" content="https://miro.medium.com/max/500/1*XnHTPnDMHpgMcN36efrJIQ.gif">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*k-UfoL3tcZCwGNSEmNUPOQ.png">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*MTwKdk_Abppft-SYKBCi3g.png">
+<meta property="og:image" content="https://miro.medium.com/max/575/1*W_DR0YFtog8zbqiGJy0VsQ.png">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*dUgTNounfrnvMlbN0qDp7Q.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/1920/1*p-eu_ozx6toxlNr7Bgj1RA.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/552/1*1_odYAqzEskdqVEIAJ5KAw.gif">
+<meta property="og:image" content="https://miro.medium.com/max/600/1*aUXEUMD82iRPsoZFOP4F7Q.gif">
+<meta property="og:image" content="https://miro.medium.com/max/575/1*nK5jyQku62k7clN79dAPZA.png">
+<meta property="article:published_time" content="2021-03-27T06:20:00.000Z">
+<meta property="article:modified_time" content="2021-03-27T07:38:20.748Z">
+<meta property="article:author" content="临江听雨">
+<meta property="article:tag" content="翻译">
+<meta property="article:tag" content="艺术">
+<meta property="article:tag" content="游戏美术">
+<meta property="article:tag" content="像素">
+<meta property="article:tag" content="体素">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://miro.medium.com/max/1000/1*LNBHCTyTdmGiDc-bTGUwsA.jpeg">
+
+<link rel="canonical" href="https://blog.gamedo.org/2021/03/27/Pixels%20and%20voxels,%20the%20long%20answer/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>关于像素和体素的你想要知道的一切 | 听雨</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">听雨</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2021/03/27/Pixels%20and%20voxels,%20the%20long%20answer/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="临江听雨">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="听雨">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          关于像素和体素的你想要知道的一切
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-03-27 14:20:00 / 修改时间：15:38:20" itemprop="dateCreated datePublished" datetime="2021-03-27T14:20:00+08:00">2021-03-27</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>本文翻译自：<a target="_blank" rel="noopener" href="https://medium.com/retronator-magazine/pixels-and-voxels-the-long-answer-5889ecc18190">Pixels and voxels, the long answer</a></p>
+</blockquote>
+<hr>
+<p>今年早些时候，有人在<a target="_blank" rel="noopener" href="https://www.quora.com/What-is-the-difference-between-pixel-and-voxel">Quora</a>上问：</p>
+<blockquote>
+<p><em>像素和体素有什么区别？</em></p>
+</blockquote>
+<p>这个问题很让我抓狂，以至于我一直没有给出直接答案，而是写了一篇有关该主题的整篇文章。</p>
+<p>我明白你的问题了。你会看到一些像素电影海报之类的东西，这会让你很困惑。这是一个像素？是体素？它是一只鸟？它是一架飞机吗？这会把你弄得很狼狈。</p>
+<p><img src="https://miro.medium.com/max/1000/1*LNBHCTyTdmGiDc-bTGUwsA.jpeg"></p>
+<center><font size=2>我仍然无法决定是因为我对怀旧游戏的热爱，（导致）我应该去看这部电影还是绝对*不*看这部电影。</font></center>
+
+<p>别担心，你现在安全了。当你读完这篇文章的时候，你就会知道关于像素和体素以及两者之间的一切。不着急，吃块饼干先。</p>
+<p>(这是一篇很长的文章，但我向你保证，你正在阅读《Retronator》杂志，这意味着图片多于文字。)</p>
+<hr>
+<p>我先给你们讲一点背景知识，这样你们就能了解全貌。在计算机上表示图形有两种主要的方法：矢量和位图。</p>
+<p><img src="https://miro.medium.com/max/575/1*1AWhdKTlJVftXJUA3LCPUw.gif"></p>
+<center><font size=2>矢量图形的数学精度（左）和栅格图的离散性（右）。</font></center>
+
+<p>矢量图形通过数学方程式描述图像，通常用直线，曲线和形状等形式表示。相反，位图将图像描述为颜色值的数组，这些颜色值一个接一个地定位在网格图案中。</p>
+<p>在计算机图形学第二个区别是表示2D和3D空间。包括矢量与位图划分，一共得到四个象限：</p>
+<p><img src="https://miro.medium.com/max/575/1*UCXcMq6rXDhmG1eI9dcYuQ.png"></p>
+<center><font size=2>所有人都喜欢象限</font></center>
+
+<h1 id="矢量图形"><a href="#矢量图形" class="headerlink" title="矢量图形"></a>矢量图形</h1><p>在2D矢量图形中，直线或形状上的每个点都用一个有两个分量(x和y)的矢量来描述。这就是为什么它是2D的(两个分量-二维)。</p>
+<p><img src="https://miro.medium.com/max/700/1*2KZTAXHLcJeM5cCBWtkiTA.gif"></p>
+<center><font size=2>这就是二维向量描述二维向量图形中所有点的方式。</font></center>
+
+<p>下面是一个被称为低多边形二维矢量图像的例子。</p>
+<p><img src="https://miro.medium.com/max/640/1*HpaeVwfgDiC9W33XNqJEtw.jpeg"></p>
+<center><font size=2>Uluru the Mighty Dreamer, Anh Tran, 2015</font></center>
+
+<p>它完全由2D多边形（在本例中为三角形）构成。术语“低多边形”是指用于制作图像的多边形数量相对较小，较低。这使得三角形很容易注意到。</p>
+<p>让我们添加一个维度。在3D矢量图形中情况是相同的，但是每个矢量使用三个分量(x, y和z)。</p>
+<p>让我们看一下3D低多边形图稿。</p>
+<p><img src="https://miro.medium.com/max/700/1*5fUTsAJEcnHlsaqYxCZBow.jpeg"></p>
+<center><font size=2>Racetrack iOS Game Concept, Timothy J. Reynolds, 2013</font></center>
+
+<p>上面的艾尔斯岩（Ayers Rock）的2D图像与此处的3D赛道之间的最大区别是：我们可以从所需的任何位置查看赛道。</p>
+<p><img src="https://miro.medium.com/max/1240/1*h9mP97QFjtz0LcQSib1qgw.png"></p>
+<center><font size=2>Racetrack iOS Game Concept, Timothy J. Reynolds, 2013</font></center>
+
+<p>为了在屏幕（2D表面）上显示跑道，我们必须选择一个特定的视点并将3D几何体从该视点投影到2D。</p>
+<p><img src="https://miro.medium.com/max/546/1*vfDeX9HH5TGwY2cgyBuuFA.png"></p>
+<center><font size=2>从3D到2D的转换称为投影</font></center>
+
+<p>这就是我们获取一张特定2D图像的方式。</p>
+<p>但我们可以使用一个技巧来展示3D几何的体积性质，甚至在2d中——我们可以制作一个动画，在对象周围移动视点(或保留视点，同时旋转对象本身，如下所示)。</p>
+<p><img src="https://miro.medium.com/max/500/1*XnHTPnDMHpgMcN36efrJIQ.gif"></p>
+<center><font size=2>Wagon, Timothy J. Reynolds, 2013</font></center>
+
+<p>耶，我们可以看到它确实是3D，不需要眼镜！</p>
+<h1 id="位图图形"><a href="#位图图形" class="headerlink" title="位图图形"></a>位图图形</h1><p>这只是热身。让我们从向量继续，看看位图图形如何处理2D和3D。</p>
+<p>在2D位图图形中，图像被分成若干大小相等的行和列:</p>
+<p><img src="https://miro.medium.com/max/700/1*k-UfoL3tcZCwGNSEmNUPOQ.png"></p>
+<center><font size=2>Turbo Esprit Sprite, Matej ‘Retro’ Jan, 2014</font></center>
+
+<p>每个单元格称为像素(来自于图像中的一个元素)。除了在网格（x，y）内的2D坐标外，它的主要属性是放置在该坐标上的颜色。</p>
+<p>我们已经看到了低多边形矢量作品如何使用引人注目的大多边形。如果我们在位图图形中做同样的事情（使用引人注目的大像素），我们将获得像素作品。</p>
+<p><img src="https://miro.medium.com/max/700/1*MTwKdk_Abppft-SYKBCi3g.png"></p>
+<center><font size=2>Turbo Esprit Sprite, Matej ‘Retro’ Jan, 2014</font></center>
+
+<p>对于2D像素图像，即使它们试图表示三维对象(Lotus Esprit或X-wing)，它们也会直接绘制到2D像素网格上。你不能像上面的3D旅行车那样旋转这个图像。同样，文章开头的艾尔斯岩（Ayers Rock）图像也不能旋转。尽管它是由多边形构成的，但它们不是被放置在3D空间，而是直接放置在2D空间。</p>
+<hr>
+<p>到目前为止，我们已经介绍了2D和3D矢量图形以及2D位图图像。最后一步是3D位图图形。</p>
+<p><img src="https://miro.medium.com/max/575/1*W_DR0YFtog8zbqiGJy0VsQ.png"></p>
+<center><font size=2>前方就是激动人心的时刻！</font></center>
+
+<p>在3D位图图形中，体块被均匀地划分为行和列，覆盖所有三个不同的方向(上下、左右、内外)。这将三维空间划分为立方体，也称为体素（体积元素或体积像素）。每个体素由一个3D坐标和该坐标上的颜色定义。</p>
+<p>就像像素作品一样（这是一种精心放置像素的艺术），我们现在有了体素作品，每个立方体都经过了仔细的考虑。</p>
+<p><img src="https://miro.medium.com/max/700/1*dUgTNounfrnvMlbN0qDp7Q.jpeg"></p>
+<center><font size=2>星际大战场景，@Sir_Carma，2015年</font></center>
+
+<p>这很像乐高积木，你不觉得吗?</p>
+<p>注意，因为我们在3D空间，体素也可以从任何角度观察。下面是对体素Tatooine的另一种观察：</p>
+<p><img src="https://miro.medium.com/max/1920/1*p-eu_ozx6toxlNr7Bgj1RA.jpeg"></p>
+<center><font size=2>星球大战场景（另一种视角），@Sir_Carma，2015</font></center>
+
+<p>我们甚至可以做成动画！以下是 <a target="_blank" rel="noopener" href="https://twitter.com/Sir_carma">@Sir Carma</a>的一个体素动画角色：</p>
+<p><img src="https://miro.medium.com/max/552/1*1_odYAqzEskdqVEIAJ5KAw.gif"></p>
+<center><font size=2>骑士奔跑，@Sir_Carma，2015年</font></center>
+
+<p>与2D像素角色进行比较：</p>
+<p><img src="https://miro.medium.com/max/600/1*aUXEUMD82iRPsoZFOP4F7Q.gif"></p>
+<center><font size=2>Final Element中的精灵，Glauber Kotaki，2015年</font></center>
+
+<p>你可以看到在体素作品中，动画如何改变小立方体（体素）的存在（颜色），而在像素作品中，颜色的变化发生在小方块（像素）上。</p>
+<p>现在你知道像素和体素之间的区别了（其实还有更多……哈哈，抱歉）。</p>
+<p>但是现在还不是停下来的时候。瞧，我之所以解释了矢量/位图，2D/3D性质的原因是，在我们的现代显示器上，每种图形类型最终都最终显示为2D栅格图像。</p>
+<p><img src="https://miro.medium.com/max/575/1*nK5jyQku62k7clN79dAPZA.png"></p>
+<p>我们在像素作品杂志中讨论这一点原因是，我们可以使用非像素风格的资源进行一些类型的变换，从而创建现代风格的像素作品。</p>
+<p>“我可以用体素或3D模型制作像素艺术？”当然可以！巧妙的着色和渲染技术使我们能够创建独特的视觉风格，将像素艺术带入未来。</p>
+<h1 id="矢量显示和投影"><a href="#矢量显示和投影" class="headerlink" title="矢量显示和投影"></a>矢量显示和投影</h1>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BF%BB%E8%AF%91/" rel="tag"># 翻译</a>
+              <a href="/tags/%E8%89%BA%E6%9C%AF/" rel="tag"># 艺术</a>
+              <a href="/tags/%E6%B8%B8%E6%88%8F%E7%BE%8E%E6%9C%AF/" rel="tag"># 游戏美术</a>
+              <a href="/tags/%E5%83%8F%E7%B4%A0/" rel="tag"># 像素</a>
+              <a href="/tags/%E4%BD%93%E7%B4%A0/" rel="tag"># 体素</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/03/26/netty%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="prev" title="netty源码学习笔记">
+      <i class="fa fa-chevron-left"></i> netty源码学习笔记
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/04/01/%E5%83%8F%E7%B4%A0%E7%94%BB%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="next" title="像素画学习笔记">
+      像素画学习笔记 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%9F%A2%E9%87%8F%E5%9B%BE%E5%BD%A2"><span class="nav-number">1.</span> <span class="nav-text">矢量图形</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BD%8D%E5%9B%BE%E5%9B%BE%E5%BD%A2"><span class="nav-number">2.</span> <span class="nav-text">位图图形</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%9F%A2%E9%87%8F%E6%98%BE%E7%A4%BA%E5%92%8C%E6%8A%95%E5%BD%B1"><span class="nav-number">3.</span> <span class="nav-text">矢量显示和投影</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">临江听雨</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/pcloves" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;pcloves" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">临江听雨</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
