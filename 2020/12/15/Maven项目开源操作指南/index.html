@@ -219,24 +219,24 @@
 
       
         <ol start="0">
-<li><p>一句话概括：把托管在github上的代码发布到sonatype nexus仓库，后者通过自动机制同步到maven中央仓库，可以参考官方的帮助文档：<a target="_blank" rel="noopener" href="https://central.sonatype.org/pages/ossrh-guide.html">OSSRH Guide</a></p>
+<li><p>一句话概括：把托管在github上的代码发布到sonatype nexus仓库，后者通过自动机制同步到maven中央仓库，可以参考官方的帮助文档：<a href="https://central.sonatype.org/pages/ossrh-guide.html">OSSRH Guide</a></p>
 </li>
-<li><p>创建<a target="_blank" rel="noopener" href="https://issues.sonatype.org/secure/Signup!default.jspa">sonatype jira账号</a>，创建一个<a target="_blank" rel="noopener" href="https://issues.sonatype.org/browse/OSSRH-65516">jira issue</a>，如果是groupId是自有域名需要证明，例如增加<strong>TXT</strong>记录</p>
+<li><p>创建<a href="https://issues.sonatype.org/secure/Signup!default.jspa">sonatype jira账号</a>，创建一个<a href="https://issues.sonatype.org/browse/OSSRH-65516">jira issue</a>，如果是groupId是自有域名需要证明，例如增加<strong>TXT</strong>记录</p>
 </li>
 <li><p>由于执行maven的deploy phase时，需要将代码推送到sonatype的仓库，因此需要配置用户名和密码，方法就是在.m2/setting.xml里配置server字段，配置内容为：</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">settings</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://maven.apache.org/SETTINGS/1.0.0&quot;</span></span></span><br><span class="line"><span class="tag">          <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">          <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://maven.apache.org/SETTINGS/1.0.0</span></span></span><br><span class="line"><span class="tag"><span class="string">                          https://maven.apache.org/xsd/settings-1.0.0.xsd&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">localRepository</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">interactiveMode</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">offline</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">pluginGroups</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">servers</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">server</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">id</span>&gt;</span>ossrh<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">username</span>&gt;</span>sonatype jira&#x27;s user name<span class="tag">&lt;/<span class="name">username</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">password</span>&gt;</span>sonatype jira&#x27;s password<span class="tag">&lt;/<span class="name">password</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">server</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">servers</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">mirrors</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">proxies</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">profiles</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">profile</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">id</span>&gt;</span>nexus-release<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">properties</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">gpg.passphrase</span>&gt;</span>gpg&#x27;s passphrase<span class="tag">&lt;/<span class="name">gpg.passphrase</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">properties</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">profile</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">profiles</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">activeProfiles</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activeProfile</span>&gt;</span>nexus-release<span class="tag">&lt;/<span class="name">activeProfile</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">activeProfiles</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">settings</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
 <p>如上所示，需要配置servers.server节点，至于profiles.profile节点，后面会用到</p>
 </li>
-<li><p>当执行到maven的<code>verify</code> phase时，需要调用<code>maven-gpg-plugin</code>插件的<code>sign</code>这个goal，目的是对推送到仓库的所有文件进行签名，而这个goal又会默认调用gpg这个系统命令，因此需要提前安装gpg，如果是在windows，需要下载windows下的<a target="_blank" rel="noopener" href="https://www.gpg4win.org/">gpg4win</a>，安装后生成gpg key：<code>gpg  --generate-key</code>，并将公钥分发到远程服务器：<code>gpg --keyserver hkp://pool.sks-keyservers.net --send-keys B87AC4F5C8D3C23B</code>，也可以使用gpg4win附带的可视化工具Kleopatra对gpg paire进行备份、生成吊销证书、分发到远程服务器。</p>
+<li><p>当执行到maven的<code>verify</code> phase时，需要调用<code>maven-gpg-plugin</code>插件的<code>sign</code>这个goal，目的是对推送到仓库的所有文件进行签名，而这个goal又会默认调用gpg这个系统命令，因此需要提前安装gpg，如果是在windows，需要下载windows下的<a href="https://www.gpg4win.org/">gpg4win</a>，安装后生成gpg key：<code>gpg  --generate-key</code>，并将公钥分发到远程服务器：<code>gpg --keyserver hkp://pool.sks-keyservers.net --send-keys B87AC4F5C8D3C23B</code>，也可以使用gpg4win附带的可视化工具Kleopatra对gpg paire进行备份、生成吊销证书、分发到远程服务器。</p>
 </li>
-<li><p>创建开源项目，并托管到github，保证pom.xml内必备字段都完备，比如：GAV、licenses、developers、scm、issueManagement，如果是非pom打包，还要求有doc的jar包和源码的jar包，因此需要配置：<code>maven-source-plugin</code>和<code>maven-javadoc-plugin</code>插件，详情可以参考<a target="_blank" rel="noopener" href="https://central.sonatype.org/pages/apache-maven.html#performing-a-snapshot-deployment">sonatype官方文档说明</a>，详情参考的<a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/pcloves/gamedo/main/pom.xml">gamedo</a>项目的配置，配置过程中需要注意：</p>
+<li><p>创建开源项目，并托管到github，保证pom.xml内必备字段都完备，比如：GAV、licenses、developers、scm、issueManagement，如果是非pom打包，还要求有doc的jar包和源码的jar包，因此需要配置：<code>maven-source-plugin</code>和<code>maven-javadoc-plugin</code>插件，详情可以参考<a href="https://central.sonatype.org/pages/apache-maven.html#performing-a-snapshot-deployment">sonatype官方文档说明</a>，详情参考的<a href="https://raw.githubusercontent.com/pcloves/gamedo/main/pom.xml">gamedo</a>项目的配置，配置过程中需要注意：</p>
 <ol>
 <li>snapshotRepository.id需要保持和setting.xml中的server.id一致，maven通过pom.xml和setting.xml实现配置分离和继承，公共数据配置在pom.xml中，私密数据配置在setting.xml中</li>
-<li>maven-gpg-plugin插件中的<code>configuration.gpgArguments</code>内的两个参数的目的是让gpg插件自动输入密码，该配置参考自<a target="_blank" rel="noopener" href="https://myshittycode.com/2017/08/07/maven-gpg-plugin-prevent-signing-prompt-or-gpg-signing-failed-no-such-file-or-directory-error/">该链接</a></li>
+<li>maven-gpg-plugin插件中的<code>configuration.gpgArguments</code>内的两个参数的目的是让gpg插件自动输入密码，该配置参考自<a href="https://myshittycode.com/2017/08/07/maven-gpg-plugin-prevent-signing-prompt-or-gpg-signing-failed-no-such-file-or-directory-error/">该链接</a></li>
 </ol>
 </li>
-<li><p>进入发布循环流程（<a target="_blank" rel="noopener" href="https://itnext.io/publishing-artifact-to-maven-central-b160634e5268">参考文档</a>）：</p>
+<li><p>进入发布循环流程（<a href="https://itnext.io/publishing-artifact-to-maven-central-b160634e5268">参考文档</a>）：</p>
 <ol>
 <li><p>开发，开发，开发</p>
 </li>
@@ -246,7 +246,7 @@
 </li>
 <li><p>发布新版本到nexus：<code>mvn clean deploy -P nexus-release</code>，由于<code>nexus-staging-maven-plugin</code>插件中的<code>autoReleaseAfterClose</code>设置为false，发布后会驻留在staging库，不会自动同步到release库</p>
 </li>
-<li><p>如果发现版本有问题，可以从staging库删除：<code>mvn nexus-staging:drop</code>，当确认无误后，可以发布到release库：<code>mvn nexus-staging:release</code>，nexus会在十分钟后自动同步到maven中央库，并且会在jira里自动评论：<a target="_blank" rel="noopener" href="https://issues.sonatype.org/browse/OSSRH-65516">OSSRH-65516</a>。</p>
+<li><p>如果发现版本有问题，可以从staging库删除：<code>mvn nexus-staging:drop</code>，当确认无误后，可以发布到release库：<code>mvn nexus-staging:release</code>，nexus会在十分钟后自动同步到maven中央库，并且会在jira里自动评论：<a href="https://issues.sonatype.org/browse/OSSRH-65516">OSSRH-65516</a>。</p>
 </li>
 <li><p>提交新的tag到git中</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git commit -m <span class="string">&quot;Release <span class="variable">$&#123;newVersion&#125;</span>&quot;</span></span><br><span class="line">git tag <span class="variable">$&#123;newVersion&#125;</span></span><br><span class="line">git push --tags</span><br></pre></td></tr></table></figure></li>
@@ -353,7 +353,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-count">14</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -365,7 +365,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-count">33</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

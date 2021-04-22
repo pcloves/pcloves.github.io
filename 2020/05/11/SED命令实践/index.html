@@ -220,7 +220,7 @@
 
       
         <ol>
-<li><p>sed命令执行时包含了若干个循环（cycle），而每个循环又包含若干个命令（command），完整的执行流程图为（<a target="_blank" rel="noopener" href="https://linux.cn/article-10232-1.html">图片来源</a>）：</p>
+<li><p>sed命令执行时包含了若干个循环（cycle），而每个循环又包含若干个命令（command），完整的执行流程图为（<a href="https://linux.cn/article-10232-1.html">图片来源</a>）：</p>
 <p><img src="https://img.linux.net.cn/data/attachment/album/201811/14/190635j1ycygaxrcj1vege.png" alt="The Sed execution model"></p>
 </li>
 <li><p><strong>tips:</strong> 如果sed语法的第一个字符是“/”，那么表示这是一个正则表达式的地址定位方式。（细品）</p>
@@ -231,7 +231,7 @@
 </li>
 <li><p>使用t label可以实现事务性的修改，比如两个替换要么同时进行，要么就都不做。</p>
 </li>
-<li><p>command n命令的流程是：1、如果没有配置地址或匹配则输出pattern space（如果不满足则跳过下一步）；2、然后读取下一行到pattern space。详情参考：<a target="_blank" rel="noopener" href="https://linux.cn/article-10232-1.html">Sed 命令完全指南</a>中的<strong>次行命令</strong>一节，例如：</p>
+<li><p>command n命令的流程是：1、如果没有配置地址或匹配则输出pattern space（如果不满足则跳过下一步）；2、然后读取下一行到pattern space。详情参考：<a href="https://linux.cn/article-10232-1.html">Sed 命令完全指南</a>中的<strong>次行命令</strong>一节，例如：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3\nline 4\nline 5\nline 6&#x27;</span> | sed -e <span class="string">&#x27;n&#x27;</span> -e <span class="string">&#x27;n&#x27;</span> -ne <span class="string">&#x27;p&#x27;</span> <span class="comment">#当第1个n执行后，pattern space变成：line 2，当第2个n执行后，pattern space变成：line 3，然后执行p后，打印current pattern space：line 3，然后进入下一个循环，打印出：line 6，上述sed可以简写成：sed -ne &#x27;n;n;p&#x27;，此外我们发现p命令的n选项是一个全局选项，它对整个sed语句生效而不仅限于p命令自己</span></span><br></pre></td></tr></table></figure></li>
 <li><p>command N、D可以实现联合多行条件判断（例如：满足某一行有ID字符串，且下面两行分别包含NAME和ADDRESS字符串，则执行删除ID行的操作），实现更复杂的操作，如果不使用command N、D，那么sed的操作仅限于行内。</p>
 </li>
@@ -259,12 +259,12 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2020/05/11/Windows%E4%B8%8A%E6%90%AD%E5%BB%BASOCKS%E4%BB%A3%E7%90%86/" rel="prev" title="Windows上搭建SOCKS代理">
-      <i class="fa fa-chevron-left"></i> Windows上搭建SOCKS代理
+    <a href="/2020/03/15/C#%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7/" rel="prev" title="C#高级特性拾遗">
+      <i class="fa fa-chevron-left"></i> C#高级特性拾遗
     </a></div>
       <div class="post-nav-item">
-    <a href="/2020/09/11/%E3%80%8A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA%E3%80%8B%EF%BC%88%E7%AC%AC%E4%B8%89%E7%89%88%EF%BC%89%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" rel="next" title="《深入理解Java虚拟机》（第三版）阅读笔记">
-      《深入理解Java虚拟机》（第三版）阅读笔记 <i class="fa fa-chevron-right"></i>
+    <a href="/2020/05/11/Windows%E4%B8%8A%E6%90%AD%E5%BB%BASOCKS%E4%BB%A3%E7%90%86/" rel="next" title="Windows上搭建SOCKS代理">
+      Windows上搭建SOCKS代理 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -337,7 +337,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-count">14</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -349,7 +349,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-count">33</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
