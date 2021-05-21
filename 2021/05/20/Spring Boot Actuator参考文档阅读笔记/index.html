@@ -28,7 +28,7 @@
 <meta property="og:description" content="1. 背景乔梁大神曾经在他的《持续交付2.0》一书的第5.1.1节：《持续交付架构要求》中明确指出：为了提升交付速度，获得持续交付能力，系统架构在设计时应该考虑如下因素。 （1）为测试而设计（design for test）。如果我们每次写好代码以后，需要花费很大的精力，做很多的准备工作才能对它进行测试的话，那么从写好代码到完成质量验证就需要很长周期，当然无法快速发布。 （2）为部署而设计（des">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-05-20T12:00:00.000Z">
-<meta property="article:modified_time" content="2021-05-20T13:31:27.441Z">
+<meta property="article:modified_time" content="2021-05-21T03:11:27.021Z">
 <meta property="article:author" content="临江听雨">
 <meta property="article:tag" content="源码阅读">
 <meta property="article:tag" content="spring">
@@ -180,10 +180,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2021-05-20 20:00:00 / 修改时间：21:31:27" itemprop="dateCreated datePublished" datetime="2021-05-20T20:00:00+08:00">2021-05-20</time>
+              <time title="创建时间：2021-05-20 20:00:00" itemprop="dateCreated datePublished" datetime="2021-05-20T20:00:00+08:00">2021-05-20</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-21 11:11:27" itemprop="dateModified" datetime="2021-05-21T11:11:27+08:00">2021-05-21</time>
+              </span>
 
           
             <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
@@ -209,15 +215,53 @@
 <p>（3）为监控而设计（design for monitor）。如果我们的功能上线以后，无法对齐进行监控，除了问题只能通过用户反馈才发现。那么，持续交付的收益就会大幅降低了。</p>
 <p>（4）为扩展而设计（design for scale）。这里的扩展性指两个方面，意识支持团队成员规模的扩展，而是支持系统自身的扩展。</p>
 <p>（5）为失效而设计（design for failure）。俗话说：“常在河边走，哪能不湿鞋。”快速地部署发布总会遇到问题。因此，在开发软件功能之前，就应该考虑的一个问题是：一旦部署或发布失败，如何优雅且快速地处理。</p>
-<p>在这5个设计原则中，为监控而设计属于游戏（服务器）开发中最容易被轻视甚至是忽视的原则之一，而在<a href="https://github.com/pcloves/gamedo.core">gamedo.core</a>的开发设计过程中，笔者也一直在思考如何实现系统监控的最佳实践，直到最近算是确定了技术栈，那就是站在巨人的肩上，使用<a href="https://docs.spring.io/spring-boot/docs/2.4.6/reference/html/production-ready-features.html#production-ready">Spring Boot Actuator</a>和<a href="https://micrometer.io/docs">MicroMeter</a>。</p>
-<p>正是由于<a href="https://github.com/pcloves/gamedo.core">gamedo.core</a>最终要选用Spring Boot Actuator作为系统监控的关键技术，因此需要其进行相对深入的研究，这也是本笔记的产生的原因。而本文的所有内容都源于阅读<a href="https://docs.spring.io/spring-boot/docs/2.4.6/reference/html/production-ready-features.html#production-ready">参考文档</a>（Spring Boot版本：2.4.6）以及阅读源码时的随读、随想和随写，为了便于以后查找，章节也完全和参考文档保持一致，并且由于某些章节比较简单，所以就被忽略掉，这可能导致本文的章节不是连续的。</p>
-<h1 id="1-开启产品就绪特性"><a href="#1-开启产品就绪特性" class="headerlink" title="1. 开启产品就绪特性"></a>1. 开启产品就绪特性</h1><p>Spring Boot的所有产品就绪特性是由 <a href="https://github.com/spring-projects/spring-boot/tree/v2.4.6/spring-boot-project/spring-boot-actuator"><code>spring-boot-actuator</code></a>模块提供的，开启该特性的最佳方式就是引入专有的<code>Starter</code>，也即：<code>spring-boot-starter-actuator</code></p>
+<p>在这5个设计原则中，为监控而设计属于游戏（服务器）开发中最容易被轻视甚至是忽视的原则之一，而在<a href="https://github.com/pcloves/gamedo.core">gamedo.core</a>的开发设计过程中，笔者也一直在思考如何实现系统监控的最佳实践，直到最近算是确定了技术栈，那就是站在巨人的肩上，使用<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/actuator.html#actuator">Spring Boot Actuator</a>和<a href="https://micrometer.io/docs">MicroMeter</a>。</p>
+<p>正是由于<a href="https://github.com/pcloves/gamedo.core">gamedo.core</a>最终要选用Spring Boot Actuator作为系统监控的关键技术，因此需要其进行相对深入的研究，这也是本笔记的产生的原因。而本文的所有内容都源于阅读<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/actuator.html#actuator">参考文档</a>（Spring Boot版本：2.5.0）以及阅读源码时的随读、随想和随写，为了便于以后查找，章节也完全和参考文档保持一致，并且由于某些章节比较简单，所以就被忽略掉，这可能导致本文的章节不是连续的。</p>
+<h1 id="1-启用产品就绪特性（Enabling-Production-ready-Features）"><a href="#1-启用产品就绪特性（Enabling-Production-ready-Features）" class="headerlink" title="1. 启用产品就绪特性（Enabling Production-ready Features）"></a>1. 启用产品就绪特性（Enabling Production-ready Features）</h1><p>Spring Boot的所有产品就绪特性是由 <a href="https://github.com/spring-projects/spring-boot/tree/v2.4.6/spring-boot-project/spring-boot-actuator"><code>spring-boot-actuator</code></a>模块提供的，开启该特性的最佳方式就是引入专有的<code>Starter</code>，也即：<code>spring-boot-starter-actuator</code></p>
 <blockquote>
 <center><b>执行器的定义</b></center>
 
 <p><a href="https://www.termonline.cn/search?k=actuator">执行器</a>（actuator）是一个制造业术语，是指用于移动或控制某些物体的机械设备。可以通过执行器的微小变化带来巨大的变化。</p>
 </blockquote>
-<h1 id="2-端点（Endpoints）"><a href="#2-端点（Endpoints）" class="headerlink" title="2. 端点（Endpoints）"></a>2. 端点（Endpoints）</h1>
+<h1 id="2-端点（Endpoints）"><a href="#2-端点（Endpoints）" class="headerlink" title="2. 端点（Endpoints）"></a>2. 端点（Endpoints）</h1><p>通过端点，可以监控应用程序以及和应用程序交互。对于任意端点来说，可以对其进行两个操作：1、开启或关闭某个端点；2、通过HTTP或者JMX暴露它。当某个端点被开启且被暴露时，该端点才可用。而内置的端点只有在可用时才会被自动装配。</p>
+<p>每一个端点都有唯一id，通过HTTP访问任意端点的方式是：<code>/actuator/端点id</code>，例如对于<code>health</code>端点，其访问方式为：<code>/actuator/health</code> </p>
+<p> <a href="https://github.com/spring-projects/spring-boot/tree/v2.4.6/spring-boot-project/spring-boot-actuator"><code>spring-boot-actuator</code></a>内置了一大堆开箱即用的端点，详情参考源文档。特别地，当应用程序是一个Web应用（Spring MVC、Spring WebFlux或者Jersey），如下内置的额外端点可以被使用：</p>
+<table>
+<thead>
+<tr>
+<th align="left">端点ID</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>heapdump</code></td>
+<td align="left">返回一个<code>hprof</code>堆转储文件，需要HotSpot虚拟机支持</td>
+</tr>
+<tr>
+<td align="left"><code>jolokia</code></td>
+<td align="left">通过HTTP暴露JMX bean（需要Jolokia在classpath内，且不适用于WebFlux），需要增加<code>jolokia-core</code>依赖</td>
+</tr>
+<tr>
+<td align="left"><code>logfile</code></td>
+<td align="left">返回日志文件的内容（如果logging.file.name或logging.file.path属性被设置），并且支持使用HTTP <code>Range</code>头检索部分日志文件的内容</td>
+</tr>
+<tr>
+<td align="left"><code>prometheus</code></td>
+<td align="left">将metrics暴露成可以被Prometheus服务器抓取的格式，需要添加<code>micrometer-registry-prometheus</code>依赖</td>
+</tr>
+</tbody></table>
+<h2 id="2-1-开启端点（Enabling-Endpoints）"><a href="#2-1-开启端点（Enabling-Endpoints）" class="headerlink" title="2.1. 开启端点（Enabling Endpoints）"></a>2.1. 开启端点（Enabling Endpoints）</h2><p>默认情况下，除了<code>shutdown</code>端点，其他所有端点默认处于<strong>开启状态</strong>。如果要开关某个端点，可以配置属性：<code>management.endpoint.&lt;端点id&gt;.enabled</code>，例如开启<code>shutdown</code>端点的配置为：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">endpoint:</span></span><br><span class="line">    <span class="attr">shutdown:</span></span><br><span class="line">      <span class="attr">enabled:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p>如果希望所有端点默认都是关闭状态，可以将<code>management.endpoints.enabled-by-default</code>配置为<code>false</code>，并且将每个端点的<code>enabled</code>属性配置为<code>true</code>来开启该端点。以<code>info</code>端点举例（只开启<code>info</code>端点，其他端点都关闭）：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">endpoints:</span></span><br><span class="line">    <span class="attr">enabled-by-default:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">endpoint:</span></span><br><span class="line">    <span class="attr">info:</span></span><br><span class="line">      <span class="attr">enabled:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>提示</strong></p>
+<p>当某个端点被关闭后，会从Spring容器上下文（application context）中移除掉。如果仅仅是不想让某个端点被暴露，可以使用<a href="#2.2.-%E6%9A%B4%E9%9C%B2%E7%AB%AF%E7%82%B9%EF%BC%88Exposing-Endpoints%EF%BC%89">include和exclude</a>属性代替。</p>
+</blockquote>
+<h2 id="2-2-暴露端点（Exposing-Endpoints）"><a href="#2-2-暴露端点（Exposing-Endpoints）" class="headerlink" title="2.2. 暴露端点（Exposing Endpoints）"></a>2.2. 暴露端点（Exposing Endpoints）</h2><p>对于JMX访问的方式，所有的端点默认是开放暴露的，而对于Web的访问方式，默认只有<code>health</code>是开放开放暴露的，详情参考<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/actuator.html#actuator.endpoints.exposing">源文档</a>的表格</p>
+
     </div>
 
     
@@ -299,7 +343,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">1. 背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%BC%80%E5%90%AF%E4%BA%A7%E5%93%81%E5%B0%B1%E7%BB%AA%E7%89%B9%E6%80%A7"><span class="nav-number">2.</span> <span class="nav-text">1. 开启产品就绪特性</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E7%AB%AF%E7%82%B9%EF%BC%88Endpoints%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">2. 端点（Endpoints）</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">1. 背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%90%AF%E7%94%A8%E4%BA%A7%E5%93%81%E5%B0%B1%E7%BB%AA%E7%89%B9%E6%80%A7%EF%BC%88Enabling-Production-ready-Features%EF%BC%89"><span class="nav-number">2.</span> <span class="nav-text">1. 启用产品就绪特性（Enabling Production-ready Features）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E7%AB%AF%E7%82%B9%EF%BC%88Endpoints%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">2. 端点（Endpoints）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-%E5%BC%80%E5%90%AF%E7%AB%AF%E7%82%B9%EF%BC%88Enabling-Endpoints%EF%BC%89"><span class="nav-number">3.1.</span> <span class="nav-text">2.1. 开启端点（Enabling Endpoints）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-%E6%9A%B4%E9%9C%B2%E7%AB%AF%E7%82%B9%EF%BC%88Exposing-Endpoints%EF%BC%89"><span class="nav-number">3.2.</span> <span class="nav-text">2.2. 暴露端点（Exposing Endpoints）</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
