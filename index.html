@@ -182,7 +182,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-21 21:23:39" itemprop="dateModified" datetime="2021-05-21T21:23:39+08:00">2021-05-21</time>
+                <time title="修改时间：2021-05-21 21:27:11" itemprop="dateModified" datetime="2021-05-21T21:27:11+08:00">2021-05-21</time>
               </span>
 
           
@@ -204,13 +204,13 @@
 <p>（5）为失效而设计（design for failure）。俗话说：“常在河边走，哪能不湿鞋。”快速地部署发布总会遇到问题。因此，在开发软件功能之前，就应该考虑的一个问题是：一旦部署或发布失败，如何优雅且快速地处理。</p>
 <p>在这5个设计原则中，为监控而设计属于游戏（服务器）开发中最容易被轻视甚至是忽视的原则之一，而在<a href="https://github.com/pcloves/gamedo.core">gamedo.core</a>的开发设计过程中，笔者也一直在思考如何实现系统监控的最佳实践，直到最近算是确定了技术栈，那就是站在巨人的肩上，使用<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/actuator.html#actuator">Spring Boot Actuator</a>和<a href="https://micrometer.io/docs">MicroMeter</a>。</p>
 <p>正是由于<a href="https://github.com/pcloves/gamedo.core">gamedo.core</a>最终要选用Spring Boot Actuator作为系统监控的关键技术，因此需要其进行相对深入的研究，这也是本笔记的产生的原因。而本文的所有内容都源于阅读<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/actuator.html#actuator">参考文档</a>（Spring Boot版本：2.5.0）以及阅读源码时的随读、随想和随写，为了便于以后查找，章节也完全和参考文档保持一致，并且由于某些章节比较简单，所以就被忽略掉，这可能导致本文的章节不是连续的。</p>
-<h1 id="1-启用产品就绪特性（Enabling-Production-ready-Features）"><a href="#1-启用产品就绪特性（Enabling-Production-ready-Features）" class="headerlink" title="1. 启用产品就绪特性（Enabling Production-ready Features）"></a>1. 启用产品就绪特性（Enabling Production-ready Features）</h1><p>Spring Boot的所有产品就绪特性是由 <a href="https://github.com/spring-projects/spring-boot/tree/v2.4.6/spring-boot-project/spring-boot-actuator"><code>spring-boot-actuator</code></a>模块提供的，开启该特性的最佳方式就是引入专有的<code>Starter</code>，也即：<code>spring-boot-starter-actuator</code></p>
+<h1 id="1-启用产品就绪特性（Enabling-Production-ready-Features）"><a href="#1-启用产品就绪特性（Enabling-Production-ready-Features）" class="headerlink" title="1. 启用产品就绪特性（Enabling Production-ready Features）"></a>1. 启用产品就绪特性（Enabling Production-ready Features）</h1><p>Spring Boot的所有产品就绪特性是都是由 <a href="https://github.com/spring-projects/spring-boot/tree/v2.4.6/spring-boot-project/spring-boot-actuator"><code>spring-boot-actuator</code></a>模块提供的，开启该特性的最佳方式就是引入专有的<code>Starter</code>，也即：<code>spring-boot-starter-actuator</code></p>
 <blockquote>
 <center><b>执行器的定义</b></center>
 
 <p><a href="https://www.termonline.cn/search?k=actuator">执行器</a>（actuator）是一个制造业术语，是指用于移动或控制某些物体的机械设备。可以通过执行器的微小变化带来巨大的变化。</p>
 </blockquote>
-<h1 id="2-端点（Endpoints）"><a href="#2-端点（Endpoints）" class="headerlink" title="2. 端点（Endpoints）"></a>2. 端点（Endpoints）</h1><p>通过端点，可以监控应用程序以及和应用程序交互。对于任意端点来说，可以对其进行两个操作：1、开启或关闭某个端点；2、通过HTTP或者JMX暴露它。当某个端点被开启且被暴露时，该端点才可用。而内置的端点只有在可用时才会被自动装配。</p>
+<h1 id="2-端点（Endpoints）"><a href="#2-端点（Endpoints）" class="headerlink" title="2. 端点（Endpoints）"></a>2. 端点（Endpoints）</h1><p>通过端点可以监控应用程序以及和应用程序交互。对于任意端点来说，可以对其进行两个操作：1、开启或关闭某个端点；2、通过HTTP或者JMX暴露它。当某个端点被开启且被暴露时，该端点才可用。而内置的端点只有在可用时才会被自动装配。</p>
 <p>每一个端点都有唯一id，通过HTTP访问任意端点的方式是：<code>/actuator/端点id</code>，例如对于<code>health</code>端点，其访问方式为：<code>/actuator/health</code> </p>
 <p> <a href="https://github.com/spring-projects/spring-boot/tree/v2.4.6/spring-boot-project/spring-boot-actuator"><code>spring-boot-actuator</code></a>内置了一大堆开箱即用的端点，详情参考源文档。特别地，当应用程序是一个Web应用（Spring MVC、Spring WebFlux或者Jersey），如下内置的额外端点可以被使用：</p>
 <table>
