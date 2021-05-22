@@ -182,7 +182,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-22 16:50:08" itemprop="dateModified" datetime="2021-05-22T16:50:08+08:00">2021-05-22</time>
+                <time title="修改时间：2021-05-22 19:59:17" itemprop="dateModified" datetime="2021-05-22T19:59:17+08:00">2021-05-22</time>
               </span>
 
           
@@ -356,6 +356,105 @@
 <td align="center"><code>DELETE</code></td>
 </tr>
 </tbody></table>
+<h4 id="请求媒体类型（Consumes）"><a href="#请求媒体类型（Consumes）" class="headerlink" title="请求媒体类型（Consumes）"></a>请求媒体类型（Consumes）</h4><p>对于HTTP POST方式的<code>@WriteOperation</code>，其请求（Request）的媒体类型（Content-Type）为<code>application/vnd.spring-boot.actuator.v2+json, application/json</code>，而其他操作类型则为空。</p>
+<h4 id="响应媒体类型（Produces）"><a href="#响应媒体类型（Produces）" class="headerlink" title="响应媒体类型（Produces）"></a>响应媒体类型（Produces）</h4><p>响应（Response）的媒体类型由<code>@DeleteOperation</code>、<code>@ReadOperation</code>和<code>@WriteOperation</code>注解内的<code>produces</code>属性决定。这个属性是可选的，如果没有配置，那么媒体类型会被自动设置。</p>
+<p>如果操作函数的返回值是<code>void</code>或者<code>Void</code>，那么媒体类型为空。如果返回一个<code>org.springframework.core.io.Resource</code>，那么媒体类型类型为<code>application/octet-stream</code>（也即二进制流数据）。而其他的所有的操作，媒体类型都是<code>application/vnd.spring-boot.actuator.v2+json, application/json</code>。</p>
+<h4 id="Web端点的响应状态码（Web-Endpoint-Response-Status）"><a href="#Web端点的响应状态码（Web-Endpoint-Response-Status）" class="headerlink" title="Web端点的响应状态码（Web Endpoint Response Status）"></a>Web端点的响应状态码（Web Endpoint Response Status）</h4><p>默认的响应状态码取决于操作类型（<code>@DeleteOperation</code>、<code>@ReadOperation</code>和<code>@WriteOperation</code>）和返回值（如果有返回值的话）。</p>
+<ul>
+<li><p>如果一个<code>@ReadOperation</code>返回了一个值，那么状态码是200（OK）。否则的话，状态码是404（Not Found）。</p>
+</li>
+<li><p>如果一个<code>@WriteOpertion</code>或<code>@DeleteOperation</code>返回了一个值，那么状态码是200（OK）。否则的话，状态码是204（No Cpmtemt）。</p>
+</li>
+<li><p>如果一个操作被调用了而没有传入必须的参数，或者说参数没有被正确转换，那么操作函数将不会被调用，返回一个400（Bad Request）状态码</p>
+</li>
+</ul>
+<h4 id="Web端点范围请求（Web-Endpoint-Range-Requests）"><a href="#Web端点范围请求（Web-Endpoint-Range-Requests）" class="headerlink" title="Web端点范围请求（Web Endpoint Range Requests）"></a>Web端点范围请求（Web Endpoint Range Requests）</h4><p>可以使用HTTP范围请求来获取HTTP资源。当使用Spring MVC或Spring WebFlux时，如果某个操作返回了<code>org.springframework.core.io.Resource</code>，那么范围请求会被自动支持。</p>
+<blockquote>
+<p><strong>提示</strong></p>
+<p>Jersey不支持范围请求</p>
+</blockquote>
+<h4 id="Web端点安全（Web-Endpoint-Security）"><a href="#Web端点安全（Web-Endpoint-Security）" class="headerlink" title="Web端点安全（Web Endpoint Security）"></a>Web端点安全（Web Endpoint Security）</h4><p>对于web方式的端点或者web相关的端点扩展（web-specific endpoint extension），它们都可以接收<code>java.security.Principal</code>或 <code>org.springframework.boot.actuate.endpoint.SecurityContext</code>作为操作函数的参数。前者通常配合<code>@Nullable</code>使用，为经过身份验证和未经过身份验证的用户提供不同的行为。而后者通常使用<code>isUserInRole(Sring)</code>进行权限检查</p>
+<h3 id="2-7-3-Servlet端点（Servlet-Endpoints）"><a href="#2-7-3-Servlet端点（Servlet-Endpoints）" class="headerlink" title="2.7.3. Servlet端点（Servlet Endpoints）"></a>2.7.3. Servlet端点（Servlet Endpoints）</h3><p>当同时满足如下两个条件后，就可以实现一个Servlet端点：</p>
+<ul>
+<li>实现一个<code>Supplier&lt;EndpointServlet&gt;</code>类</li>
+<li>同时该类上增加<code>@ServletEndpoint</code>注解</li>
+</ul>
+<p>Servlet端点可以和Servlet容器更深层地集成，但是牺牲了可移植性。这种方式的应用场景就是可以将已有的Servlet转化为端点。而对于新的端点，仍然尽量使用<code>@Endpoint</code>或<code>@WebEndpoint</code></p>
+<h4 id="2-7-4-Controller端点（Controller-Endpoints）"><a href="#2-7-4-Controller端点（Controller-Endpoints）" class="headerlink" title="2.7.4. Controller端点（Controller Endpoints）"></a>2.7.4. Controller端点（Controller Endpoints）</h4><p><code>@ControllerEndpoint</code>和<code>@RestControllerEndpoint</code>端点只可以在Spring MVC和Spring WebFlux下使用。当使用Spring MVC或Spring WebFlux的标准注解，例如<code>@RequestMapping</code> 和<code>@GetMapping</code>时，端点的操作方法都可以被正常映射，并且以端点的ID作为请求路径（path）的前缀。Controller端点提供了和Srping web框架更深的集成度，然而牺牲了可移植性。因此，尽量优先使用<code>@Endpoint</code>或<code>@WebEndpoint</code>端点。</p>
+<h2 id="2-8-健康信息（Health-Information）"><a href="#2-8-健康信息（Health-Information）" class="headerlink" title="2.8. 健康信息（Health Information）"></a>2.8. 健康信息（Health Information）</h2><p>可以通过健康信息检查应用程序的运行状态。健康信息通常被用来监控应用，并且在系统宕机时进行报警。<code>health</code>端点暴露的信息详情取决于<code>management.endpoint.health.show-details</code> 和<code>management.endpoint.health.show-components</code>属性的配置，可以配置的值如下所示：</p>
+<table>
+<thead>
+<tr>
+<th align="center">配置值</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>never</code>（默认值）</td>
+<td align="center">详情不可见</td>
+</tr>
+<tr>
+<td align="center"><code>when-authorized</code></td>
+<td align="center">详情仅对授权用户可见。授权用户可以通过<code>management.endpoint.health.roles</code>配置</td>
+</tr>
+<tr>
+<td align="center"><code>always</code></td>
+<td align="center">详情对所有用户可见</td>
+</tr>
+</tbody></table>
+<p>当一个用户拥有一个或多个端点角色（endpoint’s roles）时，他被认为是授权的。如果某个端点没有配置角色（这是默认状态），那么所有通过身份认证的用户都任务是被授权的。可以通过<code>management.endpoint.health.roles</code>配置角色。</p>
+<blockquote>
+<p><strong>提示</strong></p>
+<p>如果已经对应用程序进行安全控制（ secured your application），而想使用<code>always</code>配置，那么需要对安全配置进行设置，是的所有经过身份认证和未经过身份认证的用户都获得访问权限</p>
+</blockquote>
+<p>健康信息是 <a href="https://github.com/spring-projects/spring-boot/tree/v2.5.0/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/health/HealthContributorRegistry.java"><code>HealthContributorRegistry</code></a>中收集所有健康数据的集合。默认情况下，这些健康数据是Spring上下文（<code>ApplicationContext</code>）中一个个<a href="https://github.com/spring-projects/spring-boot/tree/v2.5.0/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/health/HealthContributor.java"><code>HealthContributor</code></a>实例，Spring Boot已经自动装配了很多<code>HealthContributors</code>，用户也可以自己实现。</p>
+<p><code>HealthContributor</code>既可以是一个<code>HealthIndicator</code> 也可以是一个<code>CompositeHealthContributor</code>，前者提供了实际的健康数据，并包含一个<code>Status</code>，后者提供了和其他<code>HealthIndicator</code>组合的能力。最终，所有这些<code>HealthContributor</code>形成了一个树状结构，来展示整个系统的健康状态。</p>
+<p>默认情况下，系统的最终健康状态由<code>Statusaggregator</code>计算获得。<code>Statusaggregator</code>的实现类<code>SimpleStatusAggregator</code>的实现算法：</p>
+<ul>
+<li>内部维护了一个健康状态的有序列表，排序为：<code>DOWN</code>、<code>OUT_OF_SERVICE</code>、<code>UP</code>、<code>UNKNOWN</code></li>
+<li>对于外部传入的状态集合，首先过滤掉不识别的状态码（也即只保留这4个状态码）</li>
+<li>算出每个状态在有序列表中的索引，并取出索引值最小的状态，作为最终状态（实际上就是跟进有序列表的顺序进行排序）</li>
+<li>如果剩下的集合是空的，那么返还一个<code>UNKNOWN</code>状态（这种情形只发生所有传入的状态都不属于这4种状态的情况下）</li>
+</ul>
+<blockquote>
+<p><strong>提示</strong></p>
+<p><code>HealthContributorRegistry</code>可以在运行状态下动态注册和反注册</p>
+</blockquote>
+<h3 id="2-8-1-自动装配的HealthIndicators（Auto-configured-HealthIndicators）"><a href="#2-8-1-自动装配的HealthIndicators（Auto-configured-HealthIndicators）" class="headerlink" title="2.8.1. 自动装配的HealthIndicators（Auto-configured HealthIndicators）"></a>2.8.1. 自动装配的HealthIndicators（Auto-configured HealthIndicators）</h3><p>Spring Boot已经自动装配了很多<code>HealthIndicator</code>，可以通过<code>management.health.&lt;key&gt;.enabled</code>将其开启或关闭</p>
+<blockquote>
+<p><strong>提示</strong></p>
+<ul>
+<li>详细的<code>HealthIndicator</code>列表不再赘述，详情参考<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/actuator.html#actuator.endpoints.health.auto-configured-health-indicators">源文档</a></li>
+<li>可以通过设置<code>management.health.defaults.enabled</code>关闭所有的<code>HealthIndicator</code></li>
+</ul>
+</blockquote>
+<p>以下<code>HealthIndicator</code>也是可用的，但是默认情况下没有被启用：</p>
+<table>
+<thead>
+<tr>
+<th align="center">Key</th>
+<th align="center">名字</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>livenessstate</code></td>
+<td align="center"><a href="https://github.com/spring-projects/spring-boot/tree/v2.5.0/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/availability/LivenessStateHealthIndicator.java"><code>LivenessStateHealthIndicator</code></a></td>
+<td align="center">暴露应用程序的<code>活性</code>状态</td>
+</tr>
+<tr>
+<td align="center"><code>readinessstate</code></td>
+<td align="center"><a href="https://github.com/spring-projects/spring-boot/tree/v2.5.0/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/availability/ReadinessStateHealthIndicator.java"><code>ReadinessStateHealthIndicator</code></a></td>
+<td align="center">暴露应用程序的<code>就绪</code>状态</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>笔者提示</strong></p>
+<ul>
+<li>关于<code>活性</code>状态，Spring Boot在<a href="https://github.com/spring-projects/spring-boot/blob/v2.5.0/spring-boot-project/spring-boot/src/main/java/org/springframework/boot/availability/LivenessState.java">源码</a>中有详细的解释：当应用程序的内部状态是正确的（CORRECT），那么它被认为是存活的。而<code>失活</code>状态意味着应用程序内部状态已经出现严重异常（BROKEN）而且无法正常恢复，只能通过重启应用解决该异常。相应地，活性状态有两个状态，分别为：<code>CORRECT</code>和<code>BROKEN</code>。</li>
+<li>关于<code>就绪</code>状态，Spring Boot在<a href="https://github.com/spring-projects/spring-boot/blob/v2.5.0/spring-boot-project/spring-boot/src/main/java/org/springframework/boot/availability/ReadinessState.java">源码</a>中也有详细的解释：当应用程序处于存活（也即活性状态为CORRECT）状态且可以接受流量时，被认为是就绪的（ACCEPTING_TRAFFIC）。而当应用程序无法接受流量时意味着就绪失败（REFUSING_TRAFFIC），基础设施必须停止对其路由。相应地，就行状态也包含两种：<code>ACCEPTING_TRAFFIC</code>和<code>REFUSING_TRAFFIC</code>（也就是说就绪状态更倾向于一个web术语）</li>
+</ul>
+</blockquote>
 
       
     </div>
