@@ -182,7 +182,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-22 19:59:17" itemprop="dateModified" datetime="2021-05-22T19:59:17+08:00">2021-05-22</time>
+                <time title="修改时间：2021-05-22 20:11:33" itemprop="dateModified" datetime="2021-05-22T20:11:33+08:00">2021-05-22</time>
               </span>
 
           
@@ -454,6 +454,13 @@
 <li>关于<code>活性</code>状态，Spring Boot在<a href="https://github.com/spring-projects/spring-boot/blob/v2.5.0/spring-boot-project/spring-boot/src/main/java/org/springframework/boot/availability/LivenessState.java">源码</a>中有详细的解释：当应用程序的内部状态是正确的（CORRECT），那么它被认为是存活的。而<code>失活</code>状态意味着应用程序内部状态已经出现严重异常（BROKEN）而且无法正常恢复，只能通过重启应用解决该异常。相应地，活性状态有两个状态，分别为：<code>CORRECT</code>和<code>BROKEN</code>。</li>
 <li>关于<code>就绪</code>状态，Spring Boot在<a href="https://github.com/spring-projects/spring-boot/blob/v2.5.0/spring-boot-project/spring-boot/src/main/java/org/springframework/boot/availability/ReadinessState.java">源码</a>中也有详细的解释：当应用程序处于存活（也即活性状态为CORRECT）状态且可以接受流量时，被认为是就绪的（ACCEPTING_TRAFFIC）。而当应用程序无法接受流量时意味着就绪失败（REFUSING_TRAFFIC），基础设施必须停止对其路由。相应地，就行状态也包含两种：<code>ACCEPTING_TRAFFIC</code>和<code>REFUSING_TRAFFIC</code>（也就是说就绪状态更倾向于一个web术语）</li>
 </ul>
+</blockquote>
+<h3 id="2-8-2-自定义HealthIndicators（Writing-Custom-HealthIndicators）"><a href="#2-8-2-自定义HealthIndicators（Writing-Custom-HealthIndicators）" class="headerlink" title="2.8.2 自定义HealthIndicators（Writing Custom HealthIndicators）"></a>2.8.2 自定义HealthIndicators（Writing Custom HealthIndicators）</h3><p>可以通过注册 <a href="https://github.com/spring-projects/spring-boot/tree/v2.5.0/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/health/HealthIndicator.java"><code>HealthIndicator</code></a> 接口的Bean实现自定义的监控数据。该接口类需要实现<code>health()</code>方法并且返回一个<code>Health</code>类。该返回值必须包含一个状态，并且可选择性地包含详细信息以供显示。以下代码展示了一个<code>HealthIndicator</code>实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyHealthIndicator</span> <span class="keyword">implements</span> <span class="title">HealthIndicator</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Health <span class="title">health</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> errorCode = check();</span><br><span class="line">        <span class="keyword">if</span> (errorCode != <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> Health.down().withDetail(<span class="string">&quot;Error Code&quot;</span>, errorCode).build();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> Health.up().build();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">check</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// perform some specific health check</span></span><br><span class="line">        <span class="keyword">return</span> ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>提示</strong></p>
+<p><code>HealthIndicator</code>接口类的名字去掉<code>HealthIndicator</code>后缀（如果存在的话）会作为Bean的名字，上述实例中，这个自定义<code>HealthIndicator</code>的名字是my</p>
 </blockquote>
 
       
