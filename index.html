@@ -182,7 +182,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-24 20:37:22" itemprop="dateModified" datetime="2021-05-24T20:37:22+08:00">2021-05-24</time>
+                <time title="修改时间：2021-05-24 21:10:49" itemprop="dateModified" datetime="2021-05-24T21:10:49+08:00">2021-05-24</time>
               </span>
 
           
@@ -462,6 +462,11 @@
 <p><strong>提示</strong></p>
 <p><code>HealthIndicator</code>接口类的名字去掉<code>HealthIndicator</code>后缀（如果存在的话）会作为Bean的名字，上述实例中，这个自定义<code>HealthIndicator</code>的名字是my。</p>
 </blockquote>
+<p>除了Srping Boot内置的<a href="https://github.com/spring-projects/spring-boot/tree/v2.5.0/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/health/Status.java"><code>Status</code></a>之外，返回的<code>Health</code>内也可以包含自定义的系统状态。在这种情况下，也得需要实现一个自定义的<a href="https://github.com/spring-projects/spring-boot/tree/v2.5.0/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/health/StatusAggregator.java"><code>StatusAggregator</code></a> ，或者使用<code>management.endpoint.health.status.order</code>属性替代默认的配置。</p>
+<p>例如，假如在某个<code>HealthIndicator</code>内返回了一个新增了的状态码：<code>FATAL</code>，为了配置优先级，需要增加如下配置：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">endpoint:</span></span><br><span class="line">    <span class="attr">health:</span></span><br><span class="line">      <span class="attr">status:</span></span><br><span class="line">        <span class="attr">order:</span> <span class="string">&quot;fatal,down,out-of-service,unknown,up&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>HTTP的响应状态码反映了系统的整体监控状态。默认情况下，<code>OUT_OF_SERVICE</code>和<code>DOWN</code>的状态码是503。其他任何没有被映射的状态（包括<code>UP</code>）的状态码为200。</p>
 
       
     </div>
