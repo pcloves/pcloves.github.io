@@ -182,7 +182,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-24 21:10:49" itemprop="dateModified" datetime="2021-05-24T21:10:49+08:00">2021-05-24</time>
+                <time title="修改时间：2021-05-25 20:44:53" itemprop="dateModified" datetime="2021-05-25T20:44:53+08:00">2021-05-25</time>
               </span>
 
           
@@ -462,12 +462,75 @@
 <p><strong>提示</strong></p>
 <p><code>HealthIndicator</code>接口类的名字去掉<code>HealthIndicator</code>后缀（如果存在的话）会作为Bean的名字，上述实例中，这个自定义<code>HealthIndicator</code>的名字是my。</p>
 </blockquote>
-<p>除了Srping Boot内置的<a href="https://github.com/spring-projects/spring-boot/tree/v2.5.0/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/health/Status.java"><code>Status</code></a>之外，返回的<code>Health</code>内也可以包含自定义的系统状态。在这种情况下，也得需要实现一个自定义的<a href="https://github.com/spring-projects/spring-boot/tree/v2.5.0/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/health/StatusAggregator.java"><code>StatusAggregator</code></a> ，或者使用<code>management.endpoint.health.status.order</code>属性替代默认的配置。</p>
-<p>例如，假如在某个<code>HealthIndicator</code>内返回了一个新增了的状态码：<code>FATAL</code>，为了配置优先级，需要增加如下配置：</p>
+<p>除了Srping Boot内置的<a href="https://github.com/spring-projects/spring-boot/tree/v2.5.0/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/health/Status.java"><code>Status</code></a>之外，返回的<code>Health</code>内也可以使用自定义的状态。在这种情况下，需要实现一个自定义的<a href="https://github.com/spring-projects/spring-boot/tree/v2.5.0/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/health/StatusAggregator.java"><code>StatusAggregator</code></a> ，或者对<code>management.endpoint.health.status.order</code>属性进行配置，来替代默认的状态配置。</p>
+<p>例如，假如在某个<code>HealthIndicator</code>内返回了一个自定义状态：<code>FATAL</code>，为了配置优先级，需要增加如下配置：</p>
 <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">endpoint:</span></span><br><span class="line">    <span class="attr">health:</span></span><br><span class="line">      <span class="attr">status:</span></span><br><span class="line">        <span class="attr">order:</span> <span class="string">&quot;fatal,down,out-of-service,unknown,up&quot;</span></span><br></pre></td></tr></table></figure>
 
-<p>HTTP的响应状态码反映了系统的整体监控状态。默认情况下，<code>OUT_OF_SERVICE</code>和<code>DOWN</code>的状态码是503。其他任何没有被映射的状态（包括<code>UP</code>）的状态码为200。</p>
+<p>HTTP的响应状态码反映了系统的整体监控状态。默认情况下，<code>OUT_OF_SERVICE</code>和<code>DOWN</code>的状态码是503。所有没有配置映射的健康状态（包括<code>UP</code>），其状态码为200。如果对自定义健康状态的状态码进行了配置，那么<code>DOWN</code>和<code>OUT_OF_SERVICE</code>的默认状态码会被禁用。如果仍然想保留这些配置，需要和自定义的状态一起进行显式地定义。下面的例子中，将<code>FATAL</code>映射为503（service unavailable），并且保留了<code>DOWN</code>和<code>OUT_OF_SERVICE</code>的原有的配置</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">endpoint:</span></span><br><span class="line">    <span class="attr">health:</span></span><br><span class="line">      <span class="attr">status:</span></span><br><span class="line">        <span class="attr">http-mapping:</span></span><br><span class="line">          <span class="attr">down:</span> <span class="number">503</span></span><br><span class="line">          <span class="attr">fatal:</span> <span class="number">503</span></span><br><span class="line">          <span class="attr">out-of-service:</span> <span class="number">503</span></span><br></pre></td></tr></table></figure>
 
+<blockquote>
+<p><strong>提示</strong></p>
+<p>如果想要更多控制权，可以实现一个自定义的<code>HttpCodeStatusMapper</code> Bean</p>
+</blockquote>
+<p>以下表格展示了内置状态的默认映射配置：</p>
+<table>
+<thead>
+<tr>
+<th align="center">状态</th>
+<th align="center"></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>DOWN</code></td>
+<td align="center"><code>SERVICE_UNAVAILABLE</code> (<code>503</code>)</td>
+</tr>
+<tr>
+<td align="center"><code>OUT_OF_SERVICE</code></td>
+<td align="center"><code>SERVICE_UNAVAILABLE</code> (<code>503</code>)</td>
+</tr>
+<tr>
+<td align="center"><code>UP</code></td>
+<td align="center">默认没有映射，所以状态码是<code>200</code></td>
+</tr>
+<tr>
+<td align="center"><code>UNKNOWN</code></td>
+<td align="center">默认没有映射，所以状态码是<code>200</code></td>
+</tr>
+</tbody></table>
+<h3 id="2-8-3-响应式健康指示器（Reactive-Health-Indicators）"><a href="#2-8-3-响应式健康指示器（Reactive-Health-Indicators）" class="headerlink" title="2.8.3. 响应式健康指示器（Reactive Health Indicators）"></a>2.8.3. 响应式健康指示器（Reactive Health Indicators）</h3><p>对于响应式的应用，例如使用了Spring WebFlux，<code>ReactiveHealthContributor</code>提供了非阻塞的契约来获得应用的健康信息。和传统的<code>HealthContributor</code>很类似，其健康信息收集自<a href="https://github.com/spring-projects/spring-boot/tree/v2.5.0/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/health/ReactiveHealthContributorRegistry.java"><code>ReactiveHealthContributorRegistry</code></a>（默认情况下，所有的 <a href="https://github.com/spring-projects/spring-boot/tree/v2.5.0/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/health/HealthContributor.java"><code>HealthContributor</code></a>和<a href="https://github.com/spring-projects/spring-boot/tree/v2.5.0/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/health/ReactiveHealthContributor.java"><code>ReactiveHealthContributor</code></a> 实例都在<code>ApplicationContext</code>中）。在弹性调度器下（elastic scheduler），常规的<code>HealthContributors</code>并不会调用响应式的API。</p>
+<blockquote>
+<p><strong>提示</strong></p>
+<p>在响应式应用中，<code>ReactiveHealthContributorRegistry</code>应该在运行时状态下注册或反注册健康指示器（health indicators），如果想注册常规的<code>HealthContributor</code>，需要使用<code>ReactiveHealthContributor#adapt</code>对其包装。</p>
+</blockquote>
+<p>如果想通过响应式API提供自定义健康指示器（health indicators），可以注册实现了<a href="https://github.com/spring-projects/spring-boot/tree/v2.5.0/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/health/ReactiveHealthIndicator.java"><code>ReactiveHealthIndicator</code></a> 接口的Bean到Spring容器中，以下代码展示了一个<code>ReactiveHealthIndicator</code>的实现</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyReactiveHealthIndicator</span> <span class="keyword">implements</span> <span class="title">ReactiveHealthIndicator</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Mono&lt;Health&gt; <span class="title">health</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> doHealthCheck().onErrorResume((exception) -&gt;</span><br><span class="line">            Mono.just(<span class="keyword">new</span> Health.Builder().down(exception).build()));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> Mono&lt;Health&gt; <span class="title">doHealthCheck</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// perform some specific health check</span></span><br><span class="line">        <span class="keyword">return</span> ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>提示</strong></p>
+<p>如果想自动处理异常错误，可以继承<code>AbstractReactiveHealthIndicator</code></p>
+</blockquote>
+<h3 id="2-8-4-自动装配的ReactiveHealthIndicators（Auto-configured-ReactiveHealthIndicators）"><a href="#2-8-4-自动装配的ReactiveHealthIndicators（Auto-configured-ReactiveHealthIndicators）" class="headerlink" title="2.8.4. 自动装配的ReactiveHealthIndicators（Auto-configured ReactiveHealthIndicators）"></a>2.8.4. 自动装配的ReactiveHealthIndicators（Auto-configured ReactiveHealthIndicators）</h3><p>Spring提供了一些内置的响应式健康指示器（<code>ReactiveHealthIndicators</code>），当它们可以可用时（端点被开启且被正常暴露时即为可用），会被自动装配。详情参考源文档第2.8.4节](<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/actuator.html#actuator.endpoints.health.auto-configured-reactive-health-indicators)%E7%9A%84%E8%A1%A8%E6%A0%BC%EF%BC%8C%E6%AD%A4%E5%A4%84%E4%B8%8D%E5%86%8D%E8%B5%98%E8%BF%B0">https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/actuator.html#actuator.endpoints.health.auto-configured-reactive-health-indicators)的表格，此处不再赘述</a></p>
+<blockquote>
+<p><strong>提示</strong></p>
+<p>在必要的情况下，响应式的指示器会替代非响应式的指示器。并且任何没有被处理过的<code>HealthIndicator</code>也会被自动包装为响应式</p>
+</blockquote>
+<h3 id="2-8-5-健康分组（Health-Groups）"><a href="#2-8-5-健康分组（Health-Groups）" class="headerlink" title="2.8.5. 健康分组（Health Groups）"></a>2.8.5. 健康分组（Health Groups）</h3><p>处于某些原因，将健康指示器进行分组是很有用的。</p>
+<p>可以创建<code>management.endpoint.health.group.&lt;name&gt;</code>属性来创建一个健康分组。并且使用<code>include</code>和<code>exclude</code>属性来配置指示器ID。例如，假如想创建一个仅仅包含数据库指示器的分支，可以配置如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">endpoint:</span></span><br><span class="line">    <span class="attr">health:</span></span><br><span class="line">      <span class="attr">group:</span></span><br><span class="line">        <span class="attr">custom:</span></span><br><span class="line">          <span class="attr">include:</span> <span class="string">&quot;db&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>然后可以通过链接：<a href="http://localhost:8080/actuator/health/custom">localhost:8080/actuator/health/custom</a>访问该分组</p>
+<p>同理，如果想创建一个不包含数据库指示器的分组，可以配置如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">endpoint:</span></span><br><span class="line">    <span class="attr">health:</span></span><br><span class="line">      <span class="attr">group:</span></span><br><span class="line">        <span class="attr">custom:</span></span><br><span class="line">          <span class="attr">exclude:</span> <span class="string">&quot;db&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>默认情况下，如同系统的健康信息一样，分组沿用了相同的<code>StatusAggregator</code>和<code>HttpCodeStatusMapper</code>设置。不过这些设置可以在每个分组上单独定义。如果有需要的话，还可以覆盖<code>show-details</code>和<code>roles</code>的配置，例如：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">endpoint:</span></span><br><span class="line">    <span class="attr">health:</span></span><br><span class="line">      <span class="attr">group:</span></span><br><span class="line">        <span class="attr">custom:</span></span><br><span class="line">          <span class="attr">show-details:</span> <span class="string">&quot;when-authorized&quot;</span></span><br><span class="line">          <span class="attr">roles:</span> <span class="string">&quot;admin&quot;</span></span><br><span class="line">          <span class="attr">status:</span></span><br><span class="line">            <span class="attr">order:</span> <span class="string">&quot;fatal,up&quot;</span></span><br><span class="line">            <span class="attr">http-mapping:</span></span><br><span class="line">              <span class="attr">fatal:</span> <span class="number">500</span></span><br><span class="line">              <span class="attr">out-of-service:</span> <span class="number">500</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>提示</strong></p>
+<p>如果想将自定义的<code>StatusAggregator</code>和<code>HttpCodeStatusMapper</code> Bean注册到某个分组上，可以使用注解<code>@Qualifier(&quot;groupname&quot;)</code>对其进行限定</p>
+</blockquote>
+<h3 id="2-8-6-数据源健康（DataSource-Health）"><a href="#2-8-6-数据源健康（DataSource-Health）" class="headerlink" title="2.8.6. 数据源健康（DataSource Health）"></a>2.8.6. 数据源健康（DataSource Health）</h3>
       
     </div>
 
