@@ -182,7 +182,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-25 20:44:53" itemprop="dateModified" datetime="2021-05-25T20:44:53+08:00">2021-05-25</time>
+                <time title="修改时间：2021-05-28 11:10:48" itemprop="dateModified" datetime="2021-05-28T11:10:48+08:00">2021-05-28</time>
               </span>
 
           
@@ -530,7 +530,31 @@
 <p><strong>提示</strong></p>
 <p>如果想将自定义的<code>StatusAggregator</code>和<code>HttpCodeStatusMapper</code> Bean注册到某个分组上，可以使用注解<code>@Qualifier(&quot;groupname&quot;)</code>对其进行限定</p>
 </blockquote>
-<h3 id="2-8-6-数据源健康（DataSource-Health）"><a href="#2-8-6-数据源健康（DataSource-Health）" class="headerlink" title="2.8.6. 数据源健康（DataSource Health）"></a>2.8.6. 数据源健康（DataSource Health）</h3>
+<h3 id="2-8-6-数据源健康（DataSource-Health）"><a href="#2-8-6-数据源健康（DataSource-Health）" class="headerlink" title="2.8.6. 数据源健康（DataSource Health）"></a>2.8.6. 数据源健康（DataSource Health）</h3><p><code>DataSource</code>健康指示器用来展示标准数据源（standard data source）类型和路由数据源（routing data source）类型的Bean的健康信息。路由数据源的健康信息也包含了目标数据源（its target data sources）的健康信息。在监控信息端点的HTTP响应中，每一个路由数据源的目标数据源的名字，由路由键值（routing key）来决定。如果想把路由数据源排除，可以将<code>management.health.db.ignore-routing-data-sources</code>设置为true</p>
+<h2 id="2-9-Kubernetes探针（Kubernetes-Probes）"><a href="#2-9-Kubernetes探针（Kubernetes-Probes）" class="headerlink" title="2.9. Kubernetes探针（Kubernetes Probes）"></a>2.9. Kubernetes探针（Kubernetes Probes）</h2><p>部署在Kubernetes上的应用程序可以通过<a href="https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes">容器探针</a>反馈内部状态信息。kubelet可以根据<a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/">Kubernetes的配置</a>调用这些探针并反馈探针结果。</p>
+<p>Spring Boot提供了开箱即用的<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/features.html#features.spring-application.application-availability">应用程序可用性状态</a>管理。当应用程序被部署到Kubernetes环境下，Spring Boot Acuator会通过<code>ApplicationAvailability</code>接口收集“Liveness”和“Readiness”信息，并且在<a href="#2.8.4.-%E8%87%AA%E5%8A%A8%E8%A3%85%E9%85%8D%E7%9A%84ReactiveHealthIndicators%EF%BC%88Auto-configured-ReactiveHealthIndicators%EF%BC%89">健康指示器</a>：<code>LivenessStateHealthIndicator</code>和<code>ReadinessStateHealthIndicator</code>中使用这些信息。这些指示器的信息显示在全局端点（<code>&quot;/actuator/health&quot;</code>）中。也可用通过使用<a href="#2.8.5.-%E5%81%A5%E5%BA%B7%E5%88%86%E7%BB%84%EF%BC%88Health-Groups%EF%BC%89">健康分组</a>：<code>&quot;/actuator/health/liveness&quot;</code> 和 <code>&quot;/actuator/health/readiness&quot;</code> 访问这些端点。</p>
+<p>可以使用如下端点信息配置Kubernetes：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">livenessProbe:</span></span><br><span class="line">  <span class="attr">httpGet:</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">/actuator/health/liveness</span></span><br><span class="line">    <span class="attr">port:</span> <span class="string">&lt;actuator-port&gt;</span></span><br><span class="line">  <span class="attr">failureThreshold:</span> <span class="string">...</span></span><br><span class="line">  <span class="attr">periodSeconds:</span> <span class="string">...</span></span><br><span class="line"></span><br><span class="line"><span class="attr">readinessProbe:</span></span><br><span class="line">  <span class="attr">httpGet:</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">/actuator/health/readiness</span></span><br><span class="line">    <span class="attr">port:</span> <span class="string">&lt;actuator-port&gt;</span></span><br><span class="line">  <span class="attr">failureThreshold:</span> <span class="string">...</span></span><br><span class="line">  <span class="attr">periodSeconds:</span> <span class="string">...</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>提示</strong></p>
+<p><code>&lt;actuator-port&gt;</code>应该被配置为一个可以被访问的端口号。可以将其配置为web服务器的端口，或者通过<code>management.endpoint.health.probes.enabled</code>配置，使用独立的端口</p>
+</blockquote>
+<p>这些健康分组只有在应用程序<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/deployment.html#deployment.cloud.kubernetes">运行在Kubernetes环境下</a>时才会自动生效。当然，也可以通过配置<code>management.endpoint.health.probes.enabled</code>来开启这些功能。</p>
+<blockquote>
+<p><strong>提示</strong></p>
+<p>如果应用程序的启动时间比liveness指示器所反映的时间要长，Kubernetes提供了一个<code>“startupProbe”</code>探针作为替代方案。不过<code>“startupProbe”</code>探针并不一定必须配置，因为在所有的启动任务完成之前<code>&quot;readinessProbe&quot;</code>探针都处于失败状态。可以查看<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/actuator.html#actuator.endpoints.kubernetes-probes.lifecycle">探针在应用程序生命周期中的行为</a></p>
+</blockquote>
+<blockquote>
+<p><strong>警告</strong></p>
+<p>如果端点（Actuator endpoints）被配置在独立的Spring上下文（a separate management context）中，需要注意的是，这些端点使用的web配置信息（端口、连接池、框架的组件等）也是独立于应用程序的。在这种情况下，即使应用程序已经无法正常工作（例如无法接受新连接），探针可能也会返回正常状态。</p>
+</blockquote>
+<h3 id="2-9-1-使用Kubernetes探针检测外部状态（Checking-External-State-with-Kubernetes-Probes）"><a href="#2-9-1-使用Kubernetes探针检测外部状态（Checking-External-State-with-Kubernetes-Probes）" class="headerlink" title="2.9.1. 使用Kubernetes探针检测外部状态（Checking External State with Kubernetes Probes）"></a>2.9.1. 使用Kubernetes探针检测外部状态（Checking External State with Kubernetes Probes）</h3><p>Spring Boot Actuator将“活性”（liveness）和“就行”（readiness）探针配置为健康分组。这意味着对于这些探针来说，所有的<a href="#2.8.5.-%E5%81%A5%E5%BA%B7%E5%88%86%E7%BB%84%EF%BC%88Health-Groups%EF%BC%89">健康分组特性</a>都适用。例如，可以配置如下健康指示器：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">endpoint:</span></span><br><span class="line">    <span class="attr">health:</span></span><br><span class="line">      <span class="attr">group:</span></span><br><span class="line">        <span class="attr">readiness:</span></span><br><span class="line">          <span class="attr">include:</span> <span class="string">&quot;readinessState,customCheck&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>默认情况下，Spring Boot没有将其他的健康指示器添加到这些健康分组中。</p>
+<p>“活性”（liveness）探针的健康检测不应该依赖于外部系统（笔者注：例如mongoDB、Redis等），如果应用程序的活性状态</p>
+
       
     </div>
 
