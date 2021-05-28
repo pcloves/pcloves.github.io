@@ -28,7 +28,7 @@
 <meta property="og:description" content="1. 背景乔梁大神曾经在他的《持续交付2.0》一书的第5.1.1节：《持续交付架构要求》中明确指出：为了提升交付速度，获得持续交付能力，系统架构在设计时应该考虑如下因素。 （1）为测试而设计（design for test）。如果我们每次写好代码以后，需要花费很大的精力，做很多的准备工作才能对它进行测试的话，那么从写好代码到完成质量验证就需要很长周期，当然无法快速发布。 （2）为部署而设计（des">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-05-20T12:00:00.000Z">
-<meta property="article:modified_time" content="2021-05-28T03:10:48.937Z">
+<meta property="article:modified_time" content="2021-05-28T08:57:58.263Z">
 <meta property="article:author" content="临江听雨">
 <meta property="article:tag" content="源码阅读">
 <meta property="article:tag" content="spring">
@@ -188,7 +188,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-28 11:10:48" itemprop="dateModified" datetime="2021-05-28T11:10:48+08:00">2021-05-28</time>
+                <time title="修改时间：2021-05-28 16:57:58" itemprop="dateModified" datetime="2021-05-28T16:57:58+08:00">2021-05-28</time>
               </span>
 
           
@@ -562,11 +562,15 @@
 <p><strong>警告</strong></p>
 <p>如果端点（Actuator endpoints）被配置在独立的Spring上下文（a separate management context）中，需要注意的是，这些端点使用的web配置信息（端口、连接池、框架的组件等）也是独立于应用程序的。在这种情况下，即使应用程序已经无法正常工作（例如无法接受新连接），探针可能也会返回正常状态。</p>
 </blockquote>
-<h3 id="2-9-1-使用Kubernetes探针检测外部状态（Checking-External-State-with-Kubernetes-Probes）"><a href="#2-9-1-使用Kubernetes探针检测外部状态（Checking-External-State-with-Kubernetes-Probes）" class="headerlink" title="2.9.1. 使用Kubernetes探针检测外部状态（Checking External State with Kubernetes Probes）"></a>2.9.1. 使用Kubernetes探针检测外部状态（Checking External State with Kubernetes Probes）</h3><p>Spring Boot Actuator将“活性”（liveness）和“就行”（readiness）探针配置为健康分组。这意味着对于这些探针来说，所有的<a href="#2.8.5.-%E5%81%A5%E5%BA%B7%E5%88%86%E7%BB%84%EF%BC%88Health-Groups%EF%BC%89">健康分组特性</a>都适用。例如，可以配置如下健康指示器：</p>
+<h3 id="2-9-1-使用Kubernetes探针检测外部状态（Checking-External-State-with-Kubernetes-Probes）"><a href="#2-9-1-使用Kubernetes探针检测外部状态（Checking-External-State-with-Kubernetes-Probes）" class="headerlink" title="2.9.1. 使用Kubernetes探针检测外部状态（Checking External State with Kubernetes Probes）"></a>2.9.1. 使用Kubernetes探针检测外部状态（Checking External State with Kubernetes Probes）</h3><p>Spring Boot Actuator将“活性”（liveness）和“就绪”（readiness）探针配置为健康分组。这意味着对于这些探针来说，所有的<a href="#2.8.5.-%E5%81%A5%E5%BA%B7%E5%88%86%E7%BB%84%EF%BC%88Health-Groups%EF%BC%89">健康分组特性</a>都适用。例如，可以配置如下健康指示器：</p>
 <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">endpoint:</span></span><br><span class="line">    <span class="attr">health:</span></span><br><span class="line">      <span class="attr">group:</span></span><br><span class="line">        <span class="attr">readiness:</span></span><br><span class="line">          <span class="attr">include:</span> <span class="string">&quot;readinessState,customCheck&quot;</span></span><br></pre></td></tr></table></figure>
 
 <p>默认情况下，Spring Boot没有将其他的健康指示器添加到这些健康分组中。</p>
-<p>“活性”（liveness）探针的健康检测不应该依赖于外部系统（笔者注：例如mongoDB、Redis等），如果应用程序的活性状态</p>
+<p>“活性”（liveness）探针的健康检测不应该依赖于外部系统（笔者注：例如mongoDB、Redis等），如果<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/features.html#features.spring-application.application-availability.liveness">应用程序的活性状态</a>处于当宕机状态，Kubernetes会尝试重新启动应用程序来解决这个问题。也就是说如果外部系统出现异常（例如数据库、Web API或外部缓存），那么Kubernetes会重启所有的应用程序，这会导致级联故障（笔者注：雪崩效应）</p>
+<p>而对于“就绪”探针来说，开发人员必须谨慎处理外部系统的检测结果。比如Srping Boot就没有包含任何额外的健康检查。如果<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/features.html#features.spring-application.application-availability.readiness">应用程序的就绪状态</a>处于未就绪（unready）状态，Kubernetes就不会将流量路由到该应用。那么把这些状态加入到“就绪”探针的探测中是理应该的。某些外部系统可能不是应用程序的关键依赖（比如应用程序已经部署了熔断或者降级策略），在这种情况下，这些外部系统就绝不应该被包含到“就绪”探针中。不妙的是，外部系统都是作为通用模块被应用程序所依赖的，这就需要做一个抉择：将其加入到“就绪”探针，当外部系统发生故障时，让应用程序也停止服务（out of service）；或者将这些外部系统排除在外，在外部系统发生故障时，从更高层级上处理这些故障，比如使用断路器。</p>
+<blockquote>
+<p><strong>提示</strong></p>
+</blockquote>
 
     </div>
 
