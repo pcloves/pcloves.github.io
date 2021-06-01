@@ -165,7 +165,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2021/05/20/Spring%20Boot%20Actuator%E5%8F%82%E8%80%83%E6%96%87%E6%A1%A3%E7%BF%BB%E8%AF%91/" class="post-title-link" itemprop="url">Spring Boot Actuator参考文档翻译（未完）</a>
+            <a href="/2021/05/20/Spring%20Boot%20Actuator%E5%8F%82%E8%80%83%E6%96%87%E6%A1%A3%E7%BF%BB%E8%AF%91/" class="post-title-link" itemprop="url">Spring Boot Actuator官方参考文档（2.5.0）翻译（未完）</a>
         </h2>
 
         <div class="post-meta">
@@ -182,7 +182,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-28 16:57:58" itemprop="dateModified" datetime="2021-05-28T16:57:58+08:00">2021-05-28</time>
+                <time title="修改时间：2021-06-01 11:36:10" itemprop="dateModified" datetime="2021-06-01T11:36:10+08:00">2021-06-01</time>
               </span>
 
           
@@ -304,6 +304,14 @@
 <blockquote>
 <p><strong>提示</strong></p>
 <p>前缀：<code>management.endpoint.&lt;name&gt;</code>用于标识唯一的端点</p>
+</blockquote>
+<h2 id="2-5-Hypermedia-for-Actuator-Web-Endpoints"><a href="#2-5-Hypermedia-for-Actuator-Web-Endpoints" class="headerlink" title="2.5. Hypermedia for Actuator Web Endpoints"></a>2.5. Hypermedia for Actuator Web Endpoints</h2><h2 id="2-6-（跨域资源共享支持）CORS-Support"><a href="#2-6-（跨域资源共享支持）CORS-Support" class="headerlink" title="2.6. （跨域资源共享支持）CORS Support"></a>2.6. （跨域资源共享支持）CORS Support</h2><p><a href="https://en.wikipedia.org/wiki/Cross-origin_resource_sharing">跨域资源共享</a>（CORS）是一个<a href="https://www.w3.org/TR/cors/">W3C规范</a>，可以协助制定灵活的跨域访问授权策略。如果你在使用Spring MVC或者Spring WebFlux，Web端点可以支持支持中场景。</p>
+<p>CORS默认是被关闭的，并且只有<code>management.endpoints.web.cors.allowed-origins</code>被配置后才会开启，下面配置允许来自于<code>example.com</code>的<code>GET</code>和<code>POST</code>请求：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">endpoints:</span></span><br><span class="line">    <span class="attr">web:</span></span><br><span class="line">      <span class="attr">cors:</span></span><br><span class="line">        <span class="attr">allowed-origins:</span> <span class="string">&quot;https://example.com&quot;</span></span><br><span class="line">        <span class="attr">allowed-methods:</span> <span class="string">&quot;GET,POST&quot;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>提示</strong></p>
+<p>到 <a href="https://github.com/spring-projects/spring-boot/tree/v2.5.0/spring-boot-project/spring-boot-actuator-autoconfigure/src/main/java/org/springframework/boot/actuate/autoconfigure/endpoint/web/CorsEndpointProperties.java">CorsEndpointProperties</a>查看完整的属性列表</p>
 </blockquote>
 <h2 id="2-7-实现自定义端点（Implementing-Custom-Endpoints）"><a href="#2-7-实现自定义端点（Implementing-Custom-Endpoints）" class="headerlink" title="2.7. 实现自定义端点（Implementing Custom Endpoints）"></a>2.7. 实现自定义端点（Implementing Custom Endpoints）</h2><p>如果一个<code>@Bean</code>被<code>@Endpoint</code>注解，那么任意被注解了<code>@ReadOperation</code>、<code>@WriteOperation</code>或者<code>@DeleteOperation</code>的方法都以JMX方式暴露，而对于Web应用程序，则会以HTTP的方式暴露。当使用Jersey、Spring MVC或者Spring WebFlux时，端点可以通过HTTP暴露。当Jersey和Spring MVC都可用时，Spring MVC优先被使用。</p>
 <p>以下例子暴露一个读操作（read operation），该操作返回了一个自定义对象</p>
@@ -554,10 +562,142 @@
 
 <p>默认情况下，Spring Boot没有将其他的健康指示器添加到这些健康分组中。</p>
 <p>“活性”（liveness）探针的健康检测不应该依赖于外部系统（笔者注：例如mongoDB、Redis等），如果<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/features.html#features.spring-application.application-availability.liveness">应用程序的活性状态</a>处于当宕机状态，Kubernetes会尝试重新启动应用程序来解决这个问题。也就是说如果外部系统出现异常（例如数据库、Web API或外部缓存），那么Kubernetes会重启所有的应用程序，这会导致级联故障（笔者注：雪崩效应）</p>
-<p>而对于“就绪”探针来说，开发人员必须谨慎处理外部系统的检测结果。比如Srping Boot就没有包含任何额外的健康检查。如果<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/features.html#features.spring-application.application-availability.readiness">应用程序的就绪状态</a>处于未就绪（unready）状态，Kubernetes就不会将流量路由到该应用。那么把这些状态加入到“就绪”探针的探测中是理应该的。某些外部系统可能不是应用程序的关键依赖（比如应用程序已经部署了熔断或者降级策略），在这种情况下，这些外部系统就绝不应该被包含到“就绪”探针中。不妙的是，外部系统都是作为通用模块被应用程序所依赖的，这就需要做一个抉择：将其加入到“就绪”探针，当外部系统发生故障时，让应用程序也停止服务（out of service）；或者将这些外部系统排除在外，在外部系统发生故障时，从更高层级上处理这些故障，比如使用断路器。</p>
+<p>而对于“就绪”探针来说，开发人员必须谨慎处理外部系统的检测结果。比如Srping Boot就没有包含任何额外的健康检查。如果<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/features.html#features.spring-application.application-availability.readiness">应用程序的就绪状态</a>处于未就绪（unready）状态，Kubernetes就不会将流量路由到该应用。那么把这些状态加入到“就绪”探针的探测中是理应该的。某些外部系统可能不是应用程序的关键依赖（比如应用程序已经部署了熔断或者降级策略），在这种情况下，这些外部系统就绝不应该被包含到“就绪”探针中。不妙的是，外部系统都是作为通用模块被应用程序所依赖的，这就需要做一个抉择：将其加入到“就绪”探针，当外部系统发生故障时，让应用程序也停止服务（out of service）；或者将这些外部系统排除在外，在外部系统发生故障时，从更高层级上处理这些故障，比如使用断路器。（Unfortunately, an external system that is shared by all application instances is common, and you have to make a judgement call: include it in the readiness probe and expect that the application is taken out of service when the external service is down, or leave it out and deal with failures higher up the stack, e.g. using a circuit breaker in the caller.）</p>
 <blockquote>
 <p><strong>提示</strong></p>
+<p>If all instances of an application are unready, a Kubernetes Service with <code>type=ClusterIP</code> or <code>NodePort</code> will not accept any incoming connections. There is no HTTP error response (503 etc.) since there is no connection. A Service with <code>type=LoadBalancer</code> might or might not accept connections, depending on the provider. A Service that has an explicit <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/">Ingress</a> will also respond in a way that depends on the implementation - the ingress service itself will have to decide how to handle the “connection refused” from downstream. HTTP 503 is quite likely in the case of both load balancer and ingress.</p>
 </blockquote>
+<p>此外，如果应用程序使用了Kubernetes的<a href="https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/">自动伸缩（autoscaling）</a>机制，对于负载均衡后面的程序，探针的表现可能会不同，这要取决于自动伸缩的配置。</p>
+<h3 id="2-9-2-应用程序生命周期和探针状态（Application-Lifecycle-and-Probe-States）"><a href="#2-9-2-应用程序生命周期和探针状态（Application-Lifecycle-and-Probe-States）" class="headerlink" title="2.9.2. 应用程序生命周期和探针状态（Application Lifecycle and Probe States）"></a>2.9.2. 应用程序生命周期和探针状态（Application Lifecycle and Probe States）</h3><p>Kubernetes探针所支持的重要一点就是保持了和应用程序生命周期的一致性。应用程序内存中的内部状态：<code>AvailabilityState</code>和探针实际上返回的状态可能会有巨大的差异：在生命周期的某些阶段，探针可能是不可用状态。</p>
+<p>当应用启动和关闭时，Sprin Boot会<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/features.html#features.spring-application.application-events-and-listeners">发布事件</a>，探针可以监听这些事件，并且暴露<code>AvailabilityState</code>信息。</p>
+<p>下面表格展示了在不同阶段下，<code>AvailabilityState</code>和HTTP服务器的状态，当Spring Boot应用程序启动时：</p>
+<table>
+<thead>
+<tr>
+<th align="center">启动阶段</th>
+<th align="center">活性状态</th>
+<th align="center">就绪状态</th>
+<th align="center">HTTP服务器</th>
+<th align="center">备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">Starting</td>
+<td align="center"><code>BROKEN</code></td>
+<td align="center"><code>REFUSING_TRAFFIC</code></td>
+<td align="center">未启动</td>
+<td align="center">Kubernetes检查“活性”探针，如果耗时过长，就重启应用程序。</td>
+</tr>
+<tr>
+<td align="center">Started</td>
+<td align="center"><code>CORRECT</code></td>
+<td align="center"><code>REFUSING_TRAFFIC</code></td>
+<td align="center">拒绝连接</td>
+<td align="center">应用程序上下文已经刷新，应用程序执行启动任务并且还不能接收流量</td>
+</tr>
+<tr>
+<td align="center">Ready</td>
+<td align="center"><code>CORRECT</code></td>
+<td align="center"><code>ACCEPTING_TRAFFIC</code></td>
+<td align="center">接受连接</td>
+<td align="center">启动任务已经执行完毕，应用程序可以接收流量</td>
+</tr>
+</tbody></table>
+<p>当Spring Boot应用程序关闭时：</p>
+<table>
+<thead>
+<tr>
+<th align="center">关闭阶段</th>
+<th align="center">活性状态</th>
+<th align="center">就绪状态</th>
+<th align="center">HTTP服务器</th>
+<th align="center">备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">Running</td>
+<td align="center"><code>CORRECT</code></td>
+<td align="center"><code>ACCEPTING_TRAFFIC</code></td>
+<td align="center">接受连接</td>
+<td align="center">（此时）已经接受关闭请求</td>
+</tr>
+<tr>
+<td align="center">Graceful shutdown</td>
+<td align="center"><code>CORRECT</code></td>
+<td align="center"><code>REFUSING_TRAFFIC</code></td>
+<td align="center">不接受新连接</td>
+<td align="center">如果启用该特性，<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/features.html#features.graceful-shutdown">将会根据请求优雅地关闭进程</a></td>
+</tr>
+<tr>
+<td align="center">Shutdown complete</td>
+<td align="center">N/A</td>
+<td align="center">N/A</td>
+<td align="center">服务器关闭</td>
+<td align="center">应用程序上下文被关闭并且应用也被关闭</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>提示</strong></p>
+<p>查看 <a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/deployment.html#deployment.cloud.kubernetes.container-lifecycle">Kubernetes容器生命周期</a>查看关于Kubernetes部署更多的细节</p>
+</blockquote>
+<h2 id="2-10-应用程序信息（Application-Information）"><a href="#2-10-应用程序信息（Application-Information）" class="headerlink" title="2.10. 应用程序信息（Application Information）"></a>2.10. 应用程序信息（Application Information）</h2><p>应用程序信息可以暴露<code>ApplicationContext</code>内所有的<a href="https://github.com/spring-projects/spring-boot/tree/v2.5.0/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/info/InfoContributor.java"><code>InfoContributor</code></a> Bean收集到的信息。Spring Boot内置了很多自动装配的<code>InfoContributor</code> Bean，并且用户也可以编写自定义的Bean</p>
+<h3 id="2-10-1-自动装配InfoContributors（Auto-configured-InfoContributors）"><a href="#2-10-1-自动装配InfoContributors（Auto-configured-InfoContributors）" class="headerlink" title="2.10.1. 自动装配InfoContributors（Auto-configured InfoContributors）"></a>2.10.1. 自动装配InfoContributors（Auto-configured InfoContributors）</h3><p>在适当的情况下，如下<code>InfoContributor</code>类型的Bean会被自动装配：</p>
+<table>
+<thead>
+<tr>
+<th align="center">名称</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><a href="https://github.com/spring-projects/spring-boot/tree/v2.5.0/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/info/EnvironmentInfoContributor.java"><code>EnvironmentInfoContributor</code></a></td>
+<td align="center">暴露<code>Environment</code>内所有<code>info</code>开头的属性（笔者注：例如配置在application.yaml内的info.name: myApp ）</td>
+</tr>
+<tr>
+<td align="center"><a href="https://github.com/spring-projects/spring-boot/tree/v2.5.0/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/info/GitInfoContributor.java"><code>GitInfoContributor</code></a></td>
+<td align="center">如果<code>git.properties</code>文件存，则暴露git相关信息</td>
+</tr>
+<tr>
+<td align="center"><a href="https://github.com/spring-projects/spring-boot/tree/v2.5.0/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/info/BuildInfoContributor.java"><code>BuildInfoContributor</code></a></td>
+<td align="center">如果<code>META-INF/build-info.properties</code>文件存在，则暴露构建相关信息</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>提示</strong></p>
+<p>可以通过配置<code>management.info.defaults.enabled</code>关闭上述任意端点</p>
+</blockquote>
+<h3 id="2-10-2-自定义应用程序信息（Custom-Application-Information）"><a href="#2-10-2-自定义应用程序信息（Custom-Application-Information）" class="headerlink" title="2.10.2. 自定义应用程序信息（Custom Application Information）"></a>2.10.2. 自定义应用程序信息（Custom Application Information）</h3><p>可以通过在Spring配置文件中设置<code>info.*</code>配置暴露自定义的数据。所有的<code>Environment</code>属性下<code>info</code>开头的键值都会被自动暴露。例如，可以在<code>application.properties</code>下增加如下配置：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">info.app.encoding</span>=<span class="string">UTF-8</span></span><br><span class="line"><span class="meta">info.app.java.source</span>=<span class="string">11</span></span><br><span class="line"><span class="meta">info.app.java.target</span>=<span class="string">11</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>提示</strong></p>
+<p>除了上述硬编码，还可以<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/howto.html#howto.properties-and-configuration.expand-properties">在构建期间生成属性值</a></p>
+<p>以Maven为例，可以将上述配置重写为：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">info.app.encoding</span>=<span class="string">@project.build.sourceEncoding@</span></span><br><span class="line"><span class="meta">info.app.java.source</span>=<span class="string">@java.version@</span></span><br><span class="line"><span class="meta">info.app.java.target</span>=<span class="string">@java.version@</span></span><br></pre></td></tr></table></figure>
+</blockquote>
+<h2 id="2-10-3-Git提交信息（Git-Commit-Information）"><a href="#2-10-3-Git提交信息（Git-Commit-Information）" class="headerlink" title="2.10.3. Git提交信息（Git Commit Information）"></a>2.10.3. Git提交信息（Git Commit Information）</h2><p>另外一个有用的<code>info</code>端点是展示源码所在的git仓库的提交信息。当<code>GitProperties</code> Bean存在时，这些信息就可以在<code>info</code>端点下暴露出来。</p>
+<blockquote>
+<p><strong>提示</strong></p>
+<p>如果classpath<strong>根路径</strong>下面存在一个<code>git.properties</code>文件，<code>GitProperties</code> Bean会被自动装配，可以通过“<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/howto.html#howto.build.generate-git-info">生成git信息</a>”获得更多细节</p>
+</blockquote>
+<p>默认情况下，在属性存在的前提下，端点会暴露出<code>git.branch</code>、<code>git.commit.id</code>和<code>git.commit.time</code>。如果想关闭任意属性，需要在<code>git.properties</code>中排除掉。如果想展示完整的git信息（也就是说git.properties文件的所有内容），可以配置<code>management.info.git.mode</code>属性，如下所示：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">info:</span></span><br><span class="line">    <span class="attr">git:</span></span><br><span class="line">      <span class="attr">mode:</span> <span class="string">&quot;full&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>如果想从<code>info</code>端点关闭git提交信息，可以通过将<code>management.info.git.enabled</code>属性设置为false，如下所示：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">info:</span></span><br><span class="line">    <span class="attr">git:</span></span><br><span class="line">      <span class="attr">enabled:</span> <span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-10-4-构建信息（Build-Information）"><a href="#2-10-4-构建信息（Build-Information）" class="headerlink" title="2.10.4. 构建信息（Build Information）"></a>2.10.4. 构建信息（Build Information）</h3><p>如果<code>BuildProperties</code> Bean存在，还可以暴露构建信息，并且当classpath下存在<code>META-INF/build-info.properties</code>文件时生效。</p>
+<blockquote>
+<p><strong>提示</strong></p>
+<p>Maven和Gradle插件都可以生成<code>META-INF/build-info.properties</code>文件，可以通过“<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/howto.html#howto.build.generate-info">Generate build information</a>”或多更多细节</p>
+</blockquote>
+<h3 id="2-10-5-自定义InfoContributors（Writing-Custom-InfoContributors）"><a href="#2-10-5-自定义InfoContributors（Writing-Custom-InfoContributors）" class="headerlink" title="2.10.5 自定义InfoContributors（Writing Custom InfoContributors）"></a>2.10.5 自定义<code>InfoContributors</code>（Writing Custom InfoContributors）</h3><p>可以通过注册继承了 <a href="https://github.com/spring-projects/spring-boot/tree/v2.5.0/spring-boot-project/spring-boot-actuator/src/main/java/org/springframework/boot/actuate/info/InfoContributor.java"><code>InfoContributor</code></a>接口的Bean实现自定义的应用信息。如下所示：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyInfoContributor</span> <span class="keyword">implements</span> <span class="title">InfoContributor</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">contribute</span><span class="params">(Info.Builder builder)</span> </span>&#123;</span><br><span class="line">        builder.withDetail(<span class="string">&quot;example&quot;</span>, Collections.singletonMap(<span class="string">&quot;key&quot;</span>, <span class="string">&quot;value&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果访问<code>info</code>端点，将会看到如下的额外信息：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;example&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;key&quot;</span> : <span class="string">&quot;value&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="3-HTTP下的监控与管理（Monitoring-and-Management-over-HTTP）"><a href="#3-HTTP下的监控与管理（Monitoring-and-Management-over-HTTP）" class="headerlink" title="3. HTTP下的监控与管理（Monitoring and Management over HTTP）"></a>3. HTTP下的监控与管理（Monitoring and Management over HTTP）</h1><p>如果你正在开发一个Web应用程序，Srping Boot Actuator会自动装配所有已经开启（enabled）的端点，使通过HTTP暴露。默认规则是通过端点的<code>id</code>附加一个<code>/actuator</code>前缀作为URL路径。例如，<code>health</code>端点的路径为<code>/actuator/health</code>。</p>
 
       
     </div>
@@ -882,7 +1022,7 @@ SpringApplication#run->SpringApplication#run:7-callRunners</textarea><textarea i
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-18 14:50:17" itemprop="dateModified" datetime="2021-05-18T14:50:17+08:00">2021-05-18</time>
+                <time title="修改时间：2021-05-31 15:38:35" itemprop="dateModified" datetime="2021-05-31T15:38:35+08:00">2021-05-31</time>
               </span>
 
           
@@ -897,7 +1037,7 @@ SpringApplication#run->SpringApplication#run:7-callRunners</textarea><textarea i
 
       
           <blockquote>
-<p>本文翻译自：<a href="https://medium.com/retronator-magazine/pixels-and-voxels-the-long-answer-5889ecc18190">Pixels and voxels, the long answer</a>，原文作者：<a href="https://medium.com/@retronator">Matej ‘Retro’ Jan</a></p>
+<p>本文翻译自：<a href="https://medium.com/retronator-magazine/pixels-and-voxels-the-long-answer-5889ecc18190">Pixels and voxels, the long answer</a>（已获得作者翻译许可），原文作者：<a href="https://medium.com/@retronator">Matej ‘Retro’ Jan</a></p>
 </blockquote>
 <hr>
 <p>今年早些时候，有人在<a href="https://www.quora.com/What-is-the-difference-between-pixel-and-voxel">Quora</a>上问：</p>
