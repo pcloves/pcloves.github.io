@@ -182,7 +182,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-09 19:30:58" itemprop="dateModified" datetime="2021-06-09T19:30:58+08:00">2021-06-09</time>
+                <time title="修改时间：2021-06-09 19:31:23" itemprop="dateModified" datetime="2021-06-09T19:31:23+08:00">2021-06-09</time>
               </span>
 
           
@@ -697,7 +697,7 @@
 <p>如果访问<code>info</code>端点，将会看到如下的额外信息：</p>
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;example&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;key&quot;</span> : <span class="string">&quot;value&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h1 id="3-通过HTTP进行监控与管理（Monitoring-and-Management-over-HTTP）"><a href="#3-通过HTTP进行监控与管理（Monitoring-and-Management-over-HTTP）" class="headerlink" title="3. 通过HTTP进行监控与管理（Monitoring and Management over HTTP）"></a>3. 通过HTTP进行监控与管理（Monitoring and Management over HTTP）</h1><p>如果你正在开发一个Web应用程序，Srping Boot Actuator会自动装配所有已经开启（enabled）的端点，使通过HTTP暴露。默认规则是通过端点的<code>id</code>附加一个<code>/actuator</code>前缀作为URL路径。例如，<code>health</code>端点的路径为<code>/actuator/health</code>。</p>
+<h1 id="通过HTTP进行监控与管理（Monitoring-and-Management-over-HTTP）"><a href="#通过HTTP进行监控与管理（Monitoring-and-Management-over-HTTP）" class="headerlink" title="通过HTTP进行监控与管理（Monitoring and Management over HTTP）"></a>通过HTTP进行监控与管理（Monitoring and Management over HTTP）</h1><p>如果你正在开发一个Web应用程序，Srping Boot Actuator会自动装配所有已经开启（enabled）的端点，使通过HTTP暴露。默认规则是通过端点的<code>id</code>附加一个<code>/actuator</code>前缀作为URL路径。例如，<code>health</code>端点的路径为<code>/actuator/health</code>。</p>
 <blockquote>
 <p><strong>提示</strong></p>
 <ul>
@@ -744,7 +744,7 @@
 <p>也可以通过设置<code>management.endpoints.web.exposure.exclude</code>属性达到达到这个效果。如下配置所示：</p>
 <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">endpoints:</span></span><br><span class="line">    <span class="attr">web:</span></span><br><span class="line">      <span class="attr">exposure:</span></span><br><span class="line">        <span class="attr">exclude:</span> <span class="string">&quot;*&quot;</span></span><br></pre></td></tr></table></figure>
 
-<h1 id="4-通过JMX进行监控和管理（Monitoring-and-Management-over-JMX）"><a href="#4-通过JMX进行监控和管理（Monitoring-and-Management-over-JMX）" class="headerlink" title="4. 通过JMX进行监控和管理（Monitoring and Management over JMX）"></a>4. 通过JMX进行监控和管理（Monitoring and Management over JMX）</h1><p>JAVA管理扩展（JMX）提供了管理和监控应用程序的标准机制。这个特性默认没有被启用，可以通过设置<code>spring.jmx.enabled</code>为<code>true</code>来开启。默认情况下，Spring Boot的JMX MBeans位于<code>org.springframework.boot</code>作用域下。要想完全控制JMX域下的端点，可以考虑实现<code>EndpointObjectNameFactory</code>接口。</p>
+<h1 id="通过JMX进行监控和管理（Monitoring-and-Management-over-JMX）"><a href="#通过JMX进行监控和管理（Monitoring-and-Management-over-JMX）" class="headerlink" title="通过JMX进行监控和管理（Monitoring and Management over JMX）"></a>通过JMX进行监控和管理（Monitoring and Management over JMX）</h1><p>JAVA管理扩展（JMX）提供了管理和监控应用程序的标准机制。这个特性默认没有被启用，可以通过设置<code>spring.jmx.enabled</code>为<code>true</code>来开启。默认情况下，Spring Boot的JMX MBeans位于<code>org.springframework.boot</code>作用域下。要想完全控制JMX域下的端点，可以考虑实现<code>EndpointObjectNameFactory</code>接口。</p>
 <h3 id="4-1-自定义MBean名字（Customizing-MBean-Names）"><a href="#4-1-自定义MBean名字（Customizing-MBean-Names）" class="headerlink" title="4.1. 自定义MBean名字（Customizing MBean Names）"></a>4.1. 自定义MBean名字（Customizing MBean Names）</h3><p>通常情况下，MBean的名字由端点的<code>id</code>生成。例如，<code>health</code>端点就被暴露为：<code>org.springframework.boot:type=Endpoint,name=Health</code>。</p>
 <p>如果应用程序拥有的<code>ApplicationContext</code>不止一个的话，可能会发现名称冲突。若要解决该问题，可以设置属性<code>spring.jmx.unique-names</code>为<code>true</code>，这样的话，MBean的名字就是唯一的了。</p>
 <p>可以自定义暴露端点的JMX作用域，如下例所示：</p>
@@ -767,7 +767,7 @@
 <h4 id="4-3-2-禁用Jolokia（Disabling-Jolokia）"><a href="#4-3-2-禁用Jolokia（Disabling-Jolokia）" class="headerlink" title="4.3.2. 禁用Jolokia（Disabling Jolokia）"></a>4.3.2. 禁用Jolokia（Disabling Jolokia）</h4><p>当使用了Jolokia而又不想让Spring Boot对其进行配置，可以将<code>management.endpoint.jolokia.enabled</code>设置为<code>false</code>，如下所示：</p>
 <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">endpoint:</span></span><br><span class="line">    <span class="attr">jolokia:</span></span><br><span class="line">      <span class="attr">enabled:</span> <span class="literal">false</span></span><br></pre></td></tr></table></figure>
 
-<h1 id="5-日志（Loggers）"><a href="#5-日志（Loggers）" class="headerlink" title="5. 日志（Loggers）"></a>5. 日志（Loggers）</h1><p>Spring Boot Actuator具备查看和设置正在运行中的应用程序的日志等级的能力。可以查看完整日志列表或者单独某个日志的配置，这些配置由两部分组成：显式配置的日志等级和日志框架给定的有效日志等级。这些日志等级可以是如下任意一个：</p>
+<h1 id="日志（Loggers）"><a href="#日志（Loggers）" class="headerlink" title="日志（Loggers）"></a>日志（Loggers）</h1><p>Spring Boot Actuator具备查看和设置正在运行中的应用程序的日志等级的能力。可以查看完整日志列表或者单独某个日志的配置，这些配置由两部分组成：显式配置的日志等级和日志框架给定的有效日志等级。这些日志等级可以是如下任意一个：</p>
 <ul>
 <li><code>TRACE</code></li>
 <li><code>DEBUG</code></li>
@@ -786,7 +786,7 @@
 <p><strong>提示</strong></p>
 <p>如果想重置之前设置的日志等级（并且使用默认配置），可以将<code>configuredLevel</code>设置为<code>null</code></p>
 </blockquote>
-<h1 id="6-度量（Metrics）"><a href="#6-度量（Metrics）" class="headerlink" title="6. 度量（Metrics）"></a>6. 度量（Metrics）</h1><p>Spring Boot Actuator提供了对 <a href="https://micrometer.io/">Micrometer</a>的依赖管理和自动装配。</p>
+<h1 id="度量（Metrics）"><a href="#度量（Metrics）" class="headerlink" title="度量（Metrics）"></a>度量（Metrics）</h1><p>Spring Boot Actuator提供了对 <a href="https://micrometer.io/">Micrometer</a>的依赖管理和自动装配。</p>
 
       
     </div>
