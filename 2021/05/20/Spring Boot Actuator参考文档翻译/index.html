@@ -28,7 +28,7 @@
 <meta property="og:description" content="背景乔梁大神曾经在他的《持续交付2.0》一书的第5.1.1节：《持续交付架构要求》中明确指出：为了提升交付速度，获得持续交付能力，系统架构在设计时应该考虑如下因素。 （1）为测试而设计（design for test）。如果我们每次写好代码以后，需要花费很大的精力，做很多的准备工作才能对它进行测试的话，那么从写好代码到完成质量验证就需要很长周期，当然无法快速发布。 （2）为部署而设计（design">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-05-20T12:00:00.000Z">
-<meta property="article:modified_time" content="2021-06-09T11:34:41.416Z">
+<meta property="article:modified_time" content="2021-06-09T11:38:15.123Z">
 <meta property="article:author" content="临江听雨">
 <meta property="article:tag" content="源码阅读">
 <meta property="article:tag" content="spring">
@@ -188,7 +188,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-09 19:34:41" itemprop="dateModified" datetime="2021-06-09T19:34:41+08:00">2021-06-09</time>
+                <time title="修改时间：2021-06-09 19:38:15" itemprop="dateModified" datetime="2021-06-09T19:38:15+08:00">2021-06-09</time>
               </span>
 
           
@@ -258,7 +258,7 @@
 
 <blockquote>
 <p><strong>提示</strong></p>
-<p>当某个端点被关闭后，会从Spring容器上下文（application context）中移除掉。如果仅仅是不想让某个端点被暴露，可以使用<a href="#2.2.-%E6%9A%B4%E9%9C%B2%E7%AB%AF%E7%82%B9%EF%BC%88Exposing-Endpoints%EF%BC%89">include和exclude</a>属性代替。</p>
+<p>当某个端点被关闭后，会从Spring容器上下文（application context）中移除掉。如果仅仅是不想让某个端点被暴露，可以使用<a href="#%E6%9A%B4%E9%9C%B2%E7%AB%AF%E7%82%B9%EF%BC%88Exposing-Endpoints%EF%BC%89">include和exclude</a>属性代替。</p>
 </blockquote>
 <h2 id="暴露端点（Exposing-Endpoints）"><a href="#暴露端点（Exposing-Endpoints）" class="headerlink" title="暴露端点（Exposing Endpoints）"></a>暴露端点（Exposing Endpoints）</h2><p>对于JMX访问的方式，所有的端点默认是开放暴露的，而对于Web的访问方式，默认只有<code>health</code>是开放开放暴露的，详情参考<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/actuator.html#actuator.endpoints.exposing">源文档</a>的表格。如果想调整某个端点的暴露状态，可以使用如下<code>include</code>和<code>exclude</code>属性：</p>
 <table>
@@ -295,7 +295,7 @@
 <p><strong>提示</strong></p>
 <ul>
 <li><code>*</code>在YAML中具有特殊含义，因此需要添加双引号</li>
-<li>如果应用程序暴露在外网环境中，强烈建议<a href="#2.3.-%E5%8A%A0%E5%9B%BAHTTP%E7%AB%AF%E7%82%B9%EF%BC%88Securing-HTTP-Endpoints%EF%BC%89">加固HTTP端点</a></li>
+<li>如果应用程序暴露在外网环境中，强烈建议<a href="#%E5%8A%A0%E5%9B%BAHTTP%E7%AB%AF%E7%82%B9%EF%BC%88Securing-HTTP-Endpoints%EF%BC%89">加固HTTP端点</a></li>
 <li>如果想自定义端点的暴露策略，可以注册一个<code>EndpointFilter</code> bean</li>
 </ul>
 </blockquote>
@@ -531,7 +531,7 @@
 <p><strong>提示</strong></p>
 <p>如果想自动处理异常错误，可以继承<code>AbstractReactiveHealthIndicator</code></p>
 </blockquote>
-<h3 id="自动装配的ReactiveHealthIndicators（Auto-configured-ReactiveHealthIndicators）"><a href="#自动装配的ReactiveHealthIndicators（Auto-configured-ReactiveHealthIndicators）" class="headerlink" title="自动装配的ReactiveHealthIndicators（Auto-configured ReactiveHealthIndicators）"></a>自动装配的ReactiveHealthIndicators（Auto-configured ReactiveHealthIndicators）</h3><p>Spring提供了一些内置的响应式健康指示器（<code>ReactiveHealthIndicators</code>），当它们可以可用时（端点被开启且被正常暴露时即为可用），会被自动装配。详情参考源文档第2.8.4节](<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/actuator.html#actuator.endpoints.health.auto-configured-reactive-health-indicators)%E7%9A%84%E8%A1%A8%E6%A0%BC%EF%BC%8C%E6%AD%A4%E5%A4%84%E4%B8%8D%E5%86%8D%E8%B5%98%E8%BF%B0">https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/actuator.html#actuator.endpoints.health.auto-configured-reactive-health-indicators)的表格，此处不再赘述</a></p>
+<h3 id="自动装配的ReactiveHealthIndicators（Auto-configured-ReactiveHealthIndicators）"><a href="#自动装配的ReactiveHealthIndicators（Auto-configured-ReactiveHealthIndicators）" class="headerlink" title="自动装配的ReactiveHealthIndicators（Auto-configured ReactiveHealthIndicators）"></a>自动装配的ReactiveHealthIndicators（Auto-configured ReactiveHealthIndicators）</h3><p>Spring提供了一些内置的响应式健康指示器（<code>ReactiveHealthIndicators</code>），当它们可以可用时（端点被开启且被正常暴露时即为可用），会被自动装配。详情<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/actuator.html#actuator.endpoints.health.auto-configured-reactive-health-indicators">参考源文档第2.8.4节</a>的表格，此处不再赘述</p>
 <blockquote>
 <p><strong>提示</strong></p>
 <p>在必要的情况下，响应式的指示器会替代非响应式的指示器。并且任何没有被处理过的<code>HealthIndicator</code>也会被自动包装为响应式</p>
@@ -553,7 +553,7 @@
 </blockquote>
 <h3 id="数据源健康（DataSource-Health）"><a href="#数据源健康（DataSource-Health）" class="headerlink" title="数据源健康（DataSource Health）"></a>数据源健康（DataSource Health）</h3><p><code>DataSource</code>健康指示器用来展示标准数据源（standard data source）类型和路由数据源（routing data source）类型的Bean的健康信息。路由数据源的健康信息也包含了目标数据源（its target data sources）的健康信息。在监控信息端点的HTTP响应中，每一个路由数据源的目标数据源的名字，由路由键值（routing key）来决定。如果想把路由数据源排除，可以将<code>management.health.db.ignore-routing-data-sources</code>设置为true</p>
 <h2 id="Kubernetes探针（Kubernetes-Probes）"><a href="#Kubernetes探针（Kubernetes-Probes）" class="headerlink" title="Kubernetes探针（Kubernetes Probes）"></a>Kubernetes探针（Kubernetes Probes）</h2><p>部署在Kubernetes上的应用程序可以通过<a href="https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes">容器探针</a>反馈内部状态信息。kubelet可以根据<a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/">Kubernetes的配置</a>调用这些探针并反馈探针结果。</p>
-<p>Spring Boot提供了开箱即用的<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/features.html#features.spring-application.application-availability">应用程序可用性状态</a>管理。当应用程序被部署到Kubernetes环境下，Spring Boot Acuator会通过<code>ApplicationAvailability</code>接口收集“Liveness”和“Readiness”信息，并且在<a href="#2.8.4.-%E8%87%AA%E5%8A%A8%E8%A3%85%E9%85%8D%E7%9A%84ReactiveHealthIndicators%EF%BC%88Auto-configured-ReactiveHealthIndicators%EF%BC%89">健康指示器</a>：<code>LivenessStateHealthIndicator</code>和<code>ReadinessStateHealthIndicator</code>中使用这些信息。这些指示器的信息显示在全局端点（<code>&quot;/actuator/health&quot;</code>）中。也可用通过使用<a href="#2.8.5.-%E5%81%A5%E5%BA%B7%E5%88%86%E7%BB%84%EF%BC%88Health-Groups%EF%BC%89">健康分组</a>：<code>&quot;/actuator/health/liveness&quot;</code> 和 <code>&quot;/actuator/health/readiness&quot;</code> 访问这些端点。</p>
+<p>Spring Boot提供了开箱即用的<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/features.html#features.spring-application.application-availability">应用程序可用性状态</a>管理。当应用程序被部署到Kubernetes环境下，Spring Boot Acuator会通过<code>ApplicationAvailability</code>接口收集“Liveness”和“Readiness”信息，并且在<a href="#%E8%87%AA%E5%8A%A8%E8%A3%85%E9%85%8D%E7%9A%84ReactiveHealthIndicators%EF%BC%88Auto-configured-ReactiveHealthIndicators%EF%BC%89">健康指示器</a>：<code>LivenessStateHealthIndicator</code>和<code>ReadinessStateHealthIndicator</code>中使用这些信息。这些指示器的信息显示在全局端点（<code>&quot;/actuator/health&quot;</code>）中。也可用通过使用<a href="#%E5%81%A5%E5%BA%B7%E5%88%86%E7%BB%84%EF%BC%88Health-Groups%EF%BC%89">健康分组</a>：<code>&quot;/actuator/health/liveness&quot;</code> 和 <code>&quot;/actuator/health/readiness&quot;</code> 访问这些端点。</p>
 <p>可以使用如下端点信息配置Kubernetes：</p>
 <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">livenessProbe:</span></span><br><span class="line">  <span class="attr">httpGet:</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">/actuator/health/liveness</span></span><br><span class="line">    <span class="attr">port:</span> <span class="string">&lt;actuator-port&gt;</span></span><br><span class="line">  <span class="attr">failureThreshold:</span> <span class="string">...</span></span><br><span class="line">  <span class="attr">periodSeconds:</span> <span class="string">...</span></span><br><span class="line"></span><br><span class="line"><span class="attr">readinessProbe:</span></span><br><span class="line">  <span class="attr">httpGet:</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">/actuator/health/readiness</span></span><br><span class="line">    <span class="attr">port:</span> <span class="string">&lt;actuator-port&gt;</span></span><br><span class="line">  <span class="attr">failureThreshold:</span> <span class="string">...</span></span><br><span class="line">  <span class="attr">periodSeconds:</span> <span class="string">...</span></span><br></pre></td></tr></table></figure>
 
@@ -570,7 +570,7 @@
 <p><strong>警告</strong></p>
 <p>如果端点（Actuator endpoints）被配置在独立的Spring上下文（a separate management context）中，需要注意的是，这些端点使用的web配置信息（端口、连接池、框架的组件等）也是独立于应用程序的。在这种情况下，即使应用程序已经无法正常工作（例如无法接受新连接），探针可能也会返回正常状态。</p>
 </blockquote>
-<h3 id="使用Kubernetes探针检测外部状态（Checking-External-State-with-Kubernetes-Probes）"><a href="#使用Kubernetes探针检测外部状态（Checking-External-State-with-Kubernetes-Probes）" class="headerlink" title="使用Kubernetes探针检测外部状态（Checking External State with Kubernetes Probes）"></a>使用Kubernetes探针检测外部状态（Checking External State with Kubernetes Probes）</h3><p>Spring Boot Actuator将“活性”（liveness）和“就绪”（readiness）探针配置为健康分组。这意味着对于这些探针来说，所有的<a href="#2.8.5.-%E5%81%A5%E5%BA%B7%E5%88%86%E7%BB%84%EF%BC%88Health-Groups%EF%BC%89">健康分组特性</a>都适用。例如，可以配置如下健康指示器：</p>
+<h3 id="使用Kubernetes探针检测外部状态（Checking-External-State-with-Kubernetes-Probes）"><a href="#使用Kubernetes探针检测外部状态（Checking-External-State-with-Kubernetes-Probes）" class="headerlink" title="使用Kubernetes探针检测外部状态（Checking External State with Kubernetes Probes）"></a>使用Kubernetes探针检测外部状态（Checking External State with Kubernetes Probes）</h3><p>Spring Boot Actuator将“活性”（liveness）和“就绪”（readiness）探针配置为健康分组。这意味着对于这些探针来说，所有的<a href="#%E5%81%A5%E5%BA%B7%E5%88%86%E7%BB%84%EF%BC%88Health-Groups%EF%BC%89">健康分组特性</a>都适用。例如，可以配置如下健康指示器：</p>
 <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">endpoint:</span></span><br><span class="line">    <span class="attr">health:</span></span><br><span class="line">      <span class="attr">group:</span></span><br><span class="line">        <span class="attr">readiness:</span></span><br><span class="line">          <span class="attr">include:</span> <span class="string">&quot;readinessState,customCheck&quot;</span></span><br></pre></td></tr></table></figure>
 
 <p>默认情况下，Spring Boot没有将其他的健康指示器添加到这些健康分组中。</p>
