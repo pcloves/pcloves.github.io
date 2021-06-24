@@ -182,7 +182,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-23 21:22:22" itemprop="dateModified" datetime="2021-06-23T21:22:22+08:00">2021-06-23</time>
+                <time title="修改时间：2021-06-24 17:29:00" itemprop="dateModified" datetime="2021-06-24T17:29:00+08:00">2021-06-24</time>
               </span>
 
           
@@ -1113,13 +1113,105 @@
 <p><strong>提示</strong></p>
 <p>默认情况下，对于所有支持的数据源，Spring Boot都提供了元数据（metadata）。如果使用的数据源不支持这个开箱即用的特性，可以额外提供<code>DataSourcePoolMetadataProvider</code>，可以到<code>DataSourcePoolMetadataProvidersConfiguration</code>查看使用示例。</p>
 </blockquote>
-<h3 id="Hibernate指标（-Hibernate-Metrics）"><a href="#Hibernate指标（-Hibernate-Metrics）" class="headerlink" title="Hibernate指标（ Hibernate Metrics）"></a>Hibernate指标（ Hibernate Metrics）</h3><p>如果<code>org.hibernate:hibernate-micrometer</code>在classpath内，所有生效的且开启统计<code>EntityManagerFactory</code>实例都会被监测，指标前缀为：<code>hibernate</code>。</p>
-<p>这些指标也会被附加tag标记，这些tag标记的名字就是<code>EntityManagerFactory </code> bean的名字。</p>
+<h3 id="Hibernate指标（-Hibernate-Metrics）"><a href="#Hibernate指标（-Hibernate-Metrics）" class="headerlink" title="Hibernate指标（ Hibernate Metrics）"></a>Hibernate指标（ Hibernate Metrics）</h3><p>如果<code>org.hibernate:hibernate-micrometer</code>在classpath内，所有生效且开启统计<code>EntityManagerFactory</code>实例都会被监测，指标名为：<code>hibernate</code>。</p>
+<p>这些指标也会被附加tag标记，tag标记的名字就是<code>EntityManagerFactory </code> bean的名字。</p>
 <p>如果要开启统计功能，JPA属性<code>hibernate.generate_statistics</code>必须要被设置为<code>true</code>，可以通过如下示例将<code>EntityManagerFactory</code>开启：</p>
 <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">jpa:</span></span><br><span class="line">    <span class="attr">properties:</span></span><br><span class="line">      <span class="string">&quot;[hibernate.generate_statistics]&quot;</span><span class="string">:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="Spring-Data-Repository指标（Spring-Data-Repository-Metrics）"><a href="#Spring-Data-Repository指标（Spring-Data-Repository-Metrics）" class="headerlink" title="Spring Data Repository指标（Spring Data Repository Metrics）"></a>Spring Data Repository指标（Spring Data Repository Metrics）</h3><p>自动装配机制会开启Spring Data <code>Repository</code>的所有函数调用的监测。默认情况下，这些指标以``</p>
-<h3 id="RabbitMQ指标（RabbitMQ-Metrics）"><a href="#RabbitMQ指标（RabbitMQ-Metrics）" class="headerlink" title="RabbitMQ指标（RabbitMQ Metrics）"></a>RabbitMQ指标（RabbitMQ Metrics）</h3><h3 id="Spring-Integration指标（Spring-Integration-Metrics）"><a href="#Spring-Integration指标（Spring-Integration-Metrics）" class="headerlink" title="Spring Integration指标（Spring Integration Metrics）"></a>Spring Integration指标（Spring Integration Metrics）</h3><h3 id="Kafka指标（Kafka-Metrics）"><a href="#Kafka指标（Kafka-Metrics）" class="headerlink" title="Kafka指标（Kafka Metrics）"></a>Kafka指标（Kafka Metrics）</h3><h3 id="MongoDB指标（MongoDB-Metrics）"><a href="#MongoDB指标（MongoDB-Metrics）" class="headerlink" title="MongoDB指标（MongoDB Metrics）"></a>MongoDB指标（MongoDB Metrics）</h3><h4 id="命令指标（Command-Metrics）"><a href="#命令指标（Command-Metrics）" class="headerlink" title="命令指标（Command Metrics）"></a>命令指标（Command Metrics）</h4><h4 id="连接池指标（Connection-Pool-Metrics）"><a href="#连接池指标（Connection-Pool-Metrics）" class="headerlink" title="连接池指标（Connection Pool Metrics）"></a>连接池指标（Connection Pool Metrics）</h4><h3 id="Timed注解支持（-Timed-Annotation-Support）"><a href="#Timed注解支持（-Timed-Annotation-Support）" class="headerlink" title="@Timed注解支持（@Timed Annotation Support）"></a>@Timed注解支持（@Timed Annotation Support）</h3><h2 id="注册自定义指标（Registering-Custom-Metrics）"><a href="#注册自定义指标（Registering-Custom-Metrics）" class="headerlink" title="注册自定义指标（Registering Custom Metrics）"></a>注册自定义指标（Registering Custom Metrics）</h2><h2 id="自定义指标（Customizing-Individual-Metrics）"><a href="#自定义指标（Customizing-Individual-Metrics）" class="headerlink" title="自定义指标（Customizing Individual Metrics）"></a>自定义指标（Customizing Individual Metrics）</h2><h2 id="指标端点（Metrics-Endpoint）"><a href="#指标端点（Metrics-Endpoint）" class="headerlink" title="指标端点（Metrics Endpoint）"></a>指标端点（Metrics Endpoint）</h2><h1 id="审计（Auditing）"><a href="#审计（Auditing）" class="headerlink" title="审计（Auditing）"></a>审计（Auditing）</h1><h2 id="自定义审计（Custom-Auditing）"><a href="#自定义审计（Custom-Auditing）" class="headerlink" title="自定义审计（Custom Auditing）"></a>自定义审计（Custom Auditing）</h2><h1 id="HTTP追踪（HTTP-Tracing）"><a href="#HTTP追踪（HTTP-Tracing）" class="headerlink" title="HTTP追踪（HTTP Tracing）"></a>HTTP追踪（HTTP Tracing）</h1><h2 id="自定义HTTP追踪（Custom-HTTP-tracing）"><a href="#自定义HTTP追踪（Custom-HTTP-tracing）" class="headerlink" title="自定义HTTP追踪（Custom HTTP tracing）"></a>自定义HTTP追踪（Custom HTTP tracing）</h2><h1 id="进程监控（Process-Monitoring）"><a href="#进程监控（Process-Monitoring）" class="headerlink" title="进程监控（Process Monitoring）"></a>进程监控（Process Monitoring）</h1><h2 id="扩展配置（Extending-Configuration）"><a href="#扩展配置（Extending-Configuration）" class="headerlink" title="扩展配置（Extending Configuration）"></a>扩展配置（Extending Configuration）</h2><h2 id="编程方式支持（Programmatically）"><a href="#编程方式支持（Programmatically）" class="headerlink" title="编程方式支持（Programmatically）"></a>编程方式支持（Programmatically）</h2><h1 id="Cloud-Foundry-支持（Cloud-Foundry-Support）"><a href="#Cloud-Foundry-支持（Cloud-Foundry-Support）" class="headerlink" title="Cloud Foundry 支持（Cloud Foundry Support）"></a>Cloud Foundry 支持（Cloud Foundry Support）</h1><h2 id="禁用Cloud-Foundry-Actuator支持（Disabling-Extended-Cloud-Foundry-Actuator-Support）"><a href="#禁用Cloud-Foundry-Actuator支持（Disabling-Extended-Cloud-Foundry-Actuator-Support）" class="headerlink" title="禁用Cloud Foundry Actuator支持（Disabling Extended Cloud Foundry Actuator Support）"></a>禁用Cloud Foundry Actuator支持（Disabling Extended Cloud Foundry Actuator Support）</h2><h2 id="Cloud-Foundry自签名证书（Cloud-Foundry-Self-signed-Certificates）"><a href="#Cloud-Foundry自签名证书（Cloud-Foundry-Self-signed-Certificates）" class="headerlink" title="Cloud Foundry自签名证书（Cloud Foundry Self-signed Certificates）"></a>Cloud Foundry自签名证书（Cloud Foundry Self-signed Certificates）</h2><h2 id="自定义上下文路径（Custom-Context-Path）"><a href="#自定义上下文路径（Custom-Context-Path）" class="headerlink" title="自定义上下文路径（Custom Context Path）"></a>自定义上下文路径（Custom Context Path）</h2><h1 id="接下来要读什么（What-to-Read-Next）"><a href="#接下来要读什么（What-to-Read-Next）" class="headerlink" title="接下来要读什么（What to Read Next）"></a>接下来要读什么（What to Read Next）</h1>
+<h3 id="Spring-Data-Repository指标（Spring-Data-Repository-Metrics）"><a href="#Spring-Data-Repository指标（Spring-Data-Repository-Metrics）" class="headerlink" title="Spring Data Repository指标（Spring Data Repository Metrics）"></a>Spring Data Repository指标（Spring Data Repository Metrics）</h3><p>自动装配机制会开启Spring Data <code>Repository</code>的所有函数调用的监测。默认情况下，指标名为<code>spring.data.repository.invocations</code>，可以通过<code>management.metrics.data.repository.metric-name</code>对其修改。</p>
+<p><code>Repository</code>类及其方法支持<code>@Timed</code>（查看<a href="##@Timed%E6%B3%A8%E8%A7%A3%E6%94%AF%E6%8C%81%EF%BC%88@Timed-Annotation-Support%EF%BC%89">@Timed注解支持</a>了解更多细节）注解。如果不想对所有的<code>Repository</code>调用都开启指标监控，可以将<code>management.metrics.data.repository.autotime.enabled</code>设置为false，并且单独使用<code>@Timed</code>。</p>
+<p>默认情况下，<code>Repository</code>相关的指标会被附加如下tag标记：</p>
+<table>
+<thead>
+<tr>
+<th align="center">Tag</th>
+<th align="center">详情</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>repository</code></td>
+<td align="center"><code>Repository</code>的简单类名</td>
+</tr>
+<tr>
+<td align="center"><code>method</code></td>
+<td align="center">被调用的<code>Repository</code>方法名</td>
+</tr>
+<tr>
+<td align="center"><code>state</code></td>
+<td align="center">状态（<code>SUCCESS</code>, <code>ERROR</code>, <code>CANCELED</code> or <code>RUNNING</code>）</td>
+</tr>
+<tr>
+<td align="center"><code>exception</code></td>
+<td align="center">当调用出现异常时，异常类的简单类名</td>
+</tr>
+</tbody></table>
+<p>如果想修改这些默认的tag标记，配置一个实现了<code>RepositoryTagsProvider</code>接口的<code>@Bean</code>。</p>
+<h3 id="RabbitMQ指标（RabbitMQ-Metrics）"><a href="#RabbitMQ指标（RabbitMQ-Metrics）" class="headerlink" title="RabbitMQ指标（RabbitMQ Metrics）"></a>RabbitMQ指标（RabbitMQ Metrics）</h3><p>自动装配机制会开启所有可用的<code>RabbitMQ </code>连接的监控，指标名为<code>rabbitmq</code>。</p>
+<h3 id="Spring-Integration指标（Spring-Integration-Metrics）"><a href="#Spring-Integration指标（Spring-Integration-Metrics）" class="headerlink" title="Spring Integration指标（Spring Integration Metrics）"></a>Spring Integration指标（Spring Integration Metrics）</h3><p>任何时候，当<code>MeterRegistry</code> bean可用时，Spring Integration会自动提供<a href="https://docs.spring.io/spring-integration/docs/5.5.0/reference/html/system-management.html#micrometer-integration">基于<code>Micrometer</code>的监测支持</a>。并且指标会被发布在<code>spring.integration.</code>下面。</p>
+<h3 id="Kafka指标（Kafka-Metrics）"><a href="#Kafka指标（Kafka-Metrics）" class="headerlink" title="Kafka指标（Kafka Metrics）"></a>Kafka指标（Kafka Metrics）</h3><p>自动装配机制会分别为自动装配的消费者工厂（consumer factory）和生产者工厂（producer factory）注册一个 <code>MicrometerConsumerListener</code>和 <code>MicrometerProducerListener</code>。也会为<code>StreamsBuilderFactoryBean</code>注册一个<code>KafkaStreamsMicrometerListener</code>。更多详情，请参考Spring Kafka文档的 <a href="https://docs.spring.io/spring-kafka/docs/2.7.1/reference/html/#micrometer-native">Micrometer原生指标</a>。</p>
+<h3 id="MongoDB指标（MongoDB-Metrics）"><a href="#MongoDB指标（MongoDB-Metrics）" class="headerlink" title="MongoDB指标（MongoDB Metrics）"></a>MongoDB指标（MongoDB Metrics）</h3><h4 id="命令指标（Command-Metrics）"><a href="#命令指标（Command-Metrics）" class="headerlink" title="命令指标（Command Metrics）"></a>命令指标（Command Metrics）</h4><p>自动装配机制会为自动装配的<code>MongoClient</code>注册一个<code>MongoMetricsCommandListener</code>。</p>
+<p>对于mongoDB driver下的每一条指令，都会创建一个名为<code>mongodb.driver.commands</code>的计时器指标（timer metric）。每个指标默认会附加如下tag标记：</p>
+<table>
+<thead>
+<tr>
+<th align="center">Tag</th>
+<th align="center">详情</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>command</code></td>
+<td align="center">命令的名称</td>
+</tr>
+<tr>
+<td align="center"><code>cluster.id</code></td>
+<td align="center">执行命令的monoDB集群的id</td>
+</tr>
+<tr>
+<td align="center"><code>server.address</code></td>
+<td align="center">执行命令的mongoDB的的服务器地址</td>
+</tr>
+<tr>
+<td align="center"><code>status</code></td>
+<td align="center">命令返回结果（<code>SUCCESS</code>或<code>FAILED</code>中的一个）</td>
+</tr>
+</tbody></table>
+<p>如果想替换默认的指标tag标记，可以定义一个<code>MongoCommandTagsProvider</code> bean，如下所示：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration(proxyBeanMethods = false)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyCommandTagsProviderConfiguration</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> MongoCommandTagsProvider <span class="title">customCommandTagsProvider</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> CustomCommandTagsProvider();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果想禁用上述命令指标，可以按照如下指令进行设置：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">metrics:</span></span><br><span class="line">    <span class="attr">mongo:</span></span><br><span class="line">      <span class="attr">command:</span></span><br><span class="line">        <span class="attr">enabled:</span> <span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="连接池指标（Connection-Pool-Metrics）"><a href="#连接池指标（Connection-Pool-Metrics）" class="headerlink" title="连接池指标（Connection Pool Metrics）"></a>连接池指标（Connection Pool Metrics）</h4><p>自动装配机制会为自动装配的<code>MongoClient</code>注册一个<code>MongoMetricsConnectionPoolListener </code>。</p>
+<p>连接池会创建如下gauge指标：</p>
+<ul>
+<li><code>mongodb.driver.pool.size</code>上报当前连接池内的连接数量，包括空闲和使用者的连接。</li>
+<li><code>mongodb.driver.pool.checkedout</code>上报连接池内正在使用的连接数量</li>
+<li><code>mongodb.driver.pool.waitqueuesize</code>上报连接池等待队列的大小</li>
+</ul>
+<p>默认情况下，每个指标都会被附加如下tag标记：</p>
+<table>
+<thead>
+<tr>
+<th align="center">Tag</th>
+<th align="center">详情</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>cluster.id</code></td>
+<td align="center">当前连接池对应的monoDB集群的id</td>
+</tr>
+<tr>
+<td align="center"><code>server.address</code></td>
+<td align="center">当前连接池对应的monoDB集群的服务器地址</td>
+</tr>
+</tbody></table>
+<p>如果想替换默认的指标tag标记，可以定义一个<code>MongoConnectionPoolTagsProvider</code> bean，如下所示：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration(proxyBeanMethods = false)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyConnectionPoolTagsProviderConfiguration</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> MongoConnectionPoolTagsProvider <span class="title">customConnectionPoolTagsProvider</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> CustomConnectionPoolTagsProvider();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果想禁用上述连接池指标，可以按照如下指令进行设置：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">metrics:</span></span><br><span class="line">    <span class="attr">mongo:</span></span><br><span class="line">      <span class="attr">connectionpool:</span></span><br><span class="line">        <span class="attr">enabled:</span> <span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Timed注解支持（-Timed-Annotation-Support）"><a href="#Timed注解支持（-Timed-Annotation-Support）" class="headerlink" title="@Timed注解支持（@Timed Annotation Support）"></a>@Timed注解支持（@Timed Annotation Support）</h3><h2 id="注册自定义指标（Registering-Custom-Metrics）"><a href="#注册自定义指标（Registering-Custom-Metrics）" class="headerlink" title="注册自定义指标（Registering Custom Metrics）"></a>注册自定义指标（Registering Custom Metrics）</h2><h2 id="自定义指标（Customizing-Individual-Metrics）"><a href="#自定义指标（Customizing-Individual-Metrics）" class="headerlink" title="自定义指标（Customizing Individual Metrics）"></a>自定义指标（Customizing Individual Metrics）</h2><h2 id="指标端点（Metrics-Endpoint）"><a href="#指标端点（Metrics-Endpoint）" class="headerlink" title="指标端点（Metrics Endpoint）"></a>指标端点（Metrics Endpoint）</h2><h1 id="审计（Auditing）"><a href="#审计（Auditing）" class="headerlink" title="审计（Auditing）"></a>审计（Auditing）</h1><h2 id="自定义审计（Custom-Auditing）"><a href="#自定义审计（Custom-Auditing）" class="headerlink" title="自定义审计（Custom Auditing）"></a>自定义审计（Custom Auditing）</h2><h1 id="HTTP追踪（HTTP-Tracing）"><a href="#HTTP追踪（HTTP-Tracing）" class="headerlink" title="HTTP追踪（HTTP Tracing）"></a>HTTP追踪（HTTP Tracing）</h1><h2 id="自定义HTTP追踪（Custom-HTTP-tracing）"><a href="#自定义HTTP追踪（Custom-HTTP-tracing）" class="headerlink" title="自定义HTTP追踪（Custom HTTP tracing）"></a>自定义HTTP追踪（Custom HTTP tracing）</h2><h1 id="进程监控（Process-Monitoring）"><a href="#进程监控（Process-Monitoring）" class="headerlink" title="进程监控（Process Monitoring）"></a>进程监控（Process Monitoring）</h1><h2 id="扩展配置（Extending-Configuration）"><a href="#扩展配置（Extending-Configuration）" class="headerlink" title="扩展配置（Extending Configuration）"></a>扩展配置（Extending Configuration）</h2><h2 id="编程方式支持（Programmatically）"><a href="#编程方式支持（Programmatically）" class="headerlink" title="编程方式支持（Programmatically）"></a>编程方式支持（Programmatically）</h2><h1 id="Cloud-Foundry-支持（Cloud-Foundry-Support）"><a href="#Cloud-Foundry-支持（Cloud-Foundry-Support）" class="headerlink" title="Cloud Foundry 支持（Cloud Foundry Support）"></a>Cloud Foundry 支持（Cloud Foundry Support）</h1><h2 id="禁用Cloud-Foundry-Actuator支持（Disabling-Extended-Cloud-Foundry-Actuator-Support）"><a href="#禁用Cloud-Foundry-Actuator支持（Disabling-Extended-Cloud-Foundry-Actuator-Support）" class="headerlink" title="禁用Cloud Foundry Actuator支持（Disabling Extended Cloud Foundry Actuator Support）"></a>禁用Cloud Foundry Actuator支持（Disabling Extended Cloud Foundry Actuator Support）</h2><h2 id="Cloud-Foundry自签名证书（Cloud-Foundry-Self-signed-Certificates）"><a href="#Cloud-Foundry自签名证书（Cloud-Foundry-Self-signed-Certificates）" class="headerlink" title="Cloud Foundry自签名证书（Cloud Foundry Self-signed Certificates）"></a>Cloud Foundry自签名证书（Cloud Foundry Self-signed Certificates）</h2><h2 id="自定义上下文路径（Custom-Context-Path）"><a href="#自定义上下文路径（Custom-Context-Path）" class="headerlink" title="自定义上下文路径（Custom Context Path）"></a>自定义上下文路径（Custom Context Path）</h2><h1 id="接下来要读什么（What-to-Read-Next）"><a href="#接下来要读什么（What-to-Read-Next）" class="headerlink" title="接下来要读什么（What to Read Next）"></a>接下来要读什么（What to Read Next）</h1>
       
     </div>
 
