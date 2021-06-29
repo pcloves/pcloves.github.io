@@ -182,7 +182,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-06-24 17:29:00" itemprop="dateModified" datetime="2021-06-24T17:29:00+08:00">2021-06-24</time>
+                <time title="修改时间：2021-06-28 20:51:24" itemprop="dateModified" datetime="2021-06-28T20:51:24+08:00">2021-06-28</time>
               </span>
 
           
@@ -202,7 +202,7 @@
 <p>（3）<strong>为监控而设计（design for monitor）</strong>。如果我们的功能上线以后，无法对齐进行监控，除了问题只能通过用户反馈才发现。那么，持续交付的收益就会大幅降低了。</p>
 <p>（4）<strong>为扩展而设计（design for scale）</strong>。这里的扩展性指两个方面，意识支持团队成员规模的扩展，而是支持系统自身的扩展。</p>
 <p>（5）<strong>为失效而设计（design for failure）</strong>。俗话说：“常在河边走，哪能不湿鞋。”快速地部署发布总会遇到问题。因此，在开发软件功能之前，就应该考虑的一个问题是：一旦部署或发布失败，如何优雅且快速地处理。</p>
-<p>在这5个设计原则中，为<strong>为扩展而设计（design for scale）</strong>属于游戏（服务器）开发中最容易被轻视甚至是忽视的原则之一，而在<a href="https://github.com/pcloves/gamedo.core">gamedo.core</a>的开发设计过程中，笔者也一直在思考如何实现系统监控的最佳实践，直到最近算是确定了技术栈，那就是站在巨人的肩上，使用<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/actuator.html#actuator">Spring Boot Actuator</a>和<a href="https://micrometer.io/docs">MicroMeter</a>。</p>
+<p>在这5个设计原则中，为<strong>为监控而设计（design for monitor）</strong>属于游戏（服务器）开发中最容易被轻视甚至是忽视的原则之一，而在<a href="https://github.com/pcloves/gamedo.core">gamedo.core</a>的开发设计过程中，译者本人也一直在思考如何实现系统监控的最佳实践，直到最近算是确定了技术栈，那就是站在巨人的肩上，使用<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/actuator.html#actuator">Spring Boot Actuator</a>和<a href="https://micrometer.io/docs">MicroMeter</a>。</p>
 <p>正是由于<a href="https://github.com/pcloves/gamedo.core">gamedo.core</a>最终要选用Spring Boot Actuator作为系统监控的关键技术，因此需要其进行相对深入的研究，这也是本笔记的产生的原因。而本文的所有内容都源于阅读<a href="https://docs.spring.io/spring-boot/docs/2.5.0/reference/html/actuator.html#actuator">参考文档</a>（Spring Boot版本：2.5.0）以及阅读源码时的随读、随想和随写，为了便于以后查找，章节也完全和参考文档保持一致，并且由于某些章节比较简单，所以就被忽略掉，这可能导致本文的章节不是连续的。</p>
 <h1 id="启用产品就绪特性（Enabling-Production-ready-Features）"><a href="#启用产品就绪特性（Enabling-Production-ready-Features）" class="headerlink" title="启用产品就绪特性（Enabling Production-ready Features）"></a>启用产品就绪特性（Enabling Production-ready Features）</h1><p>Spring Boot的所有产品就绪特性是都是由 <a href="https://github.com/spring-projects/spring-boot/tree/v2.4.6/spring-boot-project/spring-boot-actuator"><code>spring-boot-actuator</code></a>模块提供的，开启该特性的最佳方式就是引入专有的<code>Starter</code>，也即：<code>spring-boot-starter-actuator</code></p>
 <blockquote>
@@ -210,9 +210,13 @@
 
 <p><a href="https://www.termonline.cn/search?k=actuator">执行器</a>（actuator）是一个制造业术语，是指用于移动或控制某些物体的机械设备。可以通过执行器的微小变化带来巨大的变化。</p>
 </blockquote>
-<h1 id="端点（Endpoints）"><a href="#端点（Endpoints）" class="headerlink" title="端点（Endpoints）"></a>端点（Endpoints）</h1><p>通过端点可以监控应用程序以及和应用程序交互。对于任意端点来说，可以对其进行两个操作：1、开启或关闭某个端点；2、通过HTTP或者JMX暴露它。当某个端点被开启且被暴露时，该端点才可用。而内置的端点只有在可用时才会被自动装配。</p>
+<blockquote>
+<p><strong>译者提示</strong></p>
+<p>产品就绪特性属于Spring Boot的六大特性之一，详情可以参考<a href="https://spring.io/projects/spring-boot">官方文档Features</a>一节</p>
+</blockquote>
+<h1 id="端点（Endpoints）"><a href="#端点（Endpoints）" class="headerlink" title="端点（Endpoints）"></a>端点（Endpoints）</h1><p>通过端点可以监控应用程序以及和应用程序交互。对于任意端点来说，可以对其进行两个操作：1、开启或关闭某个端点；2、通过HTTP或者JMX暴露（exposed）它。当某个端点被开启且被暴露时该端点才处于可用状态。而系统内置端点只有在可用时才会被自动装配。</p>
 <p>每一个端点都有唯一id，通过HTTP访问任意端点的方式是：<code>/actuator/端点id</code>，例如对于<code>health</code>端点，其访问方式为：<code>/actuator/health</code> </p>
-<p> <a href="https://github.com/spring-projects/spring-boot/tree/v2.4.6/spring-boot-project/spring-boot-actuator"><code>spring-boot-actuator</code></a>内置了一大堆开箱即用的端点，详情参考源文档。特别地，当应用程序是一个Web应用（Spring MVC、Spring WebFlux或者Jersey），如下内置的额外端点可以被使用：</p>
+<p> <a href="https://github.com/spring-projects/spring-boot/tree/v2.4.6/spring-boot-project/spring-boot-actuator"><code>spring-boot-actuator</code></a>内置了一大堆开箱即用的端点，详情参考源文档。此外，当应用程序是一个Web应用（Spring MVC、Spring WebFlux或者Jersey），如下内置的额外端点：</p>
 <table>
 <thead>
 <tr>
@@ -1211,7 +1215,100 @@
 <p>如果想禁用上述连接池指标，可以按照如下指令进行设置：</p>
 <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">metrics:</span></span><br><span class="line">    <span class="attr">mongo:</span></span><br><span class="line">      <span class="attr">connectionpool:</span></span><br><span class="line">        <span class="attr">enabled:</span> <span class="literal">false</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="Timed注解支持（-Timed-Annotation-Support）"><a href="#Timed注解支持（-Timed-Annotation-Support）" class="headerlink" title="@Timed注解支持（@Timed Annotation Support）"></a>@Timed注解支持（@Timed Annotation Support）</h3><h2 id="注册自定义指标（Registering-Custom-Metrics）"><a href="#注册自定义指标（Registering-Custom-Metrics）" class="headerlink" title="注册自定义指标（Registering Custom Metrics）"></a>注册自定义指标（Registering Custom Metrics）</h2><h2 id="自定义指标（Customizing-Individual-Metrics）"><a href="#自定义指标（Customizing-Individual-Metrics）" class="headerlink" title="自定义指标（Customizing Individual Metrics）"></a>自定义指标（Customizing Individual Metrics）</h2><h2 id="指标端点（Metrics-Endpoint）"><a href="#指标端点（Metrics-Endpoint）" class="headerlink" title="指标端点（Metrics Endpoint）"></a>指标端点（Metrics Endpoint）</h2><h1 id="审计（Auditing）"><a href="#审计（Auditing）" class="headerlink" title="审计（Auditing）"></a>审计（Auditing）</h1><h2 id="自定义审计（Custom-Auditing）"><a href="#自定义审计（Custom-Auditing）" class="headerlink" title="自定义审计（Custom Auditing）"></a>自定义审计（Custom Auditing）</h2><h1 id="HTTP追踪（HTTP-Tracing）"><a href="#HTTP追踪（HTTP-Tracing）" class="headerlink" title="HTTP追踪（HTTP Tracing）"></a>HTTP追踪（HTTP Tracing）</h1><h2 id="自定义HTTP追踪（Custom-HTTP-tracing）"><a href="#自定义HTTP追踪（Custom-HTTP-tracing）" class="headerlink" title="自定义HTTP追踪（Custom HTTP tracing）"></a>自定义HTTP追踪（Custom HTTP tracing）</h2><h1 id="进程监控（Process-Monitoring）"><a href="#进程监控（Process-Monitoring）" class="headerlink" title="进程监控（Process Monitoring）"></a>进程监控（Process Monitoring）</h1><h2 id="扩展配置（Extending-Configuration）"><a href="#扩展配置（Extending-Configuration）" class="headerlink" title="扩展配置（Extending Configuration）"></a>扩展配置（Extending Configuration）</h2><h2 id="编程方式支持（Programmatically）"><a href="#编程方式支持（Programmatically）" class="headerlink" title="编程方式支持（Programmatically）"></a>编程方式支持（Programmatically）</h2><h1 id="Cloud-Foundry-支持（Cloud-Foundry-Support）"><a href="#Cloud-Foundry-支持（Cloud-Foundry-Support）" class="headerlink" title="Cloud Foundry 支持（Cloud Foundry Support）"></a>Cloud Foundry 支持（Cloud Foundry Support）</h1><h2 id="禁用Cloud-Foundry-Actuator支持（Disabling-Extended-Cloud-Foundry-Actuator-Support）"><a href="#禁用Cloud-Foundry-Actuator支持（Disabling-Extended-Cloud-Foundry-Actuator-Support）" class="headerlink" title="禁用Cloud Foundry Actuator支持（Disabling Extended Cloud Foundry Actuator Support）"></a>禁用Cloud Foundry Actuator支持（Disabling Extended Cloud Foundry Actuator Support）</h2><h2 id="Cloud-Foundry自签名证书（Cloud-Foundry-Self-signed-Certificates）"><a href="#Cloud-Foundry自签名证书（Cloud-Foundry-Self-signed-Certificates）" class="headerlink" title="Cloud Foundry自签名证书（Cloud Foundry Self-signed Certificates）"></a>Cloud Foundry自签名证书（Cloud Foundry Self-signed Certificates）</h2><h2 id="自定义上下文路径（Custom-Context-Path）"><a href="#自定义上下文路径（Custom-Context-Path）" class="headerlink" title="自定义上下文路径（Custom Context Path）"></a>自定义上下文路径（Custom Context Path）</h2><h1 id="接下来要读什么（What-to-Read-Next）"><a href="#接下来要读什么（What-to-Read-Next）" class="headerlink" title="接下来要读什么（What to Read Next）"></a>接下来要读什么（What to Read Next）</h1>
+<h3 id="Timed注解支持（-Timed-Annotation-Support）"><a href="#Timed注解支持（-Timed-Annotation-Support）" class="headerlink" title="@Timed注解支持（@Timed Annotation Support）"></a>@Timed注解支持（@Timed Annotation Support）</h3><p><code>io.micrometer.core.annotation</code>包内的<code>@Timed</code>注解可以被上述列出的某些指标支持。一旦被支持，这个注解既可以用在类层级，也可以用在函数层级上。</p>
+<p>例如，如下代码展示了这个注解如何监测<code>@RestController</code>类的所有请求</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@Timed</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping(&quot;/api/addresses&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> List&lt;Address&gt; <span class="title">listAddress</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> ...</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping(&quot;/api/people&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> List&lt;Person&gt; <span class="title">listPeople</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果只想监测某一个请求，可以将注解从类层级移到方法层级上：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping(&quot;/api/addresses&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> List&lt;Address&gt; <span class="title">listAddress</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> ...</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping(&quot;/api/people&quot;)</span></span><br><span class="line">    <span class="meta">@Timed</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> List&lt;Person&gt; <span class="title">listPeople</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果想修改方法层级的指标信息，可以对该注解组合使用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@Timed</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping(&quot;/api/addresses&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> List&lt;Address&gt; <span class="title">listAddress</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> ...</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping(&quot;/api/people&quot;)</span></span><br><span class="line">    <span class="meta">@Timed(extraTags = &#123; &quot;region&quot;, &quot;us-east-1&quot; &#125;)</span></span><br><span class="line">    <span class="meta">@Timed(value = &quot;all.people&quot;, longTask = true)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> List&lt;Person&gt; <span class="title">listPeople</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>提示</strong></p>
+<p>带有<code>longTask = true</code>的<code>@Timed</code>注解为方法启用一个长时间任务计时器指标（long task timer）。该指标需要单独的名称，并且可以与短时间任务计时器指标进行叠加。（译者注：此处没有说明叠加内容，如何叠加，需要后续进一步研究）</p>
+</blockquote>
+<h2 id="注册自定义指标（Registering-Custom-Metrics）"><a href="#注册自定义指标（Registering-Custom-Metrics）" class="headerlink" title="注册自定义指标（Registering Custom Metrics）"></a>注册自定义指标（Registering Custom Metrics）</h2><p>如果想注册自定义指标，可以将<code>MeterRegistry</code>注入到自己的组件中，如下面例子所示：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyBean</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Dictionary dictionary;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MyBean</span><span class="params">(MeterRegistry registry)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.dictionary = Dictionary.load();</span><br><span class="line">        registry.gauge(<span class="string">&quot;dictionary.size&quot;</span>, Tags.empty(), <span class="keyword">this</span>.dictionary.getWords().size());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果要注册的指标需要依赖其他bean，建议使用<code>MeterBinder</code>来注册，如下面的例子所示：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyMeterBinderConfiguration</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> MeterBinder <span class="title">queueSize</span><span class="params">(Queue queue)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (registry) -&gt; Gauge.builder(<span class="string">&quot;queueSize&quot;</span>, queue::size).register(registry);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用<code>MeterBinder</code>可以确保依赖的正确性，并且在指标被检索时，这个bean是可用的。如果经常重复性跨组件或应用监测一组指标，<code>MeterBinder</code>会非常有用。</p>
+<blockquote>
+<p><strong>提示</strong></p>
+<p>默认情况下，所有的<code>MeterBinder</code> bean会自动绑定到由Spring管理的<code>MeterRegistery</code>中。</p>
+</blockquote>
+<h2 id="自定义特定指标（Customizing-Individual-Metrics）"><a href="#自定义特定指标（Customizing-Individual-Metrics）" class="headerlink" title="自定义特定指标（Customizing Individual Metrics）"></a>自定义特定指标（Customizing Individual Metrics）</h2><p>如果想对特定的<code>Meter</code>实例进行自定义，可用使用<code>io.micrometer.core.instrument.config.MeterFilte</code>接口。</p>
+<p>例如，如果想对所有以<code>com.example</code>开头的指标进行自定义：将<code>mytag.region</code>改为<code>mytag.area</code>，可用按照如下示例操作：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration(proxyBeanMethods = false)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyMetricsFilterConfiguration</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> MeterFilter <span class="title">renameRegionTagMeterFilter</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> MeterFilter.renameTag(<span class="string">&quot;com.example&quot;</span>, <span class="string">&quot;mytag.region&quot;</span>, <span class="string">&quot;mytag.area&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>提示</strong></p>
+<p>默认情况下，所有<code>MeterFilter</code> bean会自动绑定到由Spring管理的<code>MeterRegistery</code>中。要确保将自定义指标注册到由Spring管理的<code>MeterRegistery</code>上，并且在<code>Metrics</code>中不能含有静态函数。而全局的注册表并没有被Spring管理！</p>
+</blockquote>
+<h4 id="自定义通用Tag标记（Common-Tags）"><a href="#自定义通用Tag标记（Common-Tags）" class="headerlink" title="自定义通用Tag标记（Common Tags）"></a>自定义通用Tag标记（Common Tags）</h4><p>通用Tag标记常用来对诸如主机名（host）、实例名（instance）、地区（region）、集群（stack）等操作环境进行更细粒度的划分。通用Tag标记会被附加到所有的指标上，可以按照如下示例进行配置：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">metrics:</span></span><br><span class="line">    <span class="attr">tags:</span></span><br><span class="line">      <span class="attr">region:</span> <span class="string">&quot;us-east-1&quot;</span></span><br><span class="line">      <span class="attr">stack:</span> <span class="string">&quot;prod&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>以上示例中，会分别为每个指标增加两个tag标记：<code>region:us-east-1</code>和<code>stack:prod</code>。</p>
+<blockquote>
+<p><strong>提示</strong></p>
+<p>如果使用Graphite，通用tag标记的顺序非常重要。因为这个方式并不能保证通用tag标记的的属性，Graphite用户请使用<code>MeterFilter</code>的方式。</p>
+</blockquote>
+<h4 id="单独指标调整（Per-meter-Properties）"><a href="#单独指标调整（Per-meter-Properties）" class="headerlink" title="单独指标调整（Per-meter Properties）"></a>单独指标调整（Per-meter Properties）</h4><p>除了<code>MeterFilter</code>之外，也可以通过配置对每一个指标进行调整。可以在配置中指定指标的名称，所有以该名称为前缀的指标都会被调整。下面示例中，所有以<code>example.remote</code>开头的指标都会被禁用：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">metrics:</span></span><br><span class="line">    <span class="attr">enable:</span></span><br><span class="line">      <span class="attr">example:</span></span><br><span class="line">        <span class="attr">remote:</span> <span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<p>如下配置都可以应用到指标的调整：</p>
+<table>
+<thead>
+<tr>
+<th align="center">属性</th>
+<th align="center">详情</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>management.metrics.enable</code></td>
+<td align="center">是否禁止指标</td>
+</tr>
+<tr>
+<td align="center"><code>management.metrics.distribution.percentiles-histogram</code></td>
+<td align="center">是否使用于百分比直方图（Whether to publish a histogram suitable for computing aggregable (across dimension) percentile approximations.）</td>
+</tr>
+<tr>
+<td align="center"><code>management.metrics.distribution.minimum-expected-value</code>, <code>management.metrics.distribution.maximum-expected-value</code></td>
+<td align="center">通过设置监测有效范围可以减少直方图中桶的数量（Publish less histogram buckets by clamping the range of expected values.）</td>
+</tr>
+<tr>
+<td align="center"><code>management.metrics.distribution.percentiles</code></td>
+<td align="center">需要被统计的百分位数（Publish percentile values computed in your application）</td>
+</tr>
+<tr>
+<td align="center"><code>management.metrics.distribution.slo</code></td>
+<td align="center">额外自定义的应用级的直方图（Publish a cumulative histogram with buckets defined by your service-level objectives）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>译者提示</strong></p>
+<ul>
+<li>关于上述配置可以参考IBM developerWorks的一篇文章<a href="(https://github.com/labulaka521/ibm_bak/blob/main/ibm_articles/%E4%BD%BF%E7%94%A8Micrometer%E8%AE%B0%E5%BD%95Java%E5%BA%94%E7%94%A8%E6%80%A7%E8%83%BD%E6%8C%87%E6%A0%87.md)">《使用 Micrometer 记录 Java 应用性能指标》</a>（可惜网站已经关闭，该链接为github的备份）</li>
+<li><code>management.metrics.enable</code>是一个map，key为指标ID前缀（最长的优先匹配），value为Boolean</li>
+<li><code>management.metrics.distribution.percentiles</code> 代表要统计的百分位数，这是一个map，key为指标ID前缀（最长的优先匹配），value为double型且取值区间为[0,1]的数组，代表某指标要统计的百分位数。百分位数是统计学指标，详情可以参考<a href="https://zh.wikipedia.org/wiki/%E7%99%BE%E5%88%86%E4%BD%8D%E6%95%B0">wikipedia词条</a></li>
+<li><code>management.metrics.distribution.slo</code>  针对的是整个应用，而无法针对某一个指标进行单独配置</li>
+</ul>
+</blockquote>
+<p>更多关于<code>percentiles-histogram</code>和<code>percentiles</code>的详情，可以参考micrometer文档的 <a href="https://micrometer.io/docs/concepts#_histograms_and_percentiles">“直方图和百分位数”</a> 。</p>
+<h2 id="指标端点（Metrics-Endpoint）"><a href="#指标端点（Metrics-Endpoint）" class="headerlink" title="指标端点（Metrics Endpoint）"></a>指标端点（Metrics Endpoint）</h2><p>Spring Boot提供了一个<code>metrics</code>端点，作为诊断性的目的，可以用来检查应用程序收集到的指标。这个端点默认没有被暴露出来，可以查看<a href="##%E6%9A%B4%E9%9C%B2%E7%AB%AF%E7%82%B9%EF%BC%88Exposing-Endpoints%EF%BC%89">暴露端点（Exposing Endpoints）</a>获得更多细节。</p>
+<p><code>/actuator/metrics</code>列出了所有可用的端点的名称，可以通过指定某指标的名称进一步查看更详细信息，例如：<code>/actuator/metrics/jvm.memory.max</code>。</p>
+<blockquote>
+<p><strong>提示</strong></p>
+<p>此处使用的指标名称应该和代码中的名字相匹配，而不是将指标名称进行映射转换后，特定监控系统的指标名称。例如，Prometheus使用的是蛇形命名法，<code>jvm.memory.max</code>会被映射转换成<code>jvm_memory_max</code>。此时，在<code>metrics</code>端点中，仍然应该使用<code>jvm.memory.max</code>。</p>
+</blockquote>
+<p>可以在查询语句上增加任意数量的查询参数：<code>tag=KEY:VALUE</code>，从而获得某一维度上的详细指标，例如：<code>/actuator/metrics/jvm.memory.max?tag=area:nonheap</code>。</p>
+<blockquote>
+<p><strong>提示</strong></p>
+</blockquote>
+<h1 id="审计（Auditing）"><a href="#审计（Auditing）" class="headerlink" title="审计（Auditing）"></a>审计（Auditing）</h1><h2 id="自定义审计（Custom-Auditing）"><a href="#自定义审计（Custom-Auditing）" class="headerlink" title="自定义审计（Custom Auditing）"></a>自定义审计（Custom Auditing）</h2><h1 id="HTTP追踪（HTTP-Tracing）"><a href="#HTTP追踪（HTTP-Tracing）" class="headerlink" title="HTTP追踪（HTTP Tracing）"></a>HTTP追踪（HTTP Tracing）</h1><h2 id="自定义HTTP追踪（Custom-HTTP-tracing）"><a href="#自定义HTTP追踪（Custom-HTTP-tracing）" class="headerlink" title="自定义HTTP追踪（Custom HTTP tracing）"></a>自定义HTTP追踪（Custom HTTP tracing）</h2><h1 id="进程监控（Process-Monitoring）"><a href="#进程监控（Process-Monitoring）" class="headerlink" title="进程监控（Process Monitoring）"></a>进程监控（Process Monitoring）</h1><h2 id="扩展配置（Extending-Configuration）"><a href="#扩展配置（Extending-Configuration）" class="headerlink" title="扩展配置（Extending Configuration）"></a>扩展配置（Extending Configuration）</h2><h2 id="编程方式支持（Programmatically）"><a href="#编程方式支持（Programmatically）" class="headerlink" title="编程方式支持（Programmatically）"></a>编程方式支持（Programmatically）</h2><h1 id="Cloud-Foundry-支持（Cloud-Foundry-Support）"><a href="#Cloud-Foundry-支持（Cloud-Foundry-Support）" class="headerlink" title="Cloud Foundry 支持（Cloud Foundry Support）"></a>Cloud Foundry 支持（Cloud Foundry Support）</h1><h2 id="禁用Cloud-Foundry-Actuator支持（Disabling-Extended-Cloud-Foundry-Actuator-Support）"><a href="#禁用Cloud-Foundry-Actuator支持（Disabling-Extended-Cloud-Foundry-Actuator-Support）" class="headerlink" title="禁用Cloud Foundry Actuator支持（Disabling Extended Cloud Foundry Actuator Support）"></a>禁用Cloud Foundry Actuator支持（Disabling Extended Cloud Foundry Actuator Support）</h2><h2 id="Cloud-Foundry自签名证书（Cloud-Foundry-Self-signed-Certificates）"><a href="#Cloud-Foundry自签名证书（Cloud-Foundry-Self-signed-Certificates）" class="headerlink" title="Cloud Foundry自签名证书（Cloud Foundry Self-signed Certificates）"></a>Cloud Foundry自签名证书（Cloud Foundry Self-signed Certificates）</h2><h2 id="自定义上下文路径（Custom-Context-Path）"><a href="#自定义上下文路径（Custom-Context-Path）" class="headerlink" title="自定义上下文路径（Custom Context Path）"></a>自定义上下文路径（Custom Context Path）</h2><h1 id="接下来要读什么（What-to-Read-Next）"><a href="#接下来要读什么（What-to-Read-Next）" class="headerlink" title="接下来要读什么（What to Read Next）"></a>接下来要读什么（What to Read Next）</h1>
       
     </div>
 
