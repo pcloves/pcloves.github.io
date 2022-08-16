@@ -212,11 +212,11 @@
 
       
         <ol>
-<li><p>spring-data-mongodb向mongodb-driver执行find指令时，后者解析后返回一个BsonDocument，BsonDocument继承自BsonValue，并且implements了Map&lt;String, Bsonvalue&gt;接口（内部通过LinkedHashMap实现），其成员如下，可以参考<a target="_blank" rel="noopener" href="https://docs.mongodb.com/manual/reference/command/find/index.html#output">mongodb API</a>：</p>
+<li><p>spring-data-mongodb向mongodb-driver执行find指令时，后者解析后返回一个BsonDocument，BsonDocument继承自BsonValue，并且implements了Map&lt;String, Bsonvalue&gt;接口（内部通过LinkedHashMap实现），其成员如下，可以参考<a href="https://docs.mongodb.com/manual/reference/command/find/index.html#output">mongodb API</a>：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">waitedMS		--&gt; BsonInt64</span><br><span class="line">cursor			--&gt; BsonDocument</span><br><span class="line">firstBatch	--&gt; BsonArrayWrapper	//第一批读取到的document列表（ArrayList&lt;Document&gt;），当decode后被wrapper到BsonArrayWrapper</span><br><span class="line">id					--&gt; BsonInt64					//游标的Id，</span><br><span class="line">ns					--&gt; BsonString				//NameSpace的缩写，组成为：数据库名.文档名，例如：test.Bag</span><br><span class="line">ok					--&gt; bsonDouble				//标明命令是否执行成功：1：成功；0：失败</span><br></pre></td></tr></table></figure></li>
 <li><p>spring-data-mongodb的基础事件：<code>org.springframework.data.mongodb.core.mapping.event.MongoMappingEvent</code>，可以继承<code>AbstractMongoEventListener</code>，当执行document在进行删除前、删除后、存储前、存储后、转换前、转换后、加载后时，可以执行自定义操作。</p>
 </li>
-<li><p>MongoDb生成唯一Id最佳实践（<a target="_blank" rel="noopener" href="https://www.baeldung.com/spring-boot-mongodb-auto-generated-field">来源</a>）：</p>
+<li><p>MongoDb生成唯一Id最佳实践（<a href="https://www.baeldung.com/spring-boot-mongodb-auto-generated-field">来源</a>）：</p>
 <ul>
 <li><p>定义生成唯一Id的java类：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Document(collection = &quot;database_sequences&quot;)</span></span><br><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DatabaseSequence</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Id</span></span><br><span class="line">    <span class="keyword">private</span> String id;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">long</span> seq;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
@@ -228,14 +228,14 @@
 </li>
 </ol>
 <ol start="4">
-<li><p>spring-data-mongodb实例化entity的算法如下所示（<a target="_blank" rel="noopener" href="https://docs.spring.io/spring-data/mongodb/docs/3.1.6/reference/html/#mapping.object-creation">原文地址</a>）：</p>
+<li><p>spring-data-mongodb实例化entity的算法如下所示（<a href="https://docs.spring.io/spring-data/mongodb/docs/3.1.6/reference/html/#mapping.object-creation">原文地址</a>）：</p>
 <ul>
 <li>如果包含无参构造参数，则使用该构造函数，其他有参构造函数被忽视</li>
 <li>如果只有一个含有参数的构造函数，将该构造函数将会被使用</li>
 <li>如果有多个有参构造函数，那么含有<code>@PersistenceConstructor</code>注解的构造函数将会被使用。</li>
 </ul>
 </li>
-<li><p>在加载数据并创建领域对象时，Spring Data会在运行时生成对象工厂（继承自接口：<strong>ObjectInstantiator</strong>），并且调用领域对象的构造函数，而并没有使用反射，这提升了10%性能，但是如果要是用该特性必须满足以下条件（<a target="_blank" rel="noopener" href="https://docs.spring.io/spring-data/mongodb/docs/3.1.6/reference/html/#mapping.object-creation">原文地址</a>）：</p>
+<li><p>在加载数据并创建领域对象时，Spring Data会在运行时生成对象工厂（继承自接口：<strong>ObjectInstantiator</strong>），并且调用领域对象的构造函数，而并没有使用反射，这提升了10%性能，但是如果要是用该特性必须满足以下条件（<a href="https://docs.spring.io/spring-data/mongodb/docs/3.1.6/reference/html/#mapping.object-creation">原文地址</a>）：</p>
 <ul>
 <li>不能是私有类</li>
 <li>不是是非静态的内部类</li>
@@ -243,7 +243,7 @@
 <li>被Spring Data选中的构造函数不能是私有的</li>
 </ul>
 </li>
-<li><p>Spring Data给予的一般性建议（(原文地址)[<a target="_blank" rel="noopener" href="https://docs.spring.io/spring-data/mongodb/docs/3.1.6/reference/html/#mapping.general-recommendations]%EF%BC%89%EF%BC%9A">https://docs.spring.io/spring-data/mongodb/docs/3.1.6/reference/html/#mapping.general-recommendations]）：</a></p>
+<li><p>Spring Data给予的一般性建议（(原文地址)[<a href="https://docs.spring.io/spring-data/mongodb/docs/3.1.6/reference/html/#mapping.general-recommendations]%EF%BC%89%EF%BC%9A">https://docs.spring.io/spring-data/mongodb/docs/3.1.6/reference/html/#mapping.general-recommendations]）：</a></p>
 <ul>
 <li>尽量使用不可变实体对象（<em>immutable objects</em>）</li>
 <li>如果无法将实体设计为不可变对象，那么提供一个全参构造函数，如此一来Spring Data可以将对象属性一次性赋值成功，从而跳过属性设置，最终获得最佳性能。</li>
@@ -362,7 +362,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-count">14</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -374,7 +374,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-count">33</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -406,7 +406,7 @@
 <div class="copyright">
   
   &copy; 
-  <span itemprop="copyrightYear">2021</span>
+  <span itemprop="copyrightYear">2022</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

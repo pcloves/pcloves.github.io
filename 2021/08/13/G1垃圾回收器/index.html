@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.gamedo.org","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文翻译自：[Garbage-First Garbage Collector](Garbage-First Garbage Collector (oracle.com))  G1垃圾回收器简介G1（Garbage-First） 垃圾回收器针对于具有大内存的多CPU计算机。它的目标是在较高的可能性下满足垃圾回收的暂停时间，同时在几乎不需要配置的情况下实现垃圾回收的高吞吐量。 G1 旨在如下应用和环">
+<meta property="og:type" content="article">
+<meta property="og:title" content="G1垃圾回收器">
+<meta property="og:url" content="https://blog.gamedo.org/2021/08/13/G1%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%99%A8/index.html">
+<meta property="og:site_name" content="听雨">
+<meta property="og:description" content="本文翻译自：[Garbage-First Garbage Collector](Garbage-First Garbage Collector (oracle.com))  G1垃圾回收器简介G1（Garbage-First） 垃圾回收器针对于具有大内存的多CPU计算机。它的目标是在较高的可能性下满足垃圾回收的暂停时间，同时在几乎不需要配置的情况下实现垃圾回收的高吞吐量。 G1 旨在如下应用和环">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://docs.oracle.com/en/java/javase/11/gctuning/img/jsgct_dt_004_grbg_frst_hp.png">
+<meta property="og:image" content="https://docs.oracle.com/en/java/javase/11/gctuning/img/jsgct_dt_001_grbgcltncyl.png">
+<meta property="article:published_time" content="2021-08-13T02:00:00.000Z">
+<meta property="article:modified_time" content="2022-08-16T01:49:56.301Z">
+<meta property="article:author" content="临江听雨">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="JVM">
+<meta property="article:tag" content="G1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://docs.oracle.com/en/java/javase/11/gctuning/img/jsgct_dt_004_grbg_frst_hp.png">
+
+<link rel="canonical" href="https://blog.gamedo.org/2021/08/13/G1%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%99%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>G1垃圾回收器 | 听雨</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">听雨</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2021/08/13/G1%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%99%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="临江听雨">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="听雨">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          G1垃圾回收器
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-08-13 10:00:00" itemprop="dateCreated datePublished" datetime="2021-08-13T10:00:00+08:00">2021-08-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-08-16 09:49:56" itemprop="dateModified" datetime="2022-08-16T09:49:56+08:00">2022-08-16</time>
+              </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>本文翻译自：[Garbage-First Garbage Collector](<a href="https://docs.oracle.com/en/java/javase/11/gctuning/garbage-first-g1-garbage-collector1.html#GUID-ED3AB6D3-FD9B-4447-9EDF-983ED2F7A573">Garbage-First Garbage Collector (oracle.com)</a>)</p>
+</blockquote>
+<h1 id="G1垃圾回收器简介"><a href="#G1垃圾回收器简介" class="headerlink" title="G1垃圾回收器简介"></a>G1垃圾回收器简介</h1><p>G1（Garbage-First） 垃圾回收器针对于具有大内存的多CPU计算机。它的目标是在较高的可能性下满足垃圾回收的暂停时间，同时在几乎不需要配置的情况下实现垃圾回收的高吞吐量。 G1 旨在如下应用和环境下，提供延迟（latency）和吞吐量（throughput）之间的最佳平衡：</p>
+<ul>
+<li>堆内存高达 10 GB 或更大，同时超过 50% 的 Java 堆空间被占用。</li>
+<li>随着时间的推移，对象分配和晋升的速率可能会发生显著变化。</li>
+<li>堆中存在大量碎片。</li>
+<li>可预测的暂停时间目标不超过几百毫秒，避免长时间的垃圾收集暂停。</li>
+</ul>
+<p>G1取代了并发标记清除（CMS）收集器。它也是默认收集器（译注：本文隶属于JDK 11）。</p>
+<p>G1收集器实现了高性能，并试图通过以下几节中描述的几种方式实现暂停时间目标。</p>
+<h1 id="开启G1"><a href="#开启G1" class="headerlink" title="开启G1"></a>开启G1</h1><p>G1垃圾回收器是默认的回收器，因此通常不必执行任何操作。也可以在命令行中显式启用它：<code>-XX:+UseG1GC</code> 。</p>
+<h1 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h1><p>G1是一个分代的（generational）、增量的（incremental）、并行的（parallel）、大部分时间并发的（mostly concurrent）、STW（stop-the-world）和转移（evacuating ）的垃圾收集器，它监视每个STW时的暂停时间。与其他回收器类似，G1将堆内存拆分为（虚拟的）年轻代和老年代。内存回收（Space-reclamation）工作主要集中在年轻代（具有较高的效率），偶尔会伴随着老年代。</p>
+<p>G1的某些操作总是在 STW暂停时执行以提高吞吐量。而其他需要更多STW暂停时间的操作，诸如全局标记等堆上操作，则与应用程序并行（parallel）且并发（concurrently）执行。为了降低内存回收的 STW 停顿时间，G1会增量的、逐步的且并行的进行内存回收。 G1 通过跟踪应用程序的历史行为和垃圾收集暂停的信息构建了一个垃圾回收成本模型，从而实现了（STW的）可预测性。G1使用模型的信息来确定在某次暂停时的工作量。例如，G1会回收性价比最高的区域（即大部分被垃圾填满的区域，这也是垃圾优先的由来）。</p>
+<p>G1主要通过转移回收内存空间：待回收内存区域中存活对象被复制到新的内存区域，在此过程中还会进行内存压缩（compacting ）。当转移完成后，应用程序将可以在存活对象之前占用的内存上重新分配对象。</p>
+<p>G1并不是实时的垃圾回收器（译注：然而G1属于软实时的垃圾回收器，可见：[Garbage First Garbage Collector Tuning](<a href="https://www.oracle.com/technical-resources/articles/java/g1gc.html">Garbage First Garbage Collector Tuning (oracle.com)</a>) 或中村成洋《深入Java虚拟机 JVM G1GC的算法与实现》）。它试图在较长的时间内以较高可能性满足用户给定的暂停时间，但是G1并不能绝对保证STW暂停时间都在给定的暂停时间目标内。</p>
+<h2 id="堆内存分布"><a href="#堆内存分布" class="headerlink" title="堆内存分布"></a>堆内存分布</h2><p>G1 将堆内存划分为一系列大小相等的区域（Region），每个区域都是连续的内存区域，如图 9-1 所示。区域是（G1中）内存分配和内存回收的单位。在任何给定时间，任意区域中都可以是空闲的（浅灰色），或者指定为特定分代：年轻代或老年代。当有内存分配请求时，内存管理器会拿出空闲的区域。内存管理器将空闲区域分配为分代内存（译注：指的是伊甸园分代），然后将它们作为空闲的内存空间返回给应用程序，后者就可以在其中分配内存。   </p>
+<center> 图 9-1 G1垃圾回收器的堆内存分布 </center>
+
+<p><img src="https://docs.oracle.com/en/java/javase/11/gctuning/img/jsgct_dt_004_grbg_frst_hp.png"></p>
+<blockquote>
+<p>该网格图由 10×10 的单元格组成。大多数单元格为灰色。有19个单元格被涂成深蓝色（译注：从上往下，每行数量分别为：5 + 1 + 4 + 1 + 3 + 5 = 19）。这些深蓝色的单元格随机分布在上面6行中。其中有2个深蓝单元格包含红色块。有2个大单元格被涂成深蓝色并标记为“H”。有8个单元格为浅蓝色并包含红色块。其中两个被标记为“S”。这些带有红色块的浅蓝色单元格随机分布，其中大部分位于网格的上半部分。</p>
+</blockquote>
+<p>年轻代包含伊甸园区（红色）和幸存者区（红色带“S”标记）。这些区域与其它回收器相应的连续空间具有相同的功能。不同之处在于：在G1中，这些区域通常不是连续分布在内存中。老年代区域（深蓝色<sup><a href="#blueColor">1</a></sup>）构成了老年代。某些老年代区域可能巨大的（深蓝色<sup><a href="#blueColor">2</a></sup>，带“H”），因为里面的对象需要多个单区域才能容纳。</p>
+<blockquote>
+<p><span id="blueColor">原文使用的是light color，但是根据上图发现并非浅蓝色而是深蓝色，推测是原文笔误</span></p>
+</blockquote>
+<p>应用程序总是在年轻代也即伊甸园区中分配内存。但是有一个例外：巨大对象直接老年代中。</p>
+<p>G1 的垃圾回收暂停可以回收整个年轻代，还可以捎带这一些老年代区进行回收。在暂停期间，G1 将回收集合中的对象复制到其他一个或多个区。对象被复制的目标区域取决于该对象的源区域：所有的年轻代被复制到幸存者区或老年代区，老年代中的对象根据分代计数被复制到其他不同的老年代区中。</p>
+<h2 id="垃圾回收循环周期"><a href="#垃圾回收循环周期" class="headerlink" title="垃圾回收循环周期"></a>垃圾回收循环周期</h2><p>从一个高层的角度上来看，G1 回收器在两个阶段之间循环交替。 Young-only阶段（The young-only phase）中的垃圾回收会逐渐在老年代中填充可用内存。Space-reclamation阶段（The space-reclamation phase） 除了回收年轻代外，还会增量的回收老年代中的空间。之后循环周期再次以纯年轻阶段开始。</p>
+<p>图 9-2 给出了关于这个循环周期的概貌，并举例说明了可能发生的垃圾收集暂停的顺序：</p>
+<center>图 9-2 垃圾回收周期概貌</center>
+
+<p><img src="https://docs.oracle.com/en/java/javase/11/gctuning/img/jsgct_dt_001_grbgcltncyl.png"></p>
+<blockquote>
+<p>该图显示了 G1 循环周期以及期间会发生的暂停。每个实心圆圈代表一个垃圾回收暂停：蓝色代表Young GC暂停，橙色代表标记暂停，红色代表Mix GC暂停。所有暂停被“穿”在两个箭头上并组成一个圆：一半代表在Young-only阶段发生的暂停，另一个半代表混合收集阶段。 Young-only 阶段从一些由蓝色小圆圈表示的 Young GC开始。当老年代的对象占用达到<code>InitiatingHeapOccupancyPercent</code>定义的阈值后，下一次垃圾回收暂停将是初始标记垃圾回收暂停，也即较大的蓝色圆圈。除了和其他Young GC暂停相同的工作外，它还做一些并发标记的准备工作。</p>
+<p>在 G1进行并发标记的同时，可能伴随着其他Young GC暂停，直到  重新标记（Remark ）暂停（第一个大橙色圆圈），G1完成并发标记。在清理（CleanUp）暂停之前，也可能会发生Young GC垃圾回收。在清理暂停之后，将有一个最终的Young GC完成Young-only阶段。在Space-reclamation阶段，将发生一系列由用红色实心圆圈表示的混合收集。由于 G1 努力使空间回收尽可能高效，通常混合垃圾收集暂停比 Young-only 阶段的Young GC暂停更少。</p>
+</blockquote>
+<p>以下详细描述了 G1 垃圾收集周期的阶段、它们的暂停和阶段之间的转换：</p>
+<ol>
+<li><p>Young-only 阶段：这个阶段从一些普通的年轻代GC开始，这些GC将存活对象晋升到老年代。当老年代占用率达到某个阈值，即 Initiating Heap Occupancy 阈值时，Young-only 阶段和Space-reclamation阶段之间的转换就开始了。这时，G1 会安排一个包含并发标记开始Young GC，而不是再是正常的Young GC。</p>
+<ul>
+<li>并发开始（Concurrent Start）：这种类型的GC除了执行正常的Young GC外，还会启动（并发）标记。并发标记确定了当前老年代中所有的可达的（存活的）对象，这些对象会在接下来的Space-reclamation阶段中得以生存。在并发标记尚未完成之前，可能会碰上普通的Young GC。并发标记结束前会有两个特殊的暂停：重新标记和清理。</li>
+<li>重新标记（Remark）：这次暂停会完成并发标记，全局引用处理和类卸载，回收完全空的区域并且清理内部数据结构。在重新标记和清理之间，G1会统计信息，以便稍后能够回收选定老年代中的可用空间。</li>
+<li>清理：这次暂停决定了Space-reclamation阶段是否会紧随其后。如果答案为是，则 Young-only 阶段以一个Prepare Mixed Young GC结束。</li>
+</ul>
+</li>
+<li><p>Space-reclamation阶段：该阶段由多个混合回收（Mixed collections）组成，除了年轻代外，还会转移某些老年代中的存活对象。当 G1 认为继续转移的老年代并不会产生足够的可用空间，Space-reclamation阶段就结束了。</p>
+<p>在Space-reclamation之后，循环周期以另一个 Young-only 阶段重新开始。作为兜底方案，如果应用程序在G1手机存活信息时消耗光了内存，G1 会像其他回收器一样就地执行STW的全堆GC（Full GC）。</p>
+</li>
+</ol>
+<h1 id="G1内部细节"><a href="#G1内部细节" class="headerlink" title="G1内部细节"></a>G1内部细节</h1><p>本节介绍垃圾优先 (G1) 垃圾回收器的一些重要细节。</p>
+<h2 id="确定初始堆占用（Determining-Initiating-Heap-Occupancy）"><a href="#确定初始堆占用（Determining-Initiating-Heap-Occupancy）" class="headerlink" title="确定初始堆占用（Determining Initiating Heap Occupancy）"></a>确定初始堆占用（Determining Initiating Heap Occupancy）</h2><p>初始堆占用率<em>（Initiating Heap Occupancy Percent(IHOP)）</em> 是触发初始标记（ Initial Mark ）收集的阈值，它被定义为老年代使用量占整堆大小的百分比（译注：在JDK 8b12之前，该值为整堆使用量占整堆大小的百分百，详情参考：<a href="https://heapdump.cn/article/2712390">官方文档竟然有坑！关于G1参数InitiatingHeapOccupancyPercent的正确认识</a>）。</p>
+<p>默认情况下，G1 通过观察统计并发标记的耗时，以及并发标记期间老年代的内存分配量自动确定最佳 IHOP。该特性被称为<em>自适应 IHOP</em>（<em>Adaptive IHOP</em>）。如果该特性处于激活状态，当观察统计的数据不足以预测初始堆占用时，那么选项：<code>-XX:InitiatingHeapOccupancyPercent</code>决定了当下老年代初始百分百。可以使用选项<code>-XX:-G1UseAdaptiveIHOP</code> 关闭 G1 的自适应IHOP行为。那么，-XX:InitiatingHeapOccupancyPercent`的值就始终为初始堆占用的阈值。</p>
+<p>在内部实现上，自适应 IHOP 会尝试设置初始堆占用率。当老年代占用 = 老年代最大占用 -  额外缓冲区（由<code>-XX:G1HeapReservePercent</code>定义）时，Space-reclamation阶段的第一次混合垃圾收集开始执行。</p>
+<h2 id="并发标记（Marking）"><a href="#并发标记（Marking）" class="headerlink" title="并发标记（Marking）"></a>并发标记（Marking）</h2><p>G1 的并发标记使用一种称为初始快照（ Snapshot-At-The-Beginning(SATB)）的算法。它在初始标记暂停（Initial Mark pause）时给堆做一个虚拟快照：所有在标记开始时处于存活的对象，在后续的标记时都被认定为存活状态。这意味着在标记期间变成垃圾（不能通过根可达访问）的对象也仍然被认为是存活的，便于（后续）space-reclamation（也有一些例外）。与其它回收器相比，这可能会导致某些对象被错误地标记保存（译注：也即浮动垃圾）。而对于重新标记（Remark pause）期间的暂停，SATB提供了更低延迟的可能性。在标记期间由于“保守”而被保存的浮动对象将在下一次标记期间被回收。有关并发标记的更多信息，请参阅 <a href="https://docs.oracle.com/en/java/javase/11/gctuning/garbage-first-garbage-collector-tuning.html#GUID-90E30ACA-8040-432E-B3A0-1E0440AB556A">G1垃圾回收器调优</a> 。</p>
+<h2 id="内存紧张的情况（Behavior-in-Very-Tight-Heap-Situations）"><a href="#内存紧张的情况（Behavior-in-Very-Tight-Heap-Situations）" class="headerlink" title="内存紧张的情况（Behavior in Very Tight Heap Situations）"></a>内存紧张的情况（Behavior in Very Tight Heap Situations）</h2><p>当应用存活对象占用大量内存以至于转移操作没有足够空间复制时，就会导致转移失败（evacuation failure ）。G1为了完成本次垃圾回收，会保留已经移动的对象在新位置上不动，而不再拷贝和移动剩下的对象，仅调整对象之间的引用。转移失败可能会产生一些额外的开销，但通常与其他Young GC一样快。当含有转移失败的GC执行完毕后，G1 和正常情况一样恢复应用程序，不做额外处理。 G1会假设转移失败发生在接近垃圾回收结束时。也就是说，大多数对象已经被移动，并且有足够的空间继续运行应用程序，直到并发标记完成且Space-reclamation阶段开始。</p>
+<p>如果这个假设没有成立，G1最终会发起一次Full GC。这种GC会对整个堆做压缩，整个过程会非常慢。</p>
+<p>有关内存分配失败或 Full GC 前的信号的更多信息，请参阅 <a href="https://docs.oracle.com/en/java/javase/11/gctuning/garbage-first-garbage-collector-tuning.html#GUID-90E30ACA-8040-432E-B3A0-1E0440AB556A">G1垃圾回收器调优</a> 。</p>
+<h2 id="大对象（Humongous-Objects）"><a href="#大对象（Humongous-Objects）" class="headerlink" title="大对象（Humongous Objects）"></a>大对象（Humongous Objects）</h2><p>所谓大对象，就是那些大于等于1/2个Region大小的对象。如果没有使用 <code>-XX:G1HeapRegionSize</code> 选项进行设置，Region的大小按照[G1 GC的自动推断配置](## G1 GC的自动推断配置（Ergonomic Defaults for G1 GC）)一节中的说明自动设定（determined ergonomically）。</p>
+<p>这些大对象有时会以特殊方式处理：</p>
+<ul>
+<li>每个大对象都被（直接）分配在老年代中的若干连续Region上。大对象的初始位置始终位于第一个Region上，最后一个Region中的剩余空间都不再分配对象，直到整个大对象被回收。</li>
+<li>一般情况下，大对象只在清理暂停（Cleanup pause）结束时或者在Full GC期间回收。但是，对于原始类型数组（例如 bool、各种整数和浮点值）的大对象有一个特殊规定：在任何暂停期间，当大对象没有被大量引用，G1 会“投机性的”地尝试回收。这个操作默认是开启的，但可以通过 <code>-XX:G1EagerReclaimHumongousObjects</code> 将其禁用。</li>
+<li>大对象的分配可能会导致垃圾回收暂停过早发生。 G1 会在每次分配大对象时检查初始堆占用阈值（ Initiating Heap Occupancy threshold），如果当前占用超过该阈值，则会强制开启包含初始标记（initial mark）的Young GC。</li>
+<li>大对象一直不会移动，即使在 Full GC 时也是一样。这可能会导致Full GC提前触发，也会导致空闲内存还剩很多，但还是会出现内存不足的情况。</li>
+</ul>
+<h2 id="Young-Only阶段（Young-Only-Phase-Generation-Sizing）"><a href="#Young-Only阶段（Young-Only-Phase-Generation-Sizing）" class="headerlink" title="Young-Only阶段（Young-Only Phase Generation Sizing）"></a>Young-Only阶段（Young-Only Phase Generation Sizing）</h2><p>在Young-only阶段，待回收的Region集合（collection set，简称CSet）仅由年轻代Region组成。 G1 总是在普通的Young GC结束时为后续应用程序的运行调整年轻代的大小。这样，G1 可以根据实际停顿的长期观察，满足 <code>-XX:MaxGCPauseTimeMillis</code> 和 <code>-XX:PauseTimeIntervalMillis</code> 设定的暂停目标。它会衡量转移年轻代Region需要消耗多长时间。包括在回收过程中必须复制多少对象以及这些对象之间的相互联系的信息。</p>
+<p>如果没有其他约束，则 G1 会将年轻代Region调整在 <code>-XX:G1NewSizePercent</code> 和 <code>-XX:G1MaxNewSizePercent</code> 之间以满足停顿时间。关于有关如何解决长时间停顿的更多信息，参阅 <a href="https://docs.oracle.com/en/java/javase/11/gctuning/garbage-first-garbage-collector-tuning.html#GUID-90E30ACA-8040-432E-B3A0-1E0440AB556A">G1垃圾回收器调优</a> 。</p>
+<h2 id="Space-Reclamation-阶段（Space-Reclamation-Phase-Generation-Sizing）"><a href="#Space-Reclamation-阶段（Space-Reclamation-Phase-Generation-Sizing）" class="headerlink" title="Space-Reclamation 阶段（Space-Reclamation Phase Generation Sizing）"></a>Space-Reclamation 阶段（Space-Reclamation Phase Generation Sizing）</h2><p>在Space-Reclamation阶段，G1 尝试在每次垃圾回收中最大化地选择老年代的Region。年轻代则被设置为被允许条件下的最小值，通常由 <code>-XX:G1NewSizePercent</code> 确定。任何老年代Region都会被添加（到CSet），直到 G1 任务再添加将超过暂停目标。在特定的暂停期间，G1按回收效率、最高优先顺序和剩余可用停顿时间的顺序添加老年代Region，获得最终的CSet。</p>
+<p>每次垃圾回收中老年代Region的数量在下限为：候选待回收老年代Region数量 / <code>-XX:G1MixedGCCountTarget</code>（ Space-reclamation phase长度）。在Space-Reclamation阶段开始时，存活对象占有率低于 <code>-XX:G1MixedGCLiveThresholdPercent</code> 的老年代Region为候选待回收老年代Region。</p>
+<p>当候选待回收老年代Region中可回收的剩余空间量小于 <code>-XX:G1HeapWastePercent</code> 设置的百分比时，Space-Reclamation阶段结束。</p>
+<p>有关 G1中 使用多少个老年代Region以及如何避免长时间混合GC的更多信息，参阅 <a href="https://docs.oracle.com/en/java/javase/11/gctuning/garbage-first-garbage-collector-tuning.html#GUID-90E30ACA-8040-432E-B3A0-1E0440AB556A">G1垃圾回收器调优</a> 。</p>
+<h1 id="G1-GC中的自动推断配置（Ergonomic-Defaults-for-G1-GC）"><a href="#G1-GC中的自动推断配置（Ergonomic-Defaults-for-G1-GC）" class="headerlink" title="G1 GC中的自动推断配置（Ergonomic Defaults for G1 GC）"></a>G1 GC中的自动推断配置（Ergonomic Defaults for G1 GC）</h1><p>本主题概述了特定于 G1 的最重要的默认配置及其默认值。它们粗略地概述了在没有附加选项的情况下，使用 G1 的预期行为和资源使用情况。</p>
+<center>表 9-1 G1 Gc中的自动推断配置</center>
+
+<table>
+<thead>
+<tr>
+<th align="center">选项和默认值</th>
+<th align="center">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><code>-XX:MaxGCPauseMillis=200</code></td>
+<td align="center">最大暂停时间。</td>
+</tr>
+<tr>
+<td align="center"><code>-XX:GCPauseTimeInterval</code>=<em><ergo></em></td>
+<td align="center">最大暂停时间的间隔。默认情况下，G1 不设置任何值，允许 G1 在极端情况下连续执行垃圾回收。</td>
+</tr>
+<tr>
+<td align="center"><code>-XX:ParallelGCThreads</code>=<em><ergo></em></td>
+<td align="center">垃圾回收暂停期间用于并行工作的最大线程数。这是从运行 VM 的计算机的可用线程数得出的，方法如下：如果进程可用的 CPU 线程数小于或等于 8，则使用CPU线程数。否则，计算公式为：**8 + ((N - 8) * 5/8)**。<br>在每次暂停开始时，使用的最大线程数进一步受到最大总堆大小的限制：G1 使用的线程数不会超过每<code>-XX:HeapSizePerGCThread</code> 容量一个线程的数量。</td>
+</tr>
+<tr>
+<td align="center"><code>-XX:ConcGCThreads</code>=<em><ergo></em></td>
+<td align="center">用于并发工作的最大线程数。默认情况下，该值为 <code>-XX:ParallelGCThreads</code> / 4。</td>
+</tr>
+<tr>
+<td align="center">-XX:+G1UseAdaptiveIHOP<br> -XX:InitiatingHeapOccupancyPercent=45</td>
+<td align="center">控制初始堆占用率的默认值，标志着自适应IHOP已打开，并且在前几个收集周期中，G1 将使用 45% 的老年代占用率作为并发标记开始阈值。</td>
+</tr>
+<tr>
+<td align="center"><code>-XX:G1HeapRegionSize=&lt;ergo&gt; </code></td>
+<td align="center">Region大小基于初始和最大堆的大小。堆包含大致2048个Region。Region的大小可以从1到32 MB不等，并且必须是2的幂。</td>
+</tr>
+<tr>
+<td align="center">-XX:G1NewSizePercent=5<br> -XX:G1MaxNewSizePercent=60</td>
+<td align="center">年轻代的总大小，按照当前Java 堆的使用百分比，在这两个值之间变化。</td>
+</tr>
+<tr>
+<td align="center">-XX:G1HeapWastePercent=5</td>
+<td align="center">CSet中允许的未回收空间百分比。如果CSet的可用空间低于此值，则 G1 停止Space-reclamation阶段。</td>
+</tr>
+<tr>
+<td align="center">-XX:G1MixedGCCountTarget=8</td>
+<td align="center">Space-reclamation 阶段中触发回收的次数。</td>
+</tr>
+<tr>
+<td align="center">-XX:G1MixedGCLiveThresholdPercent=85</td>
+<td align="center">在 Space-reclamation阶段中，存活对象占用率高于此百分比的老年代Region不会加入到CSet中。</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>注意：<ergo> 表示实际值根据自动推断设定。</p>
+</blockquote>
+<h1 id="与其他回收器的比较（Comparison-to-Other-Collectors）"><a href="#与其他回收器的比较（Comparison-to-Other-Collectors）" class="headerlink" title="与其他回收器的比较（Comparison to Other Collectors）"></a>与其他回收器的比较（Comparison to Other Collectors）</h1><p>这是G1和其他回收器之间主要区别的总结：</p>
+<ul>
+<li>Parallel GC只能作为一个整体来压缩和回收老年代的空间。 G1 将这项工作逐步分布在多个更短的回收中。这大大缩短了暂停时间，但可能会降低吞吐量。</li>
+<li>与 CMS 类似，G1 并发执行部分老年代空间回收。但是，CMS 无法对老年代堆进行碎片整理，最终会导致长时间的 Full GC。</li>
+<li>G1 可能表现出比其他回收器更高的性能开销，由于其并发特性也会影响吞吐量。</li>
+</ul>
+<p>基于G1的工作原理，它具有一些独特的机制来提高垃圾收集效率：</p>
+<ul>
+<li>G1 可以在任何回收期间可以回收那些完全空的，大区域的老年代。这样可以避免许多其他不必要的垃圾回收，而无需花费太多精力即可释放大量空间。</li>
+<li>G1 可以选择同时尝试对 Java 堆上的字符串进行去重回收。</li>
+</ul>
+<p>从老年代回收空的、大对象默认总是启用的。可以使用选项 <code>-XX:-G1EagerReclaimHumongousObjects</code> 禁用此功能。默认情况下去重回收字符串是关闭的。可以使用选项 -XX:+G1EnableStringDeduplication 启用它。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"># Java</a>
+              <a href="/tags/JVM/" rel="tag"># JVM</a>
+              <a href="/tags/G1/" rel="tag"># G1</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/04/06/spring%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" rel="prev" title="spring启动流程分析">
+      <i class="fa fa-chevron-left"></i> spring启动流程分析
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#G1%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%99%A8%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">G1垃圾回收器简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BC%80%E5%90%AFG1"><span class="nav-number">2.</span> <span class="nav-text">开启G1</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-number">3.</span> <span class="nav-text">基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A0%86%E5%86%85%E5%AD%98%E5%88%86%E5%B8%83"><span class="nav-number">3.1.</span> <span class="nav-text">堆内存分布</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%BE%AA%E7%8E%AF%E5%91%A8%E6%9C%9F"><span class="nav-number">3.2.</span> <span class="nav-text">垃圾回收循环周期</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#G1%E5%86%85%E9%83%A8%E7%BB%86%E8%8A%82"><span class="nav-number">4.</span> <span class="nav-text">G1内部细节</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A1%AE%E5%AE%9A%E5%88%9D%E5%A7%8B%E5%A0%86%E5%8D%A0%E7%94%A8%EF%BC%88Determining-Initiating-Heap-Occupancy%EF%BC%89"><span class="nav-number">4.1.</span> <span class="nav-text">确定初始堆占用（Determining Initiating Heap Occupancy）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E6%A0%87%E8%AE%B0%EF%BC%88Marking%EF%BC%89"><span class="nav-number">4.2.</span> <span class="nav-text">并发标记（Marking）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E7%B4%A7%E5%BC%A0%E7%9A%84%E6%83%85%E5%86%B5%EF%BC%88Behavior-in-Very-Tight-Heap-Situations%EF%BC%89"><span class="nav-number">4.3.</span> <span class="nav-text">内存紧张的情况（Behavior in Very Tight Heap Situations）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%A7%E5%AF%B9%E8%B1%A1%EF%BC%88Humongous-Objects%EF%BC%89"><span class="nav-number">4.4.</span> <span class="nav-text">大对象（Humongous Objects）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Young-Only%E9%98%B6%E6%AE%B5%EF%BC%88Young-Only-Phase-Generation-Sizing%EF%BC%89"><span class="nav-number">4.5.</span> <span class="nav-text">Young-Only阶段（Young-Only Phase Generation Sizing）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Space-Reclamation-%E9%98%B6%E6%AE%B5%EF%BC%88Space-Reclamation-Phase-Generation-Sizing%EF%BC%89"><span class="nav-number">4.6.</span> <span class="nav-text">Space-Reclamation 阶段（Space-Reclamation Phase Generation Sizing）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#G1-GC%E4%B8%AD%E7%9A%84%E8%87%AA%E5%8A%A8%E6%8E%A8%E6%96%AD%E9%85%8D%E7%BD%AE%EF%BC%88Ergonomic-Defaults-for-G1-GC%EF%BC%89"><span class="nav-number">5.</span> <span class="nav-text">G1 GC中的自动推断配置（Ergonomic Defaults for G1 GC）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%8E%E5%85%B6%E4%BB%96%E5%9B%9E%E6%94%B6%E5%99%A8%E7%9A%84%E6%AF%94%E8%BE%83%EF%BC%88Comparison-to-Other-Collectors%EF%BC%89"><span class="nav-number">6.</span> <span class="nav-text">与其他回收器的比较（Comparison to Other Collectors）</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">临江听雨</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/pcloves" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;pcloves" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">临江听雨</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

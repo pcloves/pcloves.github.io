@@ -238,7 +238,7 @@
 </li>
 <li><p>应用场景：工作A和B需要并发执行，但是需要A执行完毕后再执行B。最佳实践：a、A线程（称之为<code>ManualResetEvent</code>控制线程）调用<code>ManualResetEvent.Reset</code>使之进入非信号状态；b、B线程（称之为被控制线程或等待线程？阻塞线程？）在适当位置调用<code>ManualResetEvent.WaitOne</code>等待信号；c、A线程调用ManualResetEvent.Set通知B线程继续执行。</p>
 </li>
-<li><p>可以通过实现一个public的无参的返回<code>IEnumerator</code>的<code>GetEnumerator()</code>为一个类扩展foreach语法，例如（<a target="_blank" rel="noopener" href="https://youtu.be/94ZElZQhu88?t=1782">详情</a>）：</p>
+<li><p>可以通过实现一个public的无参的返回<code>IEnumerator</code>的<code>GetEnumerator()</code>为一个类扩展foreach语法，例如（<a href="https://youtu.be/94ZElZQhu88?t=1782">详情</a>）：</p>
    <figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> IEnumerator&lt;Tile&gt; <span class="title">GetEnumerator</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">  <span class="keyword">for</span>(<span class="built_in">int</span> x = <span class="number">0</span>; x &lt; <span class="keyword">this</span>.size.x; x++) &#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="built_in">int</span> y = <span class="number">0</span>; y &lt; <span class="keyword">this</span>.size.y; y++) &#123;</span><br><span class="line">      <span class="keyword">yield</span> <span class="keyword">return</span> <span class="keyword">this</span>[x, y];</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 </ol>
 </li>
@@ -336,7 +336,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-count">14</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -348,7 +348,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-count">33</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -380,7 +380,7 @@
 <div class="copyright">
   
   &copy; 
-  <span itemprop="copyrightYear">2021</span>
+  <span itemprop="copyrightYear">2022</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

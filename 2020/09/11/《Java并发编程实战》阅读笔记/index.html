@@ -244,7 +244,7 @@
 </li>
 <li><p>（3.3.1　Ad-hoc线程封闭）只要你能确保只有单个线程对共享的volatile变量执行写入操作，那么就可以安全地在这些共享的volatile变量上执行“读取-修改-写入”的操作。在这种情况下，相当于将修改操作封闭在单个线程中以防止发生竞态条件，并且volatile变量的可见性保证还确保了其他线程能看到最新的值。</p>
 </li>
-<li><p>（3.5.1　不正确的发布：正确的对象被破坏）本节中的<code>AssertionError</code>异常的例子的简单解释：1、JMM规范中并没有要求对象字段的初始化要happens before与另一个线程对该对象的可见性；2、<code>if(n != n)</code>并非一个原子性操作，而需要3步操作，因此会出现第一次读取的n值和第二次读取的n值不相同的情况。而如果将对象的字段改成volatile后就能避免<code>AssertionError</code>，这是因为JMM有规范要求：volatile sore要可见于其他线程。关于本节例子的两个很好的补充解释：<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/264579989">知乎</a>、<a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/16107683/improper-publication-of-java-object-reference">StackOverflow</a></p>
+<li><p>（3.5.1　不正确的发布：正确的对象被破坏）本节中的<code>AssertionError</code>异常的例子的简单解释：1、JMM规范中并没有要求对象字段的初始化要happens before与另一个线程对该对象的可见性；2、<code>if(n != n)</code>并非一个原子性操作，而需要3步操作，因此会出现第一次读取的n值和第二次读取的n值不相同的情况。而如果将对象的字段改成volatile后就能避免<code>AssertionError</code>，这是因为JMM有规范要求：volatile sore要可见于其他线程。关于本节例子的两个很好的补充解释：<a href="https://www.zhihu.com/question/264579989">知乎</a>、<a href="https://stackoverflow.com/questions/16107683/improper-publication-of-java-object-reference">StackOverflow</a></p>
 <blockquote>
 <p>由<code>if(n != n)</code>这行代码可以联想到一种并发编程易出错场景:某个函数里引用一个会被并发修改的字段，那么可能会出现在函数逻辑过程中发生变化的情况。这就引入了<code>4.1.2　依赖状态的操作</code>的内容，已经并发编程的一个基本思想：但在并发程序中，先验条件可能会由于其他线程执行的操作而变成真。在并发程序中要一直等到先验条件为真，然后再执行该操作（死循环加CAS？）。</p>
 </blockquote>
@@ -257,7 +257,7 @@
 </li>
 <li><p>（5.4 阻塞方法与中断方法）当捕获到<code>InterruptedException</code>时，不要私自吞掉该异常，要么继续向上传递该异常或者干脆不不捕获该异常，要么重新恢复中断：<code>Thread.currentThread().interrupt();</code></p>
 </li>
-<li><p>（5.5 同步工具类）闭锁（CountDownLatch）：属于消耗性的只减不增的递减计数器，计时器为零时解锁；FutureTask：属于特殊的二元闭锁，运行中时阻塞，运行结束时解锁；信号量（Semaphore）：属于池化的计数器，可赠可减，当池中计数器为0时阻塞，可以用任何容器加Semphore组合为有界容器。栅栏（CyclicBarrier）：可以复用的递增计数器，初始化时，计数器为0，计数器未满时阻塞，计时器满时解锁，并且重置计数器。Exchanger：特殊的两方栅栏，任何一方都先发起交换请求，等待另一方响应后，交换达成，适用于读写线程进行无GC的缓冲交换（示例：<a target="_blank" rel="noopener" href="https://www.baeldung.com/java-exchanger">baeldung</a>）。</p>
+<li><p>（5.5 同步工具类）闭锁（CountDownLatch）：属于消耗性的只减不增的递减计数器，计时器为零时解锁；FutureTask：属于特殊的二元闭锁，运行中时阻塞，运行结束时解锁；信号量（Semaphore）：属于池化的计数器，可赠可减，当池中计数器为0时阻塞，可以用任何容器加Semphore组合为有界容器。栅栏（CyclicBarrier）：可以复用的递增计数器，初始化时，计数器为0，计数器未满时阻塞，计时器满时解锁，并且重置计数器。Exchanger：特殊的两方栅栏，任何一方都先发起交换请求，等待另一方响应后，交换达成，适用于读写线程进行无GC的缓冲交换（示例：<a href="https://www.baeldung.com/java-exchanger">baeldung</a>）。</p>
 </li>
 <li><p>（7.1.1 中断）对中断的正确理解是：它并不会真正地中断一个正在运行的线程，而是发出中断请求，然后由线程（自己决定）在下一个合适的时刻中断自己。<strong>通常，中断是实现取消的最合理方式。</strong>这句话的意思是，程序不需要自己顶一个类似volatile的cancelled的状态，并轮询检测该状态，已决定是否取消。如果采用中断的方式，那么可以调用：inerrupt()，如果线程处于阻塞中，会收到<code>InterruptedException</code>，如果处于非阻塞中，其interrupted状态会被标记。因此完整的程序框架类似于：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyThread</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    	<span class="keyword">while</span>(!Thread.currentThread().isInterrupted()) &#123;</span><br><span class="line">      	<span class="comment">//执行业务逻辑</span></span><br><span class="line">    	&#125;</span><br><span class="line">  	&#125;</span><br><span class="line">  	<span class="keyword">catch</span>(InterruptedException e) &#123;</span><br><span class="line">    	<span class="comment">//线程退出</span></span><br><span class="line">  	&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">cancel</span><span class="params">()</span> </span>&#123;interrupt();&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
@@ -388,7 +388,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-count">14</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -400,7 +400,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-count">33</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -432,7 +432,7 @@
 <div class="copyright">
   
   &copy; 
-  <span itemprop="copyrightYear">2021</span>
+  <span itemprop="copyrightYear">2022</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

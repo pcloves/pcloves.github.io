@@ -235,7 +235,7 @@
 
 <p>上述输出中，第54行为源码第6行的<code>final Test2 test2 = new Test2();</code>，第56行就是文中说的invokespecial。</p>
 </li>
-<li><p>（2.3.2 对象的内存布局）源码地址：<a target="_blank" rel="noopener" href="http://hg.openjdk.java.net/jdk8/jdk8/hotspot/file/87ee5ee27509/src/share/vm/oops/markOop.hpp">jdk8</a></p>
+<li><p>（2.3.2 对象的内存布局）源码地址：<a href="http://hg.openjdk.java.net/jdk8/jdk8/hotspot/file/87ee5ee27509/src/share/vm/oops/markOop.hpp">jdk8</a></p>
 <table>
 <thead>
 <tr>
@@ -264,7 +264,7 @@
 <td align="center">GC标记</td>
 </tr>
 </tbody></table>
-<p>当开启指针压缩（UseCompressdOops）时，正常状态和偏向锁状态下的两个unused字段会变成：cms_free，具体参考：<a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/60985782/details-about-mark-word-of-java-object-header">stackoverflow</a></p>
+<p>当开启指针压缩（UseCompressdOops）时，正常状态和偏向锁状态下的两个unused字段会变成：cms_free，具体参考：<a href="https://stackoverflow.com/questions/60985782/details-about-mark-word-of-java-object-header">stackoverflow</a></p>
 </li>
 <li><p>（2.3.3 对象的访问定位）句柄访问和直接指针访问的本质区别在于：前者是间接引用（相当于中间又增加了一层，从而带来了更好的灵活性），后者是直接引用。</p>
 </li>
@@ -407,7 +407,7 @@
 <blockquote>
 <p>TIPS:</p>
 <ul>
-<li>本节开头提了：内存占用（Footprint）、吞吐量（Throughput）、延迟（Latency）组成了三元悖论，意指三者只能得其二，类似的三元悖论还有很多，例如分布式系统中著名的CAP定理：一致性（<strong>C</strong>onsistency）、可用性（<strong>A</strong>vailability）、分区容忍性（<strong>P</strong>artition Tolerance）。详情可以参考：周大的另外一本<a target="_blank" rel="noopener" href="https://icyfenix.cn/architect-perspective/general-architecture/transaction/distributed.html#cap%E4%B8%8Eacid">开源书籍</a>或<a target="_blank" rel="noopener" href="https://www.ibm.com/cloud/learn/cap-theorem">IBM Cloud Learn Hub</a></li>
+<li>本节开头提了：内存占用（Footprint）、吞吐量（Throughput）、延迟（Latency）组成了三元悖论，意指三者只能得其二，类似的三元悖论还有很多，例如分布式系统中著名的CAP定理：一致性（<strong>C</strong>onsistency）、可用性（<strong>A</strong>vailability）、分区容忍性（<strong>P</strong>artition Tolerance）。详情可以参考：周大的另外一本<a href="https://icyfenix.cn/architect-perspective/general-architecture/transaction/distributed.html#cap%E4%B8%8Eacid">开源书籍</a>或<a href="https://www.ibm.com/cloud/learn/cap-theorem">IBM Cloud Learn Hub</a></li>
 <li>Shenandoah将Remembered Set改为连接矩阵，从数据管理的视角上来看，实际上是把数据分散处理调整为全局集中处理，这也符合数据驱动开发的思想。例如在游戏开发领域，双向游戏好友是比较常见的社交功能，相比于把好友数据存储到每个玩家身上，维护一系列全局的好友关系数据将是更好的选择。因为如果使用前一个方案，那么在分布式环境下，单就数据一致性的这个问题，就会要求架构底层需要很好的支持，功能逻辑的复杂性也会大大增加。</li>
 <li>Brooks Pointer通过CAS操作保证并发时对象访问的正确性，CAS真是并发编程一大神器啊！</li>
 </ul>
@@ -457,7 +457,7 @@
 </li>
 <li><p>（7.4.2 双亲委派模型）</p>
 <blockquote>
-<p>“双亲委派”这个术语实在是翻译得败笔，根据<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/24923480">知乎</a>上一个比较形象的回答，翻译为“啃老模式”更为形象。也就是说遇到类加载请求时，先让父加载器去加载，父加载器加载不了了自己才去加载。</p>
+<p>“双亲委派”这个术语实在是翻译得败笔，根据<a href="https://www.zhihu.com/question/24923480">知乎</a>上一个比较形象的回答，翻译为“啃老模式”更为形象。也就是说遇到类加载请求时，先让父加载器去加载，父加载器加载不了了自己才去加载。</p>
 </blockquote>
 </li>
 <li><p>（8.3.1 解析）静态方法、私有方法、实例构造器、父类以及final方法（由于历史设计的原因，final方法是使用invokevirtual指令来调用）在类加载的时候就可以把符号引 用解析为该方法的直接引用。这些方法统称为“非虚方法”（Non-Virtual Method）</p>
@@ -472,7 +472,7 @@
 </li>
 <li><p>（8.4.3 java.lang.invoke包）一句话解释Reflection和MethodHandle的区别：Reflection是重量级，而MethodHandle 是轻量级。</p>
 </li>
-<li><p>主内存与工作内存之间具体的交互协议：<br><a target="_blank" rel="noopener" href="https://imgtu.com/i/6QaSat"><img src="https://s3.ax1x.com/2021/03/08/6QaSat.png" alt="6QaSat.png"></a></p>
+<li><p>主内存与工作内存之间具体的交互协议：<br><a href="https://imgtu.com/i/6QaSat"><img src="https://s3.ax1x.com/2021/03/08/6QaSat.png" alt="6QaSat.png"></a></p>
 </li>
 <li><p>对于普通变量（相对于volatile变量）：要求read/load、write/store<strong>成对</strong>、<strong>顺序</strong>出现，但是允许不连续出现（也即中间可以插入其他指令）。</p>
 </li>
@@ -485,7 +485,7 @@
 </li>
 <li><p>关于互斥量（mutex）和信号量（semaphore）的区别：</p>
 <ul>
-<li>正如他们的名字一样，前者的使用场景是保护资源的独占性，注重的是竞争关系；而后者的场景是等待“信号”的发生，更倾向于生产者/消费者模型中的消费者，注重的是供需关系。[知乎回答](semaphore和mutex的区别？ - 人马座的回答 - 知乎 <a target="_blank" rel="noopener" href="https://www.zhihu.com/question/47704079/answer/528324049">https://www.zhihu.com/question/47704079/answer/528324049</a>)</li>
+<li>正如他们的名字一样，前者的使用场景是保护资源的独占性，注重的是竞争关系；而后者的场景是等待“信号”的发生，更倾向于生产者/消费者模型中的消费者，注重的是供需关系。[知乎回答](semaphore和mutex的区别？ - 人马座的回答 - 知乎 <a href="https://www.zhihu.com/question/47704079/answer/528324049">https://www.zhihu.com/question/47704079/answer/528324049</a>)</li>
 <li>对于mutex，只有上锁的线程才有资格解锁；而对于semaphore，它可以被任意的线程获取和释放。</li>
 </ul>
 </li>
@@ -611,7 +611,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-count">14</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -623,7 +623,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-count">33</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -655,7 +655,7 @@
 <div class="copyright">
   
   &copy; 
-  <span itemprop="copyrightYear">2021</span>
+  <span itemprop="copyrightYear">2022</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
