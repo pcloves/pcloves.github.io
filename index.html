@@ -151,6 +151,163 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2022/08/16/G1%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%99%A8%E8%B0%83%E4%BC%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="临江听雨">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="听雨">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/08/16/G1%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%99%A8%E8%B0%83%E4%BC%98/" class="post-title-link" itemprop="url">G1垃圾回收器调优</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-08-16 11:15:00" itemprop="dateCreated datePublished" datetime="2022-08-16T11:15:00+08:00">2022-08-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-08-31 14:51:22" itemprop="dateModified" datetime="2022-08-31T14:51:22+08:00">2022-08-31</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>本文翻译自：<a href="https://docs.oracle.com/en/java/javase/11/gctuning/garbage-first-garbage-collector-tuning.html#GUID-90E30ACA-8040-432E-B3A0-1E0440AB556A">Garbage-First Garbage Collector Tuning</a></p>
+</blockquote>
+<h1 id="关于G1的一般性建议"><a href="#关于G1的一般性建议" class="headerlink" title="关于G1的一般性建议"></a>关于G1的一般性建议</h1><p>一般情况下，建议使用G1的默认设置，如果有其他需求，再设置期望停顿时间，并且通过<code>-Xmx</code>设置最大Java堆。</p>
+<p>与其它回收器相比，G1默认设置下的平衡策略有所不同。在G1的默认配置中，它的目标既不是最大化吞吐量，也不是最小化停顿时间，而是在高吞吐量的同时提供相对较低且一贯的停顿时间。然而，G1用于增量回收的机制和对于停顿时间的控制，都在应用程序的线程和空间回收的效率方面都产生了一些开销。</p>
+<p>如果更倾向于高吞吐量，请使用 <code>-XX:MaxGCPauseMillis</code> 放宽期望停顿时间或提供更大的堆。而如果主诉求是低延迟，则调整期望停顿时间。要避免使用 <code>-Xmn</code>、<code>-XX:NewRatio</code> 等选项将年轻代、限定为固定值，因为（动态调整）年轻代大小是 G1满足停顿时间的主要手段。而将年轻代年轻代固定实际上会禁用停顿时间的控制。</p>
+<h1 id="从其他回收器迁移到-G1"><a href="#从其他回收器迁移到-G1" class="headerlink" title="从其他回收器迁移到 G1"></a>从其他回收器迁移到 G1</h1><p>通常情况下，当从其他垃圾回收器（尤其是并发标记清除（CMS）回收器）迁移到 G1 时，首先要移除所有影响垃圾回收的参数，仅需要设置期望停顿时间，作为总堆大小的<code>-Xmx</code>， 以及可选参数 <code>-Xms</code> 。</p>
+<p>在特定方式下，许多参数在其他回收器中很有用，但是到了G1中，有的根本没有效果，有的甚至会降低吞吐量和或降低G1实现预期停顿的概率。例如设置年轻代大小会完全禁用 G1动态调整年轻代大小，而这是G1实现停顿时间特性的重要手段。</p>
+<h1 id="提高-G1-性能"><a href="#提高-G1-性能" class="headerlink" title="提高 G1 性能"></a>提高 G1 性能</h1><p>G1 旨在提供良好的整体性能，而无需设定其他参数。但是，在某些情况下，G1的默认启发式配置或默认配置无法提供最佳性能。本节提供了在这些情况下进行诊断和改进的操作指南。本指南仅描述 G1 在给定应用下，给定指标中提高垃圾回收器性能的可能性。根据具体的场景，应用级的优化可能比尝试调优 VM更有效。例如可以可以减少短命对象的使用来规避某些异常的场景。</p>
+<p>为了方便诊断，G1 提供了全面的日志记录。一个好的开始是使用 <code>-Xlog:gc*=debug</code> 参数，然后在必要时优化输出。该日志提供了垃圾回收活动的暂停期和非暂停期的详细概述。也包括垃圾回收的类型以及每个阶段耗时的细分统计。</p>
+<p>以下小节会探讨一些常见的性能问题。</p>
+<h2 id="观察完整的垃圾回收"><a href="#观察完整的垃圾回收" class="headerlink" title="观察完整的垃圾回收"></a>观察完整的垃圾回收</h2><p>全堆垃圾回收（Full GC）通常非常耗时。老年代堆占用过高导致的Full GC可以通过在日志中查找<code>Pause Full (Allocation Failure)</code>关键字来确定。Full GC 之前通常会有转移失败导致的垃圾回收，这次垃圾回收包含<code>to-space exhausted</code> 标签（tags）。</p>
+<p>发生 Full GC 的原因是应用程序分配了太多对象，并且这些对象不能被足够快地回收。这种情况下，并发标记不能及时完成以启动<code>Space-reclamation</code>阶段。如果此时分配了许多大对象，那么导致Full GC 的可能性可能会更加复杂。鉴于这些对象按照 G1 的方式分配，它们可能会占用比预期更多的内存。</p>
+<p>确保并发标记按时完成是避免Full GC的目标。可以通过降低老年代的分配速率来实现，或者给并发标记更多的时间。</p>
+<p>G1 提供了几个参数来更好地处理这种情况：</p>
+<ul>
+<li>可以使用 <code>gc+heap=info</code> 日志记录确定 Java 堆上大对象占用的Region数量。日志<code>Humongous regions: X-&gt;Y</code> 的 <code>Y</code> 为提供大对象占用Region的数量。如果这个值高于老年代Region的数量，最佳选择是尝试减少该大对象的分配。（也）可以尝试使用 <code>-XX:G1HeapRegionSize</code> 参数增加Region的大小。当前堆的Region大小显示在日志的开头。</li>
+<li>增加 Java 堆的大小。这通常（也）会增加（并发）标记完成的时间。</li>
+<li>显式设置 <code>-XX:ConcGCThreads</code> 来增加并发标记线程的数量。</li>
+<li>强制 G1 提前开始并发标记。 G1 根据前面应用的行为自动推断初始堆占用百分比（Initiating Heap Occupancy Percent (IHOP)）阈值。如果应用程序行为发生变化，那这些预测就可能是错误的。这是有两个选择： 通过修改 <code>-XX:G1ReservePercent</code> 增加自适应 IHOP 计算时使用的缓冲区，从而降低决定开启Space-reclamation的目标占用率；使用 <code>-XX:-G1UseAdaptiveIHOP</code> 和 <code>-XX:InitiatingHeapOccupancyPercent</code> 手动设置来禁用 IHOP 的自适应计算。</li>
+</ul>
+<p>除了分配失败（Allocation Failure ）导致Full GC，通常也会有应用程序或某些外部工具导致Full GC。如果是由于调用了 <code>System.gc()</code>，并且无法修改应用的代码，可以使用 <code>-XX:+ExplicitGCInvokesConcurrent</code> 缓解 Full GC 的影响，或者通过设置 <code>-XX:+DisableExplicitGC</code> 让 VM 完全无视<code>System.gc()</code>。外部工具可能仍会强制Full GC，这时只能寄希望于别主动触发了。</p>
+<h2 id="大对象碎片"><a href="#大对象碎片" class="headerlink" title="大对象碎片"></a>大对象碎片</h2><p>由于需要为大对象找到一组连续的Region的原因，因此可能会在 Java 堆内存耗尽之前发生 Full GC。在这种情况下，候选方案是通过参数：<code>-XX:G1HeapRegionSize</code> 增加堆Region大小以减少大对象的数量，或者增加堆的大小。在极端情况下，可能没有足够的连续空间可供 G1 分配对象。如果 Full GC 也无法回收出足够的连续空间，这将导致 VM 退出。因此，除了如前所述减少大对象的分配或增加堆内存外，没有其他选择。</p>
+<h2 id="停顿调优"><a href="#停顿调优" class="headerlink" title="停顿调优"></a>停顿调优</h2><p>本节讨论在常见停顿问题（即停顿时间太长）的情况下改进 G1 行为的建议。</p>
+<h3 id="异常的System或Real-占用"><a href="#异常的System或Real-占用" class="headerlink" title="异常的System或Real 占用"></a>异常的<code>System</code>或<code>Real</code> 占用</h3><p>对于每次垃圾回收暂停，<code>gc+cpu=info</code> 日志会输出一行，其中包含有关暂停时间耗时的OS信息。例如： <code>User=0.19s Sys=0.00s Real=0.01s</code>。</p>
+<p><code>User</code>时间是在 VM 代码中的耗时，<code>Sys</code>时间是在OS中的耗时，而<code>Real</code>为垃圾回收暂停的绝对时间量。如果<code>Sys</code>时间相对较高，那么大多数情况下是环境造成的。</p>
+<p>已知常见的高<code>Sys</code>时间包括：</p>
+<ul>
+<li>VM 从操作系统内存分配或归还内存可能会导致不必要的延迟。通过使用选项 <code>-Xms</code> 和 <code>-Xmx</code> 将最小和最大堆设置为相同的值来避免该延迟，并使用 <code>-XX:+AlwaysPreTouch</code> 将VM预先分配所有内存的工作移至启动阶段。</li>
+<li>特别是在 Linux 中，通过透明大页（*Transparent Huge Pages (THP)*）功能将小页面合并为大页面往往会随机停滞进程，这不仅限定在GC暂停期间。由于 VM 分配和维护了大量内存，因此 VM 被选为长时间停滞的进程的风险比通常高。关于如何禁用透明大页的信息，请参阅操作系统相关文档。</li>
+<li>由于日志的后台任务间歇性地占用硬盘的所有 I/O 带宽，写入日志可能会导致<code>停顿</code>（stall）。可以考虑在独立的磁盘或其他存储设备上记录日志，例如内存支持（memory-backed）的文件系统来避免这种情况。</li>
+</ul>
+<p>另一种需要注意的情况是<code>Real</code>比其它时间的总和大得多，这说明 VM 在可能过载的机器上运行，并且没有获得足够的 CPU 时间。</p>
+<h3 id="对象引用处理耗时过长"><a href="#对象引用处理耗时过长" class="headerlink" title="对象引用处理耗时过长"></a>对象引用处理耗时过长</h3><p>关于处理对象应用耗时的信息显示在<code>Reference Processing</code>阶段。在<code>Reference Processing</code>阶段，G1 根据特定类型引用对象（Reference Object）的要求更新其引用的对象。默认情况下，G1 尝试使用如下启发式的方式将<code>Reference Processing</code>阶段并行化为多个子阶段：在<code>-XX:ParallelGCThreads</code>范围内，对于每 <code>-XX:ReferencesPerThread</code> 个引用对象启动一个线程。可以通过将 <code>-XX:ReferencesPerThread </code>设置为 0 禁用该启发式设置，而启动所有可用线程，或者通过 <code>-XX:-ParallelRefProcEnabled</code> 完全禁用并行化。</p>
+<h3 id="Young-Only阶段中的Young-GC耗时过长"><a href="#Young-Only阶段中的Young-GC耗时过长" class="headerlink" title="Young-Only阶段中的Young GC耗时过长"></a>Young-Only阶段中的Young GC耗时过长</h3><p>一般来说，普通的Young GC的耗时大致与年轻代的大小成正比。或者更确切地说，是和CSet中需要复制的存活对象的数量成正比。如果 <code>Evacuate Collection Set</code> 阶段耗时过长，特别是 <code>Object Copy</code> 子阶段，则可以降低 <code>-XX:G1NewSizePercent</code>。这可以减少年轻代的最小值，允许更短的停顿。</p>
+<p>如果应用的执行突然剧烈波动 (尤其是当大量的对象活过了一次GC) ，则可能导致年轻代调整相关的另一个问题：可能会导致垃圾收集停顿时间出现毛刺。通过降低<code>-XX:G1MaxNewSizePercent</code> 来减小年轻代的最大值可能会有所帮助。这会限制年轻代的最大值，因此限制了停顿期间需要处理的对象数量。</p>
+<h3 id="混合回收耗时过长"><a href="#混合回收耗时过长" class="headerlink" title="混合回收耗时过长"></a>混合回收耗时过长</h3><p>混合回收用于回收老年代的空间。混合回收的集合（collection set）包含年轻代和老年代Region。可以通过启用 <code>gc+ergo+cset=trace</code> 日志输出来获取年轻代或老年代Region对于停顿时间的占用信息。可以分别查看年轻代和老年代的<code> </code> <em>predicted young region</em><code>时间和</code><em>predicted old region</em>`时间。</p>
+<p>如果<code>predicted young region</code>时间太长，查看“Young-Only阶段中的Young GC耗时过长”一节中的参数配置。否则，那就要减少老年代Region对于停顿时间的占用，G1提供了三个参数：</p>
+<ul>
+<li>增加 <code>-XX:G1MixedGCCountTarget</code> 将老年代Region的回收分散到更多次的垃圾回收（译注：指的是混合回收）中。</li>
+<li>通过设置 <code>-XX:G1MixedGCLiveThresholdPercent</code> 避免那些需要大量时间进行回收的Region加入到候选回收Region中。在大多数情况下，高使用率的Region一般需要花费更多的回收时间。</li>
+<li>提前停止老年代的空间回收，这样 G1 就不会回收那么多高使用率的Region。在这种情况下，可以增加 <code>-XX:G1HeapWastePercent</code>。</li>
+</ul>
+<p>请注意，最后两个参数减少了当前<code>Space-reclamation</code>阶段中候选回收Region的数量。这可能意味着 G1 可能无法在老年代回收足够的空间来持续运行（for sustained operation）。但是后续的<code>space-reclamation</code>阶段可能能够对它们进行垃圾回收。</p>
+<h3 id="更新RS和扫描RS时间过长"><a href="#更新RS和扫描RS时间过长" class="headerlink" title="更新RS和扫描RS时间过长"></a>更新RS和扫描RS时间过长</h3><p>为了使 G1 能够转移某个老年代Region，G1需要跟踪跨Region间的引用关系，即从一个Region指向另一个Region的引用。指向本Region的所有引用集合称为该Region的记忆集（<code>remembered set</code>）。当移动Region的对象（Content）时必须更新维护记忆集，这个操作大多是并发的。出于性能考虑，当应用在跨Region的两个对象之间设置引用关系时，G1 并不会立即更新记忆集。这项操作会被延迟和合批处理以提高效率。</p>
+<p>G1 需要完整的记忆集才能进行垃圾回收，因此<code>Update RS</code>阶段会处理未完成的记忆集更新请求。<code>Scan RS</code>阶段搜索记忆集的对象引用，移动Region对象（Content），然后将这些对象的引用更新到新的位置。根据应用的不同，这两个阶段可能需要大量时间。</p>
+<p>使用选项 <code>-XX:G1HeapRegionSize</code> 调整堆Region的大小会影响跨Region引用的数量以及记忆集的大小。处理Region的记忆集是垃圾回收的重要部分，因此这对最大期望停顿时间的实现有直接的影响。较大的Region往往具有较少的跨Region引用，因此处理它们所花费的相对工作量会减少。与之相反的是，较大的Region可能意味着每个Region有更多的存活对象需要转移，从而增加了其他阶段的时间。</p>
+<p>G1 会尝试调度记忆集更新的并发处理，使得<code>Update RS</code>阶段的耗时和最大期望停顿时间的占比大致满足： <code>-XX:G1RSetUpdatingPauseTimePercent</code> 。可以减小这个值，这样G1 通常会更加并发地执行记忆集的更新工作。<br>当应用程序分配较大对象（large objects）时，会产生虚假的<code>Update RS</code>高耗时，这往往是由于如下优化工作导致的：试图将<code>Update RS</code>合批处理以减少并发的操作。如果应用程序的合批处理发生在垃圾回收之前，那么G1要在停顿时间内处理完所有的<code>Update RS</code>操作。可以使用<code>-XX:-ReduceInitialCardMarks</code>禁用该行为以及该行为发生的可能性。</p>
+<p>为了让RS的大小保持在一个较低的水平，G1需要执行压缩操作，这个压缩量也决定了扫描RS的耗时。RS在内存中被压缩得越紧凑，那就需要花费越多的时间来检索内存中的值。G1 会自动执行这种被称为记忆集粗化（remembered set coarsening）的压缩操作，并根据Region当前记忆集的大小进行更新。尤其是在最高压缩级别下，检索实际数据可能非常缓慢。通过参数：<code>-XX:G1SummarizeRSetStatsPeriod</code>并结合<code>gc+remset=trace</code>级别的日志可以查看这种记忆集粗化行为是否产生。如果答案为是，参数：<code>-XX:G1RSetRegionEntries</code>可以显著降低这种行为。要避免在生产环境中开启这种详细的记忆集日志，因为收集这些数据可能需要大量时间。</p>
+<h2 id="吞吐量调优"><a href="#吞吐量调优" class="headerlink" title="吞吐量调优"></a>吞吐量调优</h2><p>G1 的默认策略是试图在吞吐量和延迟之间保持平衡；但是在某些情况下，我们也可能需要更高的吞吐量。除了如前几节所述减少整体期望停顿时间外，也可以通过减少停顿的频率达成这项目标。其实主要思想就是通过 <code>-XX:MaxGCPauseMillis</code> 来增加最大期望停顿时间。启发式的分代大小调整机制会自动调整年轻代的大小，这直接决定了垃圾回收停顿的频率。如果这没有达到预期吞吐量的目标，特别是在Space Reclamation阶段，通过<code>-XX:G1NewSizePercent</code> 增加最小年轻代大小将迫使 G1 增大吞吐量。</p>
+<p>在某些情况下，<code>-XX:G1MaxNewSizePercent</code> (最大年轻代大小) 会限制年轻代容量的上限，进而限制了G1的吞吐量。可以通过查看<code>gc+heap=info</code>的Region输出进行诊断。这种情况下，Eden 区和 Survivor 区的百分比之和（ combined percentage）接近所有Region总数的百分之 <code>-XX:G1MaxNewSizePercent</code>。此时就可以考虑增加<code>-XX:G1MaxNewSizePercent</code>。</p>
+<p>增加吞吐量的另一个选择是尝试减少并发工作量，特别是并发记忆集更新通常需要大量 CPU 资源。增加<code>-XX:G1RSetUpdatingPauseTimePercent</code>可以将这些耗时操作从并发操作期间往GC停顿期间转移。在最激进的（worst ）情况下，可以通过<code>-XX:-G1UseAdaptiveConcRefinement</code>、<code>-XX:G1ConcRefinementGreenZone=2G</code>、<code>-XX:G1ConcRefinementThreads=0</code>禁用记忆集更新的并发操作。这些操作除了禁用该并发机制，还会将所有的集合更新工作移至下一次垃圾收集暂停中。</p>
+<p>通过 <code>-XX:+UseLargePages</code> 启用大页面也可以提高吞吐量。有关如何设置大页面的信息，请参阅操作系统文档。</p>
+<p>可以将参数<code>-Xms</code>和<code>-Xmx</code>设置为相同的值来禁用堆大小动态调整。您可以使用 <code>-XX:+AlwaysPreTouch</code> 将操作系统分配物理内存到虚拟内存的操作移动到 VM 启动时。为了使暂停时间更加一致（consistent），这两项措施都是特别可取的。</p>
+<h2 id="堆大小调优"><a href="#堆大小调优" class="headerlink" title="堆大小调优"></a>堆大小调优</h2><p>与其他收集器一样，G1 旨在管理（size）堆内存，使得垃圾回收所停顿的时间低于 <code>-XX:GCTimeRatio</code> 选项指定的比率。调整此选项以使 G1 满足您的要求。</p>
+<h2 id="可调整的默认值"><a href="#可调整的默认值" class="headerlink" title="可调整的默认值"></a>可调整的默认值</h2><p>本节介绍参数默认值及附加信息。</p>
+<center>Table 10-1 Tunable Defaults G1 GC</center>
+
+<table>
+<thead>
+<tr>
+<th align="left">参数及默认值</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>-XX:+G1UseAdaptiveConcRefinement</code><br><code>-XX:G1ConcRefinementGreenZone=&lt;ergo&gt;</code><br><code>-XX:G1ConcRefinementYellowZone=&lt;ergo&gt;</code><br><code>&lt;-XX:G1ConcRefinementRedZone=&lt;ergo&gt;</code><br><code>-XX:G1ConcRefinementThreads=&lt;ergo&gt;</code></td>
+<td align="left">记忆集并发更新（refinement）使用这些参数控制并发refinement线程的工作分配。 G1 会为这些参数进行自动推断，以使得在垃圾回收暂停中花费 <code>-XX:G1RSetUpdatingPauseTimePercent</code> 时间处理剩余的工作，并根据需要自适应调整。请谨慎更改，因为这可能会导致长时间的停顿。</td>
+</tr>
+<tr>
+<td align="left"><code>-XX:+ReduceInitialCardMarks</code></td>
+<td align="left">将初始对象分配的记忆集并发更新（refinement）进行合批处理。</td>
+</tr>
+<tr>
+<td align="left"><code>-XX:ReferencesPerThread=1000</code><br><code>-XX:+ParallelRefProcEnabled</code></td>
+<td align="left"><code>-XX:ReferencesPerThread</code> 决定并行化程度：每<em>N</em>个对象引用分配1个线程，参与到Reference Processing的子阶段（线程数受<code>-XX:ParallelGCThreads</code>限制）。设置为 0 表示将始终使用 <code>-XX:ParallelGCThreads</code> 所指示的最大线程数。<br/><code>-XX:+ParallelRefProcEnabled</code>决定了 <code>java.lang.Ref.*</code> 实例的处理是否应该由多个线程并行完成。</td>
+</tr>
+<tr>
+<td align="left">-XX:G1RSetUpdatingPauseTimePercent=10</td>
+<td align="left">决定了G1在更新 RS 阶段的耗时占用总垃圾收集耗时的百分比。 G1 使用该值控制并发记忆集更新的数量。</td>
+</tr>
+<tr>
+<td align="left">-XX:G1SummarizeRSetStatsPeriod=0</td>
+<td align="left">这表示每隔多少个回收周期G1生成记忆集摘要报告。将此设置为0表示禁用。生成记忆集摘要报告是一项代价高昂的操作，因此仅应在必要时使用并且具有相当高的价值时，使用 <code>gc+remset=trace</code> 进行输出。</td>
+</tr>
+<tr>
+<td align="left"><code>-XX:GCTimeRatio=12</code></td>
+<td align="left">该值代表消耗在垃圾回收上的目标时间比率公式的除数。该时间比率公式为： <code>1 / (1 + GCTimeRatio)</code>。此默认值表示大约有 8% 的时间用于垃圾收集。</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>注意： <ergo>表示实际值根据自动推断设定。</p>
+</blockquote>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2022/08/13/G1%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%99%A8/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -182,7 +339,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-16 11:04:00" itemprop="dateModified" datetime="2022-08-16T11:04:00+08:00">2022-08-16</time>
+                <time title="修改时间：2022-08-31 15:05:03" itemprop="dateModified" datetime="2022-08-31T15:05:03+08:00">2022-08-31</time>
               </span>
 
           
@@ -199,7 +356,7 @@
           <blockquote>
 <p>本文翻译自：<a href="https://docs.oracle.com/en/java/javase/11/gctuning/garbage-first-g1-garbage-collector1.html#GUID-ED3AB6D3-FD9B-4447-9EDF-983ED2F7A573">Garbage-First Garbage Collector</a></p>
 </blockquote>
-<h1 id="G1垃圾回收器简介"><a href="#G1垃圾回收器简介" class="headerlink" title="G1垃圾回收器简介"></a>G1垃圾回收器简介</h1><p>G1（Garbage-First） 垃圾回收器针对于具有大内存的多CPU计算机。它的目标是在较高的可能性下满足垃圾回收的暂停时间，同时在几乎不需要配置的情况下实现垃圾回收的高吞吐量。 G1 旨在如下应用和环境下，提供延迟（latency）和吞吐量（throughput）之间的最佳平衡：</p>
+<h1 id="G1垃圾回收器简介（Introduction-to-Garbage-First-Garbage-Collector）"><a href="#G1垃圾回收器简介（Introduction-to-Garbage-First-Garbage-Collector）" class="headerlink" title="G1垃圾回收器简介（Introduction to Garbage-First Garbage Collector）"></a>G1垃圾回收器简介（Introduction to Garbage-First Garbage Collector）</h1><p>G1（Garbage-First） 垃圾回收器针对于具有大内存的多CPU计算机。它的目标是在较高概率下满足垃圾回收的暂停时间，同时在几乎不需要配置的情况下实现垃圾回收的高吞吐量。 G1 旨在如下应用和环境下提供延迟（latency）和吞吐量（throughput）之间的最佳平衡：</p>
 <ul>
 <li>堆内存高达 10 GB 或更大，同时超过 50% 的 Java 堆空间被占用。</li>
 <li>随着时间的推移，对象分配和晋升的速率可能会发生显著变化。</li>
@@ -249,14 +406,14 @@
 </li>
 </ol>
 <h1 id="G1内部细节"><a href="#G1内部细节" class="headerlink" title="G1内部细节"></a>G1内部细节</h1><p>本节介绍垃圾优先 (G1) 垃圾回收器的一些重要细节。</p>
-<h2 id="确定初始堆占用（Determining-Initiating-Heap-Occupancy）"><a href="#确定初始堆占用（Determining-Initiating-Heap-Occupancy）" class="headerlink" title="确定初始堆占用（Determining Initiating Heap Occupancy）"></a>确定初始堆占用（Determining Initiating Heap Occupancy）</h2><p>初始堆占用率<em>（Initiating Heap Occupancy Percent(IHOP)）</em> 是触发初始标记（ Initial Mark ）收集的阈值，它被定义为老年代使用量占整堆大小的百分比（译注：在JDK 8b12之前，该值为整堆使用量占整堆大小的百分百，详情参考：<a href="https://heapdump.cn/article/2712390">官方文档竟然有坑！关于G1参数InitiatingHeapOccupancyPercent的正确认识</a>）。</p>
+<h2 id="确定初始堆占用"><a href="#确定初始堆占用" class="headerlink" title="确定初始堆占用"></a>确定初始堆占用</h2><p>初始堆占用率<em>（Initiating Heap Occupancy Percent(IHOP)）</em> 是触发初始标记（ Initial Mark ）收集的阈值，它被定义为老年代使用量占整堆大小的百分比（译注：在JDK 8b12之前，该值为整堆使用量占整堆大小的百分百，详情参考：<a href="https://heapdump.cn/article/2712390">关于G1参数InitiatingHeapOccupancyPercent的正确认识</a>。</p>
 <p>默认情况下，G1 通过观察统计并发标记的耗时，以及并发标记期间老年代的内存分配量自动确定最佳 IHOP。该特性被称为<em>自适应 IHOP</em>（<em>Adaptive IHOP</em>）。如果该特性处于激活状态，当观察统计的数据不足以预测初始堆占用时，那么选项：<code>-XX:InitiatingHeapOccupancyPercent</code>决定了当下老年代初始百分百。可以使用选项<code>-XX:-G1UseAdaptiveIHOP</code> 关闭 G1 的自适应IHOP行为。那么，-XX:InitiatingHeapOccupancyPercent`的值就始终为初始堆占用的阈值。</p>
 <p>在内部实现上，自适应 IHOP 会尝试设置初始堆占用率。当老年代占用 = 老年代最大占用 -  额外缓冲区（由<code>-XX:G1HeapReservePercent</code>定义）时，Space-reclamation阶段的第一次混合垃圾收集开始执行。</p>
-<h2 id="并发标记（Marking）"><a href="#并发标记（Marking）" class="headerlink" title="并发标记（Marking）"></a>并发标记（Marking）</h2><p>G1 的并发标记使用一种称为初始快照（ Snapshot-At-The-Beginning(SATB)）的算法。它在初始标记暂停（Initial Mark pause）时给堆做一个虚拟快照：所有在标记开始时处于存活的对象，在后续的标记时都被认定为存活状态。这意味着在标记期间变成垃圾（不能通过根可达访问）的对象也仍然被认为是存活的，便于（后续）space-reclamation（也有一些例外）。与其它回收器相比，这可能会导致某些对象被错误地标记保存（译注：也即浮动垃圾）。而对于重新标记（Remark pause）期间的暂停，SATB提供了更低延迟的可能性。在标记期间由于“保守”而被保存的浮动对象将在下一次标记期间被回收。有关并发标记的更多信息，请参阅 <a href="https://docs.oracle.com/en/java/javase/11/gctuning/garbage-first-garbage-collector-tuning.html#GUID-90E30ACA-8040-432E-B3A0-1E0440AB556A">G1垃圾回收器调优</a> 。</p>
-<h2 id="内存紧张的情况（Behavior-in-Very-Tight-Heap-Situations）"><a href="#内存紧张的情况（Behavior-in-Very-Tight-Heap-Situations）" class="headerlink" title="内存紧张的情况（Behavior in Very Tight Heap Situations）"></a>内存紧张的情况（Behavior in Very Tight Heap Situations）</h2><p>当应用存活对象占用大量内存以至于转移操作没有足够空间复制时，就会导致转移失败（evacuation failure ）。G1为了完成本次垃圾回收，会保留已经移动的对象在新位置上不动，而不再拷贝和移动剩下的对象，仅调整对象之间的引用。转移失败可能会产生一些额外的开销，但通常与其他Young GC一样快。当含有转移失败的GC执行完毕后，G1 和正常情况一样恢复应用程序，不做额外处理。 G1会假设转移失败发生在接近垃圾回收结束时。也就是说，大多数对象已经被移动，并且有足够的空间继续运行应用程序，直到并发标记完成且Space-reclamation阶段开始。</p>
+<h2 id="并发标记"><a href="#并发标记" class="headerlink" title="并发标记"></a>并发标记</h2><p>G1 的并发标记使用一种称为初始快照（ Snapshot-At-The-Beginning(SATB)）的算法。它在初始标记暂停（Initial Mark pause）时给堆做一个虚拟快照：所有在标记开始时处于存活的对象，在后续的标记时都被认定为存活状态。这意味着在标记期间变成垃圾（不能通过根可达访问）的对象也仍然被认为是存活的，便于（后续）space-reclamation（也有一些例外）。与其它回收器相比，这可能会导致某些对象被错误地标记保存（译注：也即浮动垃圾）。而对于重新标记（Remark pause）期间的暂停，SATB提供了更低延迟的可能性。在标记期间由于“保守”而被保存的浮动对象将在下一次标记期间被回收。有关并发标记的更多信息，请参阅：<a href="/2022/08/16/G1%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%99%A8%E8%B0%83%E4%BC%98/" title="G1垃圾回收器调优">G1垃圾回收器调优</a></p>
+<h2 id="内存紧张的情况"><a href="#内存紧张的情况" class="headerlink" title="内存紧张的情况"></a>内存紧张的情况</h2><p>当应用存活对象占用大量内存以至于转移操作没有足够空间复制时，就会导致转移失败（evacuation failure ）。G1为了完成本次垃圾回收，会保留已经移动的对象在新位置上不动，而不再拷贝和移动剩下的对象，仅调整对象之间的引用。转移失败可能会产生一些额外的开销，但通常与其他Young GC一样快。当含有转移失败的GC执行完毕后，G1 和正常情况一样恢复应用程序，不做额外处理。 G1会假设转移失败发生在接近垃圾回收结束时。也就是说，大多数对象已经被移动，并且有足够的空间继续运行应用程序，直到并发标记完成且Space-reclamation阶段开始。</p>
 <p>如果这个假设没有成立，G1最终会发起一次Full GC。这种GC会对整个堆做压缩，整个过程会非常慢。</p>
 <p>有关内存分配失败或 Full GC 前的信号的更多信息，请参阅 <a href="https://docs.oracle.com/en/java/javase/11/gctuning/garbage-first-garbage-collector-tuning.html#GUID-90E30ACA-8040-432E-B3A0-1E0440AB556A">G1垃圾回收器调优</a> 。</p>
-<h2 id="大对象（Humongous-Objects）"><a href="#大对象（Humongous-Objects）" class="headerlink" title="大对象（Humongous Objects）"></a>大对象（Humongous Objects）</h2><p>所谓大对象，就是那些大于等于1/2个Region大小的对象。如果没有使用 <code>-XX:G1HeapRegionSize</code> 选项进行设置，Region的大小按照[G1 GC的自动推断配置](## G1 GC的自动推断配置（Ergonomic Defaults for G1 GC）)一节中的说明自动设定（determined ergonomically）。</p>
+<h2 id="大对象"><a href="#大对象" class="headerlink" title="大对象"></a>大对象</h2><p>所谓大对象，就是那些大于等于1/2个Region大小的对象。如果没有使用 <code>-XX:G1HeapRegionSize</code> 选项进行设置，Region的大小按照<a href="#G1-GC%E4%B8%AD%E7%9A%84%E8%87%AA%E5%8A%A8%E6%8E%A8%E6%96%AD%E9%85%8D%E7%BD%AE">G1 GC中的自动推断配置</a>一节中的说明自动设定（determined ergonomically）。</p>
 <p>这些大对象有时会以特殊方式处理：</p>
 <ul>
 <li>每个大对象都被（直接）分配在老年代中的若干连续Region上。大对象的初始位置始终位于第一个Region上，最后一个Region中的剩余空间都不再分配对象，直到整个大对象被回收。</li>
@@ -264,13 +421,13 @@
 <li>大对象的分配可能会导致垃圾回收暂停过早发生。 G1 会在每次分配大对象时检查初始堆占用阈值（ Initiating Heap Occupancy threshold），如果当前占用超过该阈值，则会强制开启包含初始标记（initial mark）的Young GC。</li>
 <li>大对象一直不会移动，即使在 Full GC 时也是一样。这可能会导致Full GC提前触发，也会导致空闲内存还剩很多，但还是会出现内存不足的情况。</li>
 </ul>
-<h2 id="Young-Only阶段（Young-Only-Phase-Generation-Sizing）"><a href="#Young-Only阶段（Young-Only-Phase-Generation-Sizing）" class="headerlink" title="Young-Only阶段（Young-Only Phase Generation Sizing）"></a>Young-Only阶段（Young-Only Phase Generation Sizing）</h2><p>在Young-only阶段，待回收的Region集合（collection set，简称CSet）仅由年轻代Region组成。 G1 总是在普通的Young GC结束时为后续应用程序的运行调整年轻代的大小。这样，G1 可以根据实际停顿的长期观察，满足 <code>-XX:MaxGCPauseTimeMillis</code> 和 <code>-XX:PauseTimeIntervalMillis</code> 设定的暂停目标。它会衡量转移年轻代Region需要消耗多长时间。包括在回收过程中必须复制多少对象以及这些对象之间的相互联系的信息。</p>
+<h2 id="Young-Only阶段"><a href="#Young-Only阶段" class="headerlink" title="Young-Only阶段"></a>Young-Only阶段</h2><p>在Young-only阶段，待回收的Region集合（collection set，简称CSet）仅由年轻代Region组成。 G1 总是在普通的Young GC结束时为后续应用程序的运行调整年轻代的大小。这样，G1 可以根据实际停顿的长期观察，满足 <code>-XX:MaxGCPauseTimeMillis</code> 和 <code>-XX:PauseTimeIntervalMillis</code> 设定的暂停目标。它会衡量转移年轻代Region需要消耗多长时间。包括在回收过程中必须复制多少对象以及这些对象之间的相互联系的信息。</p>
 <p>如果没有其他约束，则 G1 会将年轻代Region调整在 <code>-XX:G1NewSizePercent</code> 和 <code>-XX:G1MaxNewSizePercent</code> 之间以满足停顿时间。关于有关如何解决长时间停顿的更多信息，参阅 <a href="https://docs.oracle.com/en/java/javase/11/gctuning/garbage-first-garbage-collector-tuning.html#GUID-90E30ACA-8040-432E-B3A0-1E0440AB556A">G1垃圾回收器调优</a> 。</p>
-<h2 id="Space-Reclamation-阶段（Space-Reclamation-Phase-Generation-Sizing）"><a href="#Space-Reclamation-阶段（Space-Reclamation-Phase-Generation-Sizing）" class="headerlink" title="Space-Reclamation 阶段（Space-Reclamation Phase Generation Sizing）"></a>Space-Reclamation 阶段（Space-Reclamation Phase Generation Sizing）</h2><p>在Space-Reclamation阶段，G1 尝试在每次垃圾回收中最大化地选择老年代的Region。年轻代则被设置为被允许条件下的最小值，通常由 <code>-XX:G1NewSizePercent</code> 确定。任何老年代Region都会被添加（到CSet），直到 G1 任务再添加将超过暂停目标。在特定的暂停期间，G1按回收效率、最高优先顺序和剩余可用停顿时间的顺序添加老年代Region，获得最终的CSet。</p>
+<h2 id="Space-Reclamation-阶段"><a href="#Space-Reclamation-阶段" class="headerlink" title="Space-Reclamation 阶段"></a>Space-Reclamation 阶段</h2><p>在Space-Reclamation阶段，G1 尝试在每次垃圾回收中最大化地选择老年代的Region。年轻代则被设置为被允许条件下的最小值，通常由 <code>-XX:G1NewSizePercent</code> 确定。任何老年代Region都会被添加（到CSet），直到 G1 任务再添加将超过暂停目标。在特定的暂停期间，G1按回收效率、最高优先顺序和剩余可用停顿时间的顺序添加老年代Region，获得最终的CSet。</p>
 <p>每次垃圾回收中老年代Region的数量在下限为：候选待回收老年代Region数量 / <code>-XX:G1MixedGCCountTarget</code>（ Space-reclamation phase长度）。在Space-Reclamation阶段开始时，存活对象占有率低于 <code>-XX:G1MixedGCLiveThresholdPercent</code> 的老年代Region为候选待回收老年代Region。</p>
 <p>当候选待回收老年代Region中可回收的剩余空间量小于 <code>-XX:G1HeapWastePercent</code> 设置的百分比时，Space-Reclamation阶段结束。</p>
 <p>有关 G1中 使用多少个老年代Region以及如何避免长时间混合GC的更多信息，参阅 <a href="https://docs.oracle.com/en/java/javase/11/gctuning/garbage-first-garbage-collector-tuning.html#GUID-90E30ACA-8040-432E-B3A0-1E0440AB556A">G1垃圾回收器调优</a> 。</p>
-<h1 id="G1-GC中的自动推断配置（Ergonomic-Defaults-for-G1-GC）"><a href="#G1-GC中的自动推断配置（Ergonomic-Defaults-for-G1-GC）" class="headerlink" title="G1 GC中的自动推断配置（Ergonomic Defaults for G1 GC）"></a>G1 GC中的自动推断配置（Ergonomic Defaults for G1 GC）</h1><p>本主题概述了特定于 G1 的最重要的默认配置及其默认值。它们粗略地概述了在没有附加选项的情况下，使用 G1 的预期行为和资源使用情况。</p>
+<h1 id="G1-GC中的自动推断配置"><a href="#G1-GC中的自动推断配置" class="headerlink" title="G1 GC中的自动推断配置"></a>G1 GC中的自动推断配置</h1><p>本主题概述了特定于 G1 的最重要的默认配置及其默认值。它们粗略地概述了在没有附加选项的情况下，使用 G1 的预期行为和资源使用情况。</p>
 <center>表 9-1 G1 Gc中的自动推断配置</center>
 
 <table>
@@ -324,7 +481,7 @@
 <blockquote>
 <p>注意：<ergo> 表示实际值根据自动推断设定。</p>
 </blockquote>
-<h1 id="与其他回收器的比较（Comparison-to-Other-Collectors）"><a href="#与其他回收器的比较（Comparison-to-Other-Collectors）" class="headerlink" title="与其他回收器的比较（Comparison to Other Collectors）"></a>与其他回收器的比较（Comparison to Other Collectors）</h1><p>这是G1和其他回收器之间主要区别的总结：</p>
+<h1 id="与其他回收器的比较"><a href="#与其他回收器的比较" class="headerlink" title="与其他回收器的比较"></a>与其他回收器的比较</h1><p>这是G1和其他回收器之间主要区别的总结：</p>
 <ul>
 <li>Parallel GC只能作为一个整体来压缩和回收老年代的空间。 G1 将这项工作逐步分布在多个更短的回收中。这大大缩短了暂停时间，但可能会降低吞吐量。</li>
 <li>与 CMS 类似，G1 并发执行部分老年代空间回收。但是，CMS 无法对老年代堆进行碎片整理，最终会导致长时间的 Full GC。</li>
@@ -1268,149 +1425,6 @@ ServerBootstrap->EventLoopGroup: register(Channel)</textarea><textarea id="seque
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2020/09/11/%E3%80%8AJava%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98%E3%80%8B%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="临江听雨">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="听雨">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/09/11/%E3%80%8AJava%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98%E3%80%8B%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">《Java并发编程实战》阅读笔记</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-09-11 12:00:00" itemprop="dateCreated datePublished" datetime="2020-09-11T12:00:00+08:00">2020-09-11</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-04-01 19:47:45" itemprop="dateModified" datetime="2021-04-01T19:47:45+08:00">2021-04-01</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%8A%80%E6%9C%AF%E6%B2%89%E6%B7%80/" itemprop="url" rel="index"><span itemprop="name">技术沉淀</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <ol>
-<li><p>（2.2.1 竞态条件）静态条件的两种场景类型：“先检查后执行（Check-Then-Act）”和“读取-修改-写入”，例如对于线程安全的Vector，当执行如下代码时：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(!vector.contains(element))</span><br><span class="line">	vector.add(element);</span><br></pre></td></tr></table></figure>
-
-<p>就存在“先检查后执行”的竞态条件。</p>
-</li>
-<li><p>（2.4 用锁来保护状态）一种常见的加锁约定是，将所有的可变状态都封装在对象内部，并通过对象的内置锁对所有访问可变状态的代码路径进行同步，使得在该对象上不会发生并发访问。换一个方式解读就是：如果存在的可变状态多于一个，并且要保证这些可变状态的修改是原子的，那么约定做法就是封装在一个类中，并且对该类进行操作时，都要先获取该类对象的内置锁。</p>
-</li>
-<li><p>（2.5　活跃性与性能）如果只有一个变量需要原子操作，那么使用<strong>Atomic*</strong>是很有用的，但是如果多个变量需要原子性操作，那么就比较适合使用同步代码块，并且取消<strong>Atomic</strong>*的使用。</p>
-</li>
-<li><p>（3.1.3　加锁与可见性）这一节有一个重要的结论：</p>
-<blockquote>
-<p><strong>加锁的含义不仅仅局限于互斥行为，还包括内存可见性</strong>。为了确保所有线程都能看到共享变量的最新值，所有执行读操作或者写操作的线程都必须在同一个锁上同步。</p>
-</blockquote>
-<p>换句话说，加锁有两层用途：互斥排他和内存可见性。而后者是大家很容易忽视的。那内存可见性的一个应用场景就是：某一个线程写，其他线程读，这种情况下不存在并发竞争，而值存在内存可见性的问题。而这种情况下，大部分都是使用<strong>volatile</strong>，这也是为什么加锁的内存可见性的用途被忽视的另外一个原因。</p>
-</li>
-<li><p>（3.2　发布与逸出）构造函数中this逸出的三种场景：</p>
-<ul>
-<li>在构造函数中new了内部匿名类，那么匿名类中就包含this指针</li>
-<li>在构造函数中启用了新的线程，并且构造后直接启动</li>
-<li>在构造函数中调用一个可改写的实例方法时（既不是私有方法，也不是终结方法）</li>
-</ul>
-</li>
-<li><p>（3.3.1　Ad-hoc线程封闭）只要你能确保只有单个线程对共享的volatile变量执行写入操作，那么就可以安全地在这些共享的volatile变量上执行“读取-修改-写入”的操作。在这种情况下，相当于将修改操作封闭在单个线程中以防止发生竞态条件，并且volatile变量的可见性保证还确保了其他线程能看到最新的值。</p>
-</li>
-<li><p>（3.5.1　不正确的发布：正确的对象被破坏）本节中的<code>AssertionError</code>异常的例子的简单解释：1、JMM规范中并没有要求对象字段的初始化要happens before与另一个线程对该对象的可见性；2、<code>if(n != n)</code>并非一个原子性操作，而需要3步操作，因此会出现第一次读取的n值和第二次读取的n值不相同的情况。而如果将对象的字段改成volatile后就能避免<code>AssertionError</code>，这是因为JMM有规范要求：volatile sore要可见于其他线程。关于本节例子的两个很好的补充解释：<a href="https://www.zhihu.com/question/264579989">知乎</a>、<a href="https://stackoverflow.com/questions/16107683/improper-publication-of-java-object-reference">StackOverflow</a></p>
-<blockquote>
-<p>由<code>if(n != n)</code>这行代码可以联想到一种并发编程易出错场景:某个函数里引用一个会被并发修改的字段，那么可能会出现在函数逻辑过程中发生变化的情况。这就引入了<code>4.1.2　依赖状态的操作</code>的内容，已经并发编程的一个基本思想：但在并发程序中，先验条件可能会由于其他线程执行的操作而变成真。在并发程序中要一直等到先验条件为真，然后再执行该操作（死循环加CAS？）。</p>
-</blockquote>
-</li>
-<li><p>（4.3.3　当委托失效时）虽然AtomicInteger是线程安全的，但经过组合得到的类却不是。也就是说，如果一个类中的字段即使都是线程安全的，但是这个类也不一定是线程安全的。当这些字段之间存在某些不变性条件时，就会导致“先检查后执行”操作的出现。而这是前面所讲的竞态条件的一种常见场景。</p>
-</li>
-<li><p>（4.3.5　示例：发布状态的车辆追踪器）注意本节的批注[1]，很重要但是很容易忽视的一个并发编程错误场景！</p>
-</li>
-<li><p>（5.1.3　隐藏迭代器）Synchronized*容器的<code>toString</code>、<code>hashCode</code>、<code>equals</code>函数会调用迭代器，因此在调用这些方法时，记得加锁，例如记录日志时或者将这些容器作为另一个容器的key或value时。这都是很容易忽视的！否则在迭代的过程中如果其他线程执行了并发增删操作，很有可能抛出<code>ConcurrentModificationException</code>。另外Synchronized*容器没有<code>putIfAbsent</code>之类的函数，如果要实现类似的<strong>检查并执行</strong>的操作，需要自己加锁！或者使用专用的并发容器，例如：ConcurrentMap</p>
-</li>
-<li><p>（5.4 阻塞方法与中断方法）当捕获到<code>InterruptedException</code>时，不要私自吞掉该异常，要么继续向上传递该异常或者干脆不不捕获该异常，要么重新恢复中断：<code>Thread.currentThread().interrupt();</code></p>
-</li>
-<li><p>（5.5 同步工具类）闭锁（CountDownLatch）：属于消耗性的只减不增的递减计数器，计时器为零时解锁；FutureTask：属于特殊的二元闭锁，运行中时阻塞，运行结束时解锁；信号量（Semaphore）：属于池化的计数器，可赠可减，当池中计数器为0时阻塞，可以用任何容器加Semphore组合为有界容器。栅栏（CyclicBarrier）：可以复用的递增计数器，初始化时，计数器为0，计数器未满时阻塞，计时器满时解锁，并且重置计数器。Exchanger：特殊的两方栅栏，任何一方都先发起交换请求，等待另一方响应后，交换达成，适用于读写线程进行无GC的缓冲交换（示例：<a href="https://www.baeldung.com/java-exchanger">baeldung</a>）。</p>
-</li>
-<li><p>（7.1.1 中断）对中断的正确理解是：它并不会真正地中断一个正在运行的线程，而是发出中断请求，然后由线程（自己决定）在下一个合适的时刻中断自己。<strong>通常，中断是实现取消的最合理方式。</strong>这句话的意思是，程序不需要自己顶一个类似volatile的cancelled的状态，并轮询检测该状态，已决定是否取消。如果采用中断的方式，那么可以调用：inerrupt()，如果线程处于阻塞中，会收到<code>InterruptedException</code>，如果处于非阻塞中，其interrupted状态会被标记。因此完整的程序框架类似于：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyThread</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    	<span class="keyword">while</span>(!Thread.currentThread().isInterrupted()) &#123;</span><br><span class="line">      	<span class="comment">//执行业务逻辑</span></span><br><span class="line">    	&#125;</span><br><span class="line">  	&#125;</span><br><span class="line">  	<span class="keyword">catch</span>(InterruptedException e) &#123;</span><br><span class="line">    	<span class="comment">//线程退出</span></span><br><span class="line">  	&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">cancel</span><span class="params">()</span> </span>&#123;interrupt();&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-<li><p>（7.1.2 中断策略）这一节有时间再继续消化！</p>
-</li>
-<li><p>（7.1.5 通过Future来实现取消）<code>Future.get(long, TimeUnit)</code>会返回4种异常，需要对这4种异常进行进行处理，特别是<code>InterruptedException</code>，不要私自吞掉！当一个Future已经完成后，再次调用cancel也不会有什么影响。</p>
-</li>
-<li><p>（7.1.7 通过newTaskFor来封装非标准的取消）这一节主要讲了一件事：如果想在执行<code>Future.cancel</code>时执行额外的操作，那么：1、集成Callable接口，实现自己的Callable；2、继承<code>ThreadPoolExecutor</code>，重写newTaskFor函数，如果发现不是自己实现的Callable，那么调用super，否则返回一个自己实现的FutureTask，这个FutureTask的cancel函数先执行自己的一些操作，然后再调用super。</p>
-</li>
-<li><p>（7.2 停止基于线程的服务）一个重要的概念：只有线程的所有者有权关闭线程，而线程池是其工作线程的所有者。</p>
-</li>
-<li><p>（8.1.1 线程饥饿死锁）在单线程的Executor中，如果任务一将任务二提交到同一个Executor，那么会导致饥饿死锁！而在多线程的Executor中，如果这种现象比较多，也可能发生死锁。因此有一条规则：不要在同一个Executor中递归提交任务。当Executor A依赖Executor B时，A的有效线程数量（有可能）实际上隐式地依赖于B的线程数量。例如某逻辑线程池使用了包含10个连接的JDBC线程池。</p>
-</li>
-<li><p>（8.2 设置线程池的大小）对于计算密集型任务，线程池的大小为<strong>CPU数量 + 1</strong>时，能实现最优利用率。而对于IO密集型线程池大小的评估公式为：<strong>CPU数量 * CPU利用率（大于等于0且小于等于1）* ( 1 + IO等待时间 / 计算时间)</strong></p>
-</li>
-<li><p>（12.3.5 无用代码的消除）在性能测试过程中，有一些技巧可以避免编译器对某些无用的代码进行消除，大致思路就是保证计算结果被使用，但是不要引入IO操作，而导致了性能偏差。下面的例子是一个很好的技巧：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(foo.x.hashCode() == System.nanoTime())</span><br><span class="line">  System.out.print(<span class="string">&quot; &quot;</span>);</span><br></pre></td></tr></table></figure>
-
-<p>这段代码绝大数情况下不会成功，即使成功，也只是输出一个空字符。</p>
-</li>
-<li><p>（14.2.2 过早唤醒）Object的内置对象锁存在一个条件队列，而唤醒这个条件队列的<strong>条件谓词</strong>可能不止一个，也就是说导致唤醒一个Object线程的条件不止是一个，因此当Object在wait后被唤醒时，仍然需要继续检测当时导致wait的同一个条件谓词，这也从另外一个角度说明了为什么要循环检测条件谓词（另外一个条件是：<a href="#spuriousWakeUp">唤醒现象的发生</a>）</p>
-</li>
-<li><p>（14.2.4 通知）<strong>每当在等待一个条件时，一定要确保在条件谓词变为真时通过某种方式发出通知。</strong>换句话说：wait和notify（notifyAll）一般都是在同一个函数内成对出现？另外由于同一个条件队列可以对应于多个条件谓词，因此尽量使用notifyAll而非notify（如果非得使用notify，需要满足两个条件：1、唯一条件谓词：条件谓词只有一个；2、单进单出：最多只能唤醒一个线程来执行，换句话说就是唤醒后，只有一个线程可以继续工作，剩下的线程会竞争失败而继续wait），否则会面临信号丢失的风险。</p>
-</li>
-<li><p>（14.2.5 示例：阀门类）这一节的例子中，generation字段可以理解为批次，用一个形象的比喻就是这个Gate前可以等待一批又一批的线程，在await函数里，当线程被notifyAll后，当且仅当门是关闭状态并且当前的批次还是自己等待时的批次，才会再次wait（如果门已经开启，或者已经换了批次，那就证明gate肯定是开过，那我必须过去！）。</p>
-</li>
-<li><p>（14.3 显示的Condition对象）与内置锁和条件队列一样，当使用显示的Lock和Condition时，也必须满足锁、条件谓词和条件变量之间的三元关系。在条件谓词中包含的变量必须有Lock来保护，并且在检查条件谓词以及调用await和signal时，必须持有Lock对象。</p>
-</li>
-<li><p>（15.3 原子变量类）原子标量类（AtomicInteg、AtomicLong、AtomicBoolean、AtomicReference）没有重新定义hashCode和equals方法，因此每一个实例都是不同的，因此也不适用于做散列容器的键值。</p>
-</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1480,7 +1494,7 @@ ServerBootstrap->EventLoopGroup: register(Channel)</textarea><textarea id="seque
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-count">15</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
