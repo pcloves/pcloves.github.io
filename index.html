@@ -182,7 +182,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-31 14:51:22" itemprop="dateModified" datetime="2022-08-31T14:51:22+08:00">2022-08-31</time>
+                <time title="修改时间：2022-08-31 16:42:01" itemprop="dateModified" datetime="2022-08-31T16:42:01+08:00">2022-08-31</time>
               </span>
 
           
@@ -262,15 +262,15 @@
 </tr>
 </thead>
 <tbody><tr>
-<td align="left"><code>-XX:+G1UseAdaptiveConcRefinement</code><br><code>-XX:G1ConcRefinementGreenZone=&lt;ergo&gt;</code><br><code>-XX:G1ConcRefinementYellowZone=&lt;ergo&gt;</code><br><code>&lt;-XX:G1ConcRefinementRedZone=&lt;ergo&gt;</code><br><code>-XX:G1ConcRefinementThreads=&lt;ergo&gt;</code></td>
+<td align="left">-XX:+G1UseAdaptiveConcRefinement<p>-XX:G1ConcRefinementGreenZone=<b>&lt;ergo&gt;</b><p>-XX:G1ConcRefinementYellowZone=<b>&lt;ergo&gt;</b><p>-XX:G1ConcRefinementRedZone=<b>&lt;ergo&gt;</b><p>-XX:G1ConcRefinementThreads=<b>&lt;ergo&gt;</b></td>
 <td align="left">记忆集并发更新（refinement）使用这些参数控制并发refinement线程的工作分配。 G1 会为这些参数进行自动推断，以使得在垃圾回收暂停中花费 <code>-XX:G1RSetUpdatingPauseTimePercent</code> 时间处理剩余的工作，并根据需要自适应调整。请谨慎更改，因为这可能会导致长时间的停顿。</td>
 </tr>
 <tr>
-<td align="left"><code>-XX:+ReduceInitialCardMarks</code></td>
+<td align="left">-XX:+ReduceInitialCardMarks</td>
 <td align="left">将初始对象分配的记忆集并发更新（refinement）进行合批处理。</td>
 </tr>
 <tr>
-<td align="left"><code>-XX:ReferencesPerThread=1000</code><br><code>-XX:+ParallelRefProcEnabled</code></td>
+<td align="left">-XX:ReferencesPerThread=1000<p>-XX:+ParallelRefProcEnabled</td>
 <td align="left"><code>-XX:ReferencesPerThread</code> 决定并行化程度：每<em>N</em>个对象引用分配1个线程，参与到Reference Processing的子阶段（线程数受<code>-XX:ParallelGCThreads</code>限制）。设置为 0 表示将始终使用 <code>-XX:ParallelGCThreads</code> 所指示的最大线程数。<br/><code>-XX:+ParallelRefProcEnabled</code>决定了 <code>java.lang.Ref.*</code> 实例的处理是否应该由多个线程并行完成。</td>
 </tr>
 <tr>
@@ -282,12 +282,12 @@
 <td align="left">这表示每隔多少个回收周期G1生成记忆集摘要报告。将此设置为0表示禁用。生成记忆集摘要报告是一项代价高昂的操作，因此仅应在必要时使用并且具有相当高的价值时，使用 <code>gc+remset=trace</code> 进行输出。</td>
 </tr>
 <tr>
-<td align="left"><code>-XX:GCTimeRatio=12</code></td>
+<td align="left">-XX:GCTimeRatio=12</td>
 <td align="left">该值代表消耗在垃圾回收上的目标时间比率公式的除数。该时间比率公式为： <code>1 / (1 + GCTimeRatio)</code>。此默认值表示大约有 8% 的时间用于垃圾收集。</td>
 </tr>
 </tbody></table>
 <blockquote>
-<p>注意： <ergo>表示实际值根据自动推断设定。</p>
+<p>注意： <code>&lt;ergo&gt;</code>表示实际值根据自动推断设定。</p>
 </blockquote>
 
       
@@ -339,7 +339,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-08-31 15:05:03" itemprop="dateModified" datetime="2022-08-31T15:05:03+08:00">2022-08-31</time>
+                <time title="修改时间：2022-08-31 16:40:08" itemprop="dateModified" datetime="2022-08-31T16:40:08+08:00">2022-08-31</time>
               </span>
 
           
@@ -438,31 +438,31 @@
 </tr>
 </thead>
 <tbody><tr>
-<td align="center"><code>-XX:MaxGCPauseMillis=200</code></td>
+<td align="center">-XX:MaxGCPauseMillis=200</td>
 <td align="center">最大暂停时间。</td>
 </tr>
 <tr>
-<td align="center"><code>-XX:GCPauseTimeInterval</code>=<em><ergo></em></td>
+<td align="center">-XX:GCPauseTimeInterval=<b>&lt;ergo&gt;</b></td>
 <td align="center">最大暂停时间的间隔。默认情况下，G1 不设置任何值，允许 G1 在极端情况下连续执行垃圾回收。</td>
 </tr>
 <tr>
-<td align="center"><code>-XX:ParallelGCThreads</code>=<em><ergo></em></td>
+<td align="center">-XX:ParallelGCThreads=<b>&lt;ergo&gt;</b></td>
 <td align="center">垃圾回收暂停期间用于并行工作的最大线程数。这是从运行 VM 的计算机的可用线程数得出的，方法如下：如果进程可用的 CPU 线程数小于或等于 8，则使用CPU线程数。否则，计算公式为：**8 + ((N - 8) * 5/8)**。<br>在每次暂停开始时，使用的最大线程数进一步受到最大总堆大小的限制：G1 使用的线程数不会超过每<code>-XX:HeapSizePerGCThread</code> 容量一个线程的数量。</td>
 </tr>
 <tr>
-<td align="center"><code>-XX:ConcGCThreads</code>=<em><ergo></em></td>
+<td align="center">-XX:ConcGCThreads=<b>&lt;ergo&gt;</b></td>
 <td align="center">用于并发工作的最大线程数。默认情况下，该值为 <code>-XX:ParallelGCThreads</code> / 4。</td>
 </tr>
 <tr>
-<td align="center">-XX:+G1UseAdaptiveIHOP<br> -XX:InitiatingHeapOccupancyPercent=45</td>
+<td align="center">-XX:+G1UseAdaptiveIHOP<p> -XX:InitiatingHeapOccupancyPercent=45</td>
 <td align="center">控制初始堆占用率的默认值，标志着自适应IHOP已打开，并且在前几个收集周期中，G1 将使用 45% 的老年代占用率作为并发标记开始阈值。</td>
 </tr>
 <tr>
-<td align="center"><code>-XX:G1HeapRegionSize=&lt;ergo&gt; </code></td>
+<td align="center">-XX:G1HeapRegionSize=<b>&lt;ergo&gt;</b></td>
 <td align="center">Region大小基于初始和最大堆的大小。堆包含大致2048个Region。Region的大小可以从1到32 MB不等，并且必须是2的幂。</td>
 </tr>
 <tr>
-<td align="center">-XX:G1NewSizePercent=5<br> -XX:G1MaxNewSizePercent=60</td>
+<td align="center">-XX:G1NewSizePercent=5<p> -XX:G1MaxNewSizePercent=60</td>
 <td align="center">年轻代的总大小，按照当前Java 堆的使用百分比，在这两个值之间变化。</td>
 </tr>
 <tr>
@@ -479,7 +479,7 @@
 </tr>
 </tbody></table>
 <blockquote>
-<p>注意：<ergo> 表示实际值根据自动推断设定。</p>
+<p>注意：<code>&lt;ergo&gt; </code>表示实际值根据自动推断设定。</p>
 </blockquote>
 <h1 id="与其他回收器的比较"><a href="#与其他回收器的比较" class="headerlink" title="与其他回收器的比较"></a>与其他回收器的比较</h1><p>这是G1和其他回收器之间主要区别的总结：</p>
 <ul>
