@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.gamedo.org","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.24.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="本文翻译自：Pixels and voxels, the long answer（已获得作者翻译许可），原文作者：Matej ‘Retro’ Jan   今年早些时候，有人在Quora上问：  像素和体素有什么区别？  这个问题很让人抓狂，相比于给出直接答案，最终我写了一篇关于这个主题的文章。 我能想到提问者为什么会问这个问题。因为我们经常会看到一些像素电影海报之类的东西，这会让人很困惑。这是一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="像素和体素，Quora上的超长解答（翻译完毕）">
+<meta property="og:url" content="https://blog.gamedo.org/2021/03/27/Pixels%20and%20voxels,%20the%20long%20answer/index.html">
+<meta property="og:site_name" content="听雨">
+<meta property="og:description" content="本文翻译自：Pixels and voxels, the long answer（已获得作者翻译许可），原文作者：Matej ‘Retro’ Jan   今年早些时候，有人在Quora上问：  像素和体素有什么区别？  这个问题很让人抓狂，相比于给出直接答案，最终我写了一篇关于这个主题的文章。 我能想到提问者为什么会问这个问题。因为我们经常会看到一些像素电影海报之类的东西，这会让人很困惑。这是一">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://miro.medium.com/max/1000/1*LNBHCTyTdmGiDc-bTGUwsA.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/575/1*1AWhdKTlJVftXJUA3LCPUw.gif">
+<meta property="og:image" content="https://miro.medium.com/max/575/1*UCXcMq6rXDhmG1eI9dcYuQ.png">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*2KZTAXHLcJeM5cCBWtkiTA.gif">
+<meta property="og:image" content="https://miro.medium.com/max/640/1*HpaeVwfgDiC9W33XNqJEtw.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*5fUTsAJEcnHlsaqYxCZBow.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/1240/1*h9mP97QFjtz0LcQSib1qgw.png">
+<meta property="og:image" content="https://miro.medium.com/max/546/1*vfDeX9HH5TGwY2cgyBuuFA.png">
+<meta property="og:image" content="https://miro.medium.com/max/500/1*XnHTPnDMHpgMcN36efrJIQ.gif">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*k-UfoL3tcZCwGNSEmNUPOQ.png">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*MTwKdk_Abppft-SYKBCi3g.png">
+<meta property="og:image" content="https://miro.medium.com/max/575/1*W_DR0YFtog8zbqiGJy0VsQ.png">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*dUgTNounfrnvMlbN0qDp7Q.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/1920/1*p-eu_ozx6toxlNr7Bgj1RA.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/552/1*1_odYAqzEskdqVEIAJ5KAw.gif">
+<meta property="og:image" content="https://miro.medium.com/max/600/1*aUXEUMD82iRPsoZFOP4F7Q.gif">
+<meta property="og:image" content="https://miro.medium.com/max/575/1*nK5jyQku62k7clN79dAPZA.png">
+<meta property="og:image" content="https://miro.medium.com/max/332/1*AjAzSEXeSHJYcXBwQW0iAA.png">
+<meta property="og:image" content="https://miro.medium.com/max/2048/1*VUHZOtYo8MMc2iJ8kobd4A.png">
+<meta property="og:image" content="https://miro.medium.com/max/4366/1*fcnzkM8n40AOTNxI_iJUzA.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*74Mg1rbGYUuZ7qaoOyZCFg.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*wYoC9rszSi9e1h27YygTXQ.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*UVsI_BkS2jdH4vKBEiKvoQ.png">
+<meta property="og:image" content="https://miro.medium.com/max/626/1*9faDWqdHY4h_DJMMeZK08A.gif">
+<meta property="og:image" content="https://miro.medium.com/max/498/1*IQ9AeaxAzVnUBwobDt4b5A.gif">
+<meta property="og:image" content="https://miro.medium.com/max/398/1*HBSWaBxOr1OYVtZ6cqDlUg.gif">
+<meta property="og:image" content="https://miro.medium.com/max/540/1*iQP61eAJmsmP6dqn9KVqjw.gif">
+<meta property="og:image" content="https://miro.medium.com/max/3800/1*l2vKyiFzTYH7Be2rK4y9JA.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/2048/1*UmWI3HGLNgcZhIceK5saMQ.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/4096/1*yhawaNDi6Z6eYcCNgGYtVQ.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/4096/1*q99B7giLhwCrZPNgV8VIJg.png">
+<meta property="og:image" content="https://miro.medium.com/max/3348/1*MrdheiQWQUl0bgj1fPahTA.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/1602/1*v7yXtviazc967KPWlZtI2A.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/2800/1*0Pno3b8BWza6pA0D-NT5hQ.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/2800/1*dAFkYZOEVJYCY0o9FcaTyA.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/3840/1*8Lr2jT1XrHfzucZn1uu9uw.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/1114/1*57B3UqvhpyIhNE-7vu514w.gif">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*6mvzo-QSSaASiqJG2PnlGA.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*qXpisZEG3e9skVbHiF_Iaw.png">
+<meta property="og:image" content="https://miro.medium.com/max/4032/1*JiwYmDCZsYLfaEogCsvmCA.png">
+<meta property="og:image" content="https://miro.medium.com/max/1600/1*uS3ct4ycv3g2XDqvHfeTzw.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/1600/1*ZyoZEu51ahTP4O5ZtbKC4A.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*fnskLoLovaRppC8l6hbwnw.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/1280/1*IG2hgOMKvhxpn1hO5kabMw.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/3840/1*lWosn7HLMsInD98VaNgSeg.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/1150/1*Knf2Vt9enb0OtHp6Z_hJfg.png">
+<meta property="og:image" content="https://miro.medium.com/max/512/1*EgF2wgiDowiPwcNzTl-w-g.gif">
+<meta property="og:image" content="https://miro.medium.com/max/575/1*MScrl43eGCknHPZovbfAhA.png">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*PsxtK0zdFMWAfwWSz_s9Jg.png">
+<meta property="og:image" content="https://miro.medium.com/max/3840/1*tJmGbaOLdNKwUVduENyJwg.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/3840/1*jnPwbv5ht_ZHfQ5C-rXZCw.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/2400/1*kmgVMyBiihueW-k0HWbgiw.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/3840/1*MPsZ2w3Ms4iSsxxXeFaTNA.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/5760/1*RolSrD_iybMwqqbAsvvxdw.png">
+<meta property="og:image" content="https://miro.medium.com/max/1150/1*b6twwj1cNKuUL8sbcBtBGg.png">
+<meta property="og:image" content="https://miro.medium.com/max/575/1*rBQJ-Z8P0MH8DIQAo0pl4Q.png">
+<meta property="og:image" content="https://miro.medium.com/max/630/1*KBunkhSbQiVLm2cSHRtVsg.png">
+<meta property="og:image" content="https://miro.medium.com/max/630/1*nxQ_uup6FSK2S30Ek985Zw.gif">
+<meta property="og:image" content="https://miro.medium.com/max/2560/1*4RoGA-8NHHwc8cBzOTU-3A.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/3840/1*2NPYuRT1CXTbHe1reB1sPA.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/1148/1*IINKznZauNM_dkyfWE_K2A.png">
+<meta property="og:image" content="https://miro.medium.com/max/5760/1*7RVKqfVRvOBVoWd1Yu5aNw.png">
+<meta property="og:image" content="https://miro.medium.com/max/2732/1*xliNhVpJFY4XWMihNyc-ZQ.png">
+<meta property="og:image" content="https://miro.medium.com/max/3068/1*LElUGGMInnIAl4QpKwuP1Q.png">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*XuYZULoFqN4lBQMqUg-zGw.gif">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*n9m8k60SVzIm1ucRDu_L9w.gif">
+<meta property="og:image" content="https://miro.medium.com/max/499/1*Y4P1wZPxIWE3d9EDsNoNYA.gif">
+<meta property="og:image" content="https://miro.medium.com/max/575/1*xd1rd2dpn487MYQZomVuNA.png">
+<meta property="og:image" content="https://miro.medium.com/max/500/1*JJgV0c2bWspdepYvvrwkBA.gif">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*ZlytGus34LUTnkBd4HoCBw.png">
+<meta property="og:image" content="https://miro.medium.com/max/440/1*ctJVU49KRTQWnXSsqgSAtw.gif">
+<meta property="og:image" content="https://miro.medium.com/max/1240/1*wIvCh0p9JyBfkfXn11DMOA.gif">
+<meta property="og:image" content="https://miro.medium.com/max/900/1*iEPNNPvKAkDc8QLK2C0T_g.gif">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*jgfDIpPSwxyJKOpqoDchLQ.png">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*IfFix_Cx770hSusMJvcPYA.gif">
+<meta property="og:image" content="https://miro.medium.com/max/700/1*xZpXOiP7mOKop-Qu1Ph8Bw.gif">
+<meta property="og:image" content="https://miro.medium.com/max/1000/1*N9-pfws3L3AWqN0Py_dibQ.png">
+<meta property="og:image" content="https://miro.medium.com/max/1000/1*9uiGuP2wuA64b_RGl8NZQg.gif">
+<meta property="og:image" content="https://miro.medium.com/max/575/1*QTwffrMXk0_MAKlt7G12LQ.png">
+<meta property="og:image" content="https://miro.medium.com/max/560/1*PtzoAgsG75O_AMicv7yERQ.gif">
+<meta property="og:image" content="https://miro.medium.com/max/1616/1*LJngMrtqdPgqKSjLSfm8jw.png">
+<meta property="og:image" content="https://miro.medium.com/max/1874/1*5ABmldgNQewjVVUP9CzUyw.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/1804/1*Vw9KC3gxePL_r6Ip18xP_g.png">
+<meta property="og:image" content="https://miro.medium.com/max/1600/1*knESI_LwZ5F7QlAKA73iLQ.gif">
+<meta property="og:image" content="https://miro.medium.com/max/575/1*eB-D_ayNoSYmTmkc_sKSDQ.png">
+<meta property="og:image" content="https://miro.medium.com/max/2560/1*3vKO2Vu5Gjl_fR9Kx_rq6A.png">
+<meta property="og:image" content="https://miro.medium.com/max/480/1*k3IpuMqtdpAiWsnDRcLWUA.gif">
+<meta property="og:image" content="https://miro.medium.com/max/480/1*ICd3fEo38Kcfvuec9Fnv5g.gif">
+<meta property="og:image" content="https://miro.medium.com/max/480/1*UVLGeiZRbShCsoApGmPTLg.gif">
+<meta property="og:image" content="https://miro.medium.com/max/2272/1*RqJKuyUx0X6WqC2-3WhCsw.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/1600/1*eolJWK2BmhCKzs4-5OkueA.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/1600/1*tmqeBESuSLsNv2ZvdfPQiw.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/1600/1*JmNXiBLIdcu5r5PNTAKusg.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/3840/1*ICzVMPvYSd08p7Pmjq3A_A.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/2164/1*e8vPqBqWmI_Nqz0EJpXEnw.jpeg">
+<meta property="og:image" content="https://miro.medium.com/max/1500/1*AIQ3ChT-s3D5GUkoMBOHog.gif">
+<meta property="og:image" content="https://miro.medium.com/max/4096/1*hDy95QLrE_HEX1GszB7ukw.jpeg">
+<meta property="article:published_time" content="2021-03-27T06:20:00.000Z">
+<meta property="article:modified_time" content="2025-08-12T06:47:53.988Z">
+<meta property="article:author" content="临江听雨">
+<meta property="article:tag" content="翻译">
+<meta property="article:tag" content="艺术">
+<meta property="article:tag" content="游戏美术">
+<meta property="article:tag" content="像素">
+<meta property="article:tag" content="体素">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://miro.medium.com/max/1000/1*LNBHCTyTdmGiDc-bTGUwsA.jpeg">
+
+
+<link rel="canonical" href="https://blog.gamedo.org/2021/03/27/Pixels%20and%20voxels,%20the%20long%20answer/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://blog.gamedo.org/2021/03/27/Pixels%20and%20voxels,%20the%20long%20answer/","path":"2021/03/27/Pixels and voxels, the long answer/","title":"像素和体素，Quora上的超长解答（翻译完毕）"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>像素和体素，Quora上的超长解答（翻译完毕） | 听雨</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.9.0/mermaid.min.js","integrity":"sha256-Cz7UN0EXNjgV2u/a38wg/3BNfdRRO1XtgDq93L2GqJg="}}</script>
+  <script src="/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">听雨</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%9F%A2%E9%87%8F%E5%9B%BE"><span class="nav-number">1.</span> <span class="nav-text">矢量图</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%89%E6%A0%85%E5%9B%BE"><span class="nav-number">2.</span> <span class="nav-text">光栅图</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%9F%A2%E9%87%8F%E5%9B%BE%E6%98%BE%E7%A4%BA%E5%92%8C%E6%8A%95%E5%BD%B1"><span class="nav-number">3.</span> <span class="nav-text">矢量图显示和投影</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%89%E6%A0%85%E5%8C%96"><span class="nav-number">4.</span> <span class="nav-text">光栅化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%89%E8%A7%92%E6%B5%8B%E9%87%8F"><span class="nav-number">5.</span> <span class="nav-text">三角测量</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B0%84%E7%BA%BF%E6%A3%80%E6%B5%8B"><span class="nav-number">6.</span> <span class="nav-text">射线检测</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BD%93%E7%B4%A0%E7%9A%84%E7%BB%88%E7%BB%93"><span class="nav-number">7.</span> <span class="nav-text">体素的终结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89"><span class="nav-number">8.</span> <span class="nav-text">定义</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BA%AF2D%E5%9B%BE%E5%BD%A2"><span class="nav-number">9.</span> <span class="nav-text">纯2D图形</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3D%E5%9B%BE%E5%BD%A2%E4%B8%AD%E7%9A%84%E7%BA%B9%E7%90%86"><span class="nav-number">10.</span> <span class="nav-text">3D图形中的纹理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2D%E5%9B%BE%E5%BD%A2%E4%B8%AD%E7%9A%84%E7%BA%B9%E7%90%86"><span class="nav-number">11.</span> <span class="nav-text">2D图形中的纹理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9B%9E%E5%88%B03D"><span class="nav-number">12.</span> <span class="nav-text">回到3D</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3D%E7%89%B9%E6%95%88"><span class="nav-number">13.</span> <span class="nav-text">3D特效</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BD%93%E7%B4%A0%E7%9A%84%E5%83%8F%E7%B4%A0%E9%A3%8E%E6%A0%BC"><span class="nav-number">14.</span> <span class="nav-text">体素的像素风格</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BA%AF%E7%B2%B9%E4%BD%93%E7%B4%A0"><span class="nav-number">15.</span> <span class="nav-text">纯粹体素</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">临江听雨</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/pcloves" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;pcloves" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2021/03/27/Pixels%20and%20voxels,%20the%20long%20answer/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="临江听雨">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="听雨">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="像素和体素，Quora上的超长解答（翻译完毕） | 听雨">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          像素和体素，Quora上的超长解答（翻译完毕）
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-03-27 14:20:00" itemprop="dateCreated datePublished" datetime="2021-03-27T14:20:00+08:00">2021-03-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-08-12 14:47:53" itemprop="dateModified" datetime="2025-08-12T14:47:53+08:00">2025-08-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%B8%B8%E6%88%8F%E4%BA%BA%E7%94%9F/" itemprop="url" rel="index"><span itemprop="name">游戏人生</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><blockquote>
+<p>本文翻译自：<a href="https://medium.com/retronator-magazine/pixels-and-voxels-the-long-answer-5889ecc18190">Pixels and voxels, the long answer</a>（已获得作者翻译许可），原文作者：<a href="https://medium.com/@retronator">Matej ‘Retro’ Jan</a></p>
+</blockquote>
+<hr>
+<p>今年早些时候，有人在<a href="https://www.quora.com/What-is-the-difference-between-pixel-and-voxel">Quora</a>上问：</p>
+<blockquote>
+<p><em>像素和体素有什么区别？</em></p>
+</blockquote>
+<p>这个问题很让人抓狂，相比于给出直接答案，最终我写了一篇关于这个主题的文章。</p>
+<p>我能想到提问者为什么会问这个问题。因为我们经常会看到一些像素电影海报之类的东西，这会让人很困惑。这是一个像素画呢，还是一副体素画呢？这是画的一只鸟呢，还是一架飞机呢？所有的这些疑问都会吧我们搞得非常狼狈。</p>
+<p><img src="https://miro.medium.com/max/1000/1*LNBHCTyTdmGiDc-bTGUwsA.jpeg"></p>
+<center><font size=2>我仍然无法决定是处于对怀旧游戏的热爱，（导致）我应该去看这部电影还是绝对<b>不</b>看这部电影。</font></center>
+
+<p>不用担心，你马上就会解脱了。当你读完这篇文章的时候，你就会知道关于像素、体素以及两者之间的一切。不过不用不着急，我们先吃块饼干。</p>
+<p>(这是一篇很长的文章，但我保证：你的阅读体验就像是在翻阅《Retronator》杂志，因为图片要远远多于文字。)</p>
+<hr>
+<p>我们先铺垫一点背景知识，这样就能了解全貌。在计算机中表示图形主要有两种方法：矢量图和光栅图（译者注：也称作位图，以下统称为光栅图）。</p>
+<p><img src="https://miro.medium.com/max/575/1*1AWhdKTlJVftXJUA3LCPUw.gif"></p>
+<center><font size=2>矢量图的数学精度（左）和光栅图的离散性（右）。</font></center>
+
+<p>矢量图通过数学方程式描述图像，通常用直线，曲线和形状等形式表示。相反，光栅图通过一组颜色描述图像，这些颜色被连续地放置在一个个网格中。</p>
+<p>在计算机图形学中的第二个区别是2D和3D空间上的表现。如果包含矢量图与光栅图在内，一共可以得到四个象限：</p>
+<p><img src="https://miro.medium.com/max/575/1*UCXcMq6rXDhmG1eI9dcYuQ.png"></p>
+<center><font size=2>每个人都喜欢象限</font></center>
+
+<h1 id="矢量图"><a href="#矢量图" class="headerlink" title="矢量图"></a>矢量图</h1><p>在2D矢量图中，直线或图形上的每个点都用一个包含两个分量（x和y）的矢量来描述。这就是为什么它是2D的（两个分量也即是二维）。</p>
+<p><img src="https://miro.medium.com/max/700/1*2KZTAXHLcJeM5cCBWtkiTA.gif"></p>
+<center><font size=2>这就是二维向量描述二维向量图形中所有点的方式。</font></center>
+
+<p>下面是一个被称为低多边形二维矢量图像的例子。</p>
+<p><img src="https://miro.medium.com/max/640/1*HpaeVwfgDiC9W33XNqJEtw.jpeg"></p>
+<center><font size=2>Uluru the Mighty Dreamer, Anh Tran, 2015</font></center>
+
+<p>它完全由2D多边形（在本例中为三角形）构成。术语“低多边形”是指用于制作图像的多边形数量相对较少。这使得三角形很容易被观察到。</p>
+<p>现在我们添加一个维度。在3D矢量图中，原理是相同的，但是每个矢量使用三个分量（x, y和z）。</p>
+<p>让我们看一下3D低多边形的作品。</p>
+<p><img src="https://miro.medium.com/max/700/1*5fUTsAJEcnHlsaqYxCZBow.jpeg"></p>
+<center><font size=2>Racetrack iOS Game Concept, Timothy J. Reynolds, 2013</font></center>
+
+<p>上面的艾尔斯岩（Ayers Rock）的2D图像与此处的3D赛道之间的最大区别是：可以从我们需要的任何位置查看赛道。</p>
+<p><img src="https://miro.medium.com/max/1240/1*h9mP97QFjtz0LcQSib1qgw.png"></p>
+<center><font size=2>Racetrack iOS Game Concept, Timothy J. Reynolds, 2013</font></center>
+
+<p>为了在屏幕（2D表面）上显示跑道，我们必须选择一个特定的视点并将3D几何体从该视点投影到2D。</p>
+<p><img src="https://miro.medium.com/max/546/1*vfDeX9HH5TGwY2cgyBuuFA.png"></p>
+<center><font size=2>从3D到2D的转换称为投影</font></center>
+
+<p>这也是我们获取一张特定角度2D图像的方式。</p>
+<p>但是，即使在2D中，我们也可以使用一个技巧来展示3D物体具有的体积特性——我们可以制作一个动画，围绕物体移动视点（或保持视点不变的同时旋转物体本身，如下所示）。</p>
+<p><img src="https://miro.medium.com/max/500/1*XnHTPnDMHpgMcN36efrJIQ.gif"></p>
+<center><font size=2>Wagon, Timothy J. Reynolds, 2013</font></center>
+
+<p>耶，我们可以看到它确实是3D的，并不需要3D眼镜！</p>
+<h1 id="光栅图"><a href="#光栅图" class="headerlink" title="光栅图"></a>光栅图</h1><p>刚刚只是一个热身。搞定矢量图后，我们看看光栅图如何处理2D和3D。</p>
+<p>在2D光栅图中，图像被分成若干大小相等的行和列：</p>
+<p><img src="https://miro.medium.com/max/700/1*k-UfoL3tcZCwGNSEmNUPOQ.png"></p>
+<center><font size=2>Turbo Esprit Sprite, Matej ‘Retro’ Jan, 2014</font></center>
+
+<p>每个单元格称为像素（来自于图像中的一个元素）。除了包含在网格（x，y）内的2D坐标外，每个像素的主要属性是位于该坐标上的颜色。</p>
+<p>我们已经看到了低多边形矢量作品如何使用众多的多边形。如果我们在光栅图中做同样的操作（使用大量像素），我们将获得像素风格作品。</p>
+<p><img src="https://miro.medium.com/max/700/1*MTwKdk_Abppft-SYKBCi3g.png"></p>
+<center><font size=2>Turbo Esprit Sprite, Matej ‘Retro’ Jan, 2014</font></center>
+
+<p>对于2D像素作品，即使它们试图表示三维对象(Lotus Esprit或X-wing)，它们也会直接绘制到2D像素网格上。你不能像上面的3D旅行车那样旋转这个图像。同样，文章开头的艾尔斯岩（Ayers Rock）图像也不能旋转。尽管它是由多边形构成的，但它们不是被放置在3D空间，而是直接放置在2D空间。</p>
+<hr>
+<p>到目前为止，我们已经介绍了2D和3D矢量图以及2D光栅图。最后一步是3D光栅图。</p>
+<p><img src="https://miro.medium.com/max/575/1*W_DR0YFtog8zbqiGJy0VsQ.png"></p>
+<center><font size=2>前方就是激动人心的时刻！</font></center>
+
+<p>在3D光栅图中，整个体块被均匀地划分成行和列，覆盖所有三个不同的方向（上下、左右、内外）。这将三维空间划分为一个个小立方体，也称为体素（体块元素或体积像素）。每个体素由3D坐标和颜色定义。</p>
+<p>就像像素作品（这是一种精心布局的像素艺术）一样，现在我们有了体素作品，每个立方体的设计都经过了仔细的考虑。</p>
+<p><img src="https://miro.medium.com/max/700/1*dUgTNounfrnvMlbN0qDp7Q.jpeg"></p>
+<center><font size=2>星际大战场景，@Sir_Carma，2015年</font></center>
+
+<p>这很像乐高积木，你不觉得吗?</p>
+<p>需要指出的是，因为是在3D空间中，体素也可以从任何角度被观察。下面是对体素塔图因（译者注：塔图因是《星球大战》中天行者家族的故乡行星）另外一个视角的观察：</p>
+<p><img src="https://miro.medium.com/max/1920/1*p-eu_ozx6toxlNr7Bgj1RA.jpeg"></p>
+<center><font size=2>星球大战场景（另一个视角），@Sir_Carma，2015</font></center>
+
+<p>我们甚至可以做成动画！以下是 <a href="https://twitter.com/Sir_carma">Sir Carma</a>的一个体素动画角色：</p>
+<p><img src="https://miro.medium.com/max/552/1*1_odYAqzEskdqVEIAJ5KAw.gif"></p>
+<center><font size=2>骑士奔跑，Sir_Carma，2015年</font></center>
+
+<p>与2D像素角色进行比较：</p>
+<p><img src="https://miro.medium.com/max/600/1*aUXEUMD82iRPsoZFOP4F7Q.gif"></p>
+<center><font size=2>Final Element中的精灵，Glauber Kotaki，2015年</font></center>
+
+<p>你可以看到在体素作品中，动画是如何改变每个小立方体——体素的状态（颜色），而在像素作品中，颜色的变化是发生在小正方形也即像素上。</p>
+<p>现在你知道像素和体素之间的区别了（其实还有更多……哈哈，抱歉）。</p>
+<p>但是现在还不是停下来的时候。我之所以解释了矢量图&#x2F;光栅图，2D&#x2F;3D特性，是因为在现代显示器上，每种图形最终都最终显示为2D光栅图。</p>
+<p><img src="https://miro.medium.com/max/575/1*nK5jyQku62k7clN79dAPZA.png"></p>
+<p>我们在像素作品杂志中讨论这一点原因是，我们可以利用这些类型变换，使用非像素风格的资源创建现代风格的像素作品。</p>
+<p>你可能会说：“我可以用体素或3D模型制作像素作品？当然可以！巧妙的着色和渲染技术使我们能够创建独特的视觉风格，从而将像素艺术作品带入未来。</p>
+<h1 id="矢量图显示和投影"><a href="#矢量图显示和投影" class="headerlink" title="矢量图显示和投影"></a>矢量图显示和投影</h1><p>上面的图表并不完全正确。有一种方法可以直接显示2D矢量图作品，不过有一点需要注意。</p>
+<p><img src="https://miro.medium.com/max/332/1*AjAzSEXeSHJYcXBwQW0iAA.png"></p>
+<p>当你有一个2D矢量图像时，它只能直接显示在<a href="https://en.wikipedia.org/wiki/Vector_monitor">矢量显示器</a>上，如雅达利的街机游戏《Asteroids》所使用的显示器。</p>
+<p><img src="https://miro.medium.com/max/2048/1*VUHZOtYo8MMc2iJ8kobd4A.png"></p>
+<p>以下是它的实际效果（游戏邦注:这是一款在示波器上显示的类似于《asteroids》的游戏）：</p>
+<p><img src="https://miro.medium.com/max/4366/1*fcnzkM8n40AOTNxI_iJUzA.jpeg"></p>
+<center><font size=2>Space Rocks (game), Autopilot, via Wikimedia Commons [CC BY-SA 3.0]</font></center>
+
+<p>我们也可以用这种方式显示3D矢量图像（通常称为3D模型）。</p>
+<p>如前所述，3D模型首先需要投影到2D，从而生成可以在矢量显示器上显示的2D矢量图像。</p>
+<p><img src="https://miro.medium.com/max/700/1*74Mg1rbGYUuZ7qaoOyZCFg.jpeg"></p>
+<center><font size=2>VEC9, Andrew Reitano & Todd Bailey, 2013</font></center>
+
+<p>我强烈建议看一看VEC9的预告片，也要看大量的80年代的恶搞电影：</p>
+<iframe width="663" height="382" src="https://www.youtube.com/embed/rSPixmsLfn4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+<h1 id="光栅化"><a href="#光栅化" class="headerlink" title="光栅化"></a>光栅化</h1><p>如今，您很难在博物馆外找到矢量监视器。取而代之的是，我们使用由像素组成的显示器！</p>
+<p><img src="https://miro.medium.com/max/700/1*wYoC9rszSi9e1h27YygTXQ.jpeg"></p>
+<center><font size=2>RGB LCD, Luís Flávio Loureiro dos Santos, 图片来源：<a href=https://commons.wikimedia.org/wiki/File%3ALCD_RGB.jpg>Wikimedia Commons</a> [CC BY 3.0]</font></center>
+
+<p>现代LCD显示器通过打开和关闭（或介于两者之间）红色，绿色和蓝色元素来创建不同的颜色。这和在CRT（阴极射线管）时代的原理很类似，只是他们使用了三种不同类型的荧光粉类型，当受到电子束撞击时发出的是红色，绿色或蓝色的光。</p>
+<p><img src="https://miro.medium.com/max/700/1*UVsI_BkS2jdH4vKBEiKvoQ.png"></p>
+<center><font size=2>CRT phosphor dots, 图片来源：<a href=https://en.wikipedia.org/wiki/File:CRT_phosphor_dots.png>Wikimedia Commons</a> [CC-SA]</font></center>
+
+<p>那么，如果我们有一个矢量图像，并且只有一个光栅显示器来显示它，我们该怎么办呢？从2D矢量图像到2D光栅图，需要对图形进行渲染或光栅化。每个多边形（通常是三角形）被渲染成到一个像素网格中。</p>
+<p><img src="https://miro.medium.com/max/626/1*9faDWqdHY4h_DJMMeZK08A.gif"></p>
+<center><font size=2>使用采样进行光栅化, 幻灯片来源：<a href=http://acko.net/files/fullfrontal/fullfrontal/webglmath/online.html>Making WebGL Dance</a>, Steven Wittens, 2013</font></center>
+
+<p>这种机制可以扩展到在光栅显示器上渲染3D模型。首先，将3D三角形投影到2D三角形中。然后二维矢量三角形被光栅化为像素。</p>
+<p><img src="https://miro.medium.com/max/498/1*IQ9AeaxAzVnUBwobDt4b5A.gif"></p>
+<center><font size=2>星际火狐，任天堂 1993</center>
+
+<h1 id="三角测量"><a href="#三角测量" class="headerlink" title="三角测量"></a>三角测量</h1><p>那么体素要如何处理呢？如今最常见的方法是将每个体素表示为3D矢量立方体。我们通过创建一个沿体素立方体边缘放置三角形的3D模型来做到这一点。</p>
+<p><img src="https://miro.medium.com/max/398/1*HBSWaBxOr1OYVtZ6cqDlUg.gif"></p>
+<center><font size=2>世界上最激动人心的3D模型, Matej ‘Retro’ Jan, 2016</center>
+
+<p>就像之前一样，3D三角形被投射到2D图像空间中，并最终光栅化并显示为2D光栅图。</p>
+<p><img src="https://miro.medium.com/max/540/1*iQP61eAJmsmP6dqn9KVqjw.gif"></p>
+<center><font size=2>旋转立方体（技术演示）, Matej ‘Retro’ Jan, 2016</center>
+
+<p>这就是获得最常见体素艺术风格的方式，几乎只使用免费的建模工具<a href="https://ephtracy.github.io/">MagicaVoxel</a>就能搞定。</p>
+<p><img src="https://miro.medium.com/max/3800/1*l2vKyiFzTYH7Be2rK4y9JA.jpeg"></p>
+<center><font size=2>Rapunzel tower, Thibault Simar, 2016</center>
+
+<p><img src="https://miro.medium.com/max/2048/1*UmWI3HGLNgcZhIceK5saMQ.jpeg"></p>
+<center><font size=2>untitled, Argo San, 2016</center>
+
+<p><img src="https://miro.medium.com/max/4096/1*yhawaNDi6Z6eYcCNgGYtVQ.jpeg"></p>
+<center><font size=2>Pokemon Voxel, Playiku, 2016</center>
+
+<p><img src="https://miro.medium.com/max/4096/1*q99B7giLhwCrZPNgV8VIJg.png"></p>
+<center><font size=2>Cat vs Voxel, Stefan Smiljkovic, 2016</center>
+
+<p><img src="https://miro.medium.com/max/3348/1*MrdheiQWQUl0bgj1fPahTA.jpeg"></p>
+<center><font size=2>Trench Run, Gabriel de Laubier, 2015</center>
+
+<p><img src="https://miro.medium.com/max/1602/1*v7yXtviazc967KPWlZtI2A.jpeg"></p>
+<center><font size=2>Voxair balloon, Gabriel de Laubier, 2015</center>
+
+<p><img src="https://miro.medium.com/max/2800/1*0Pno3b8BWza6pA0D-NT5hQ.jpeg"></p>
+<center><font size=2>Sky Chase, Sir Carma, 2015</center>
+
+<p><img src="https://miro.medium.com/max/2800/1*dAFkYZOEVJYCY0o9FcaTyA.jpeg"></p>
+<center><font size=2>Talaak village, Sir Carma, 2016</center>
+
+<p><img src="https://miro.medium.com/max/3840/1*8Lr2jT1XrHfzucZn1uu9uw.jpeg"></p>
+<center><font size=2>Latica Cliffs, Sir Carma, 2015</center>
+
+<h1 id="射线检测"><a href="#射线检测" class="headerlink" title="射线检测"></a>射线检测</h1><p>不过没有必要采用多维数据集方法。每个体素都可以看作是三维空间中的一个点，是那个位置上的一个体块。你可以通过在2D位置放置一个(或几个)像素直接在2D空间中绘制每个体素。或者反过来——你在屏幕上取一个像素，然后查看场景中的哪个体素出现在那个位置。</p>
+<p>这种相反的方法叫做射线检测。你从视点投射一束光线到场景中，看看你击中了哪个体素。事实上，你投射了很多光线来扫过整个视野。</p>
+<p><img src="https://miro.medium.com/max/1114/1*57B3UqvhpyIhNE-7vu514w.gif"></p>
+<center><font size=2>Simple raycasting with fisheye correction, Kieff, 源自<a href=https://commons.wikimedia.org/wiki/File:Simple_raycasting_with_fisheye_correction.gif>Wikimedia Commons</a> [public domain]</center>
+
+<p>该技术由《德军总部3D》首创，它的体素是所有的房间块，所以这只是另一种呈现体素即盒子的方法。这种方式效率很高，因为你只需要在屏幕上投射一条射线就可以得到一整列像素。这使得它本质上成为一个的2D过程，这也是为什么我们有时也称这种类型的3D图形为2.5D（第三个维度是假的，因为它只允许拉伸2D表面）。</p>
+<p><img src="https://miro.medium.com/max/700/1*6mvzo-QSSaASiqJG2PnlGA.jpeg"></p>
+<center><font size=2>德军总部 3D, id Software, 1992</center>
+
+<p>我们通常不会认为《德军总部》是在绘制体素。我们必须让绘制单元足够小并且允许它们有不同的高度。这就是90年代开始使用的经典体素图形引擎的方式。</p>
+<p><img src="https://miro.medium.com/max/700/1*qXpisZEG3e9skVbHiF_Iaw.png"></p>
+<center><font size=2>Comanche: Maximum Overkill, NovaLogic, 1992</center>
+
+<p>体素最初只用于地形中。这么做的目的是简化操作，这样可以把所有的体积相关的信息就是存储在二维图像（也称为高度图）的高度信息中。</p>
+<p><img src="https://miro.medium.com/max/4032/1*JiwYmDCZsYLfaEogCsvmCA.png"></p>
+<center><font size=2>通过高度图（左）来标定体素的高度是多少（黑色表示低，白色表示高）</center>
+
+<p>将体素信息限制在高度地图上意味着你不能拥有悬垂的悬崖。不过也不得不说，地形上有非常多类似的细节，这是我们之前在游戏中都没有见过的。</p>
+<p><img src="https://miro.medium.com/max/1600/1*uS3ct4ycv3g2XDqvHfeTzw.jpeg"></p>
+<center><font size=2>Delta Force, NovaLogic, 1998</center>
+
+<p><img src="https://miro.medium.com/max/1600/1*ZyoZEu51ahTP4O5ZtbKC4A.jpeg"></p>
+<center><font size=2>Outcast, Appeal, 1999</center>
+
+<h1 id="体素的终结"><a href="#体素的终结" class="headerlink" title="体素的终结"></a>体素的终结</h1><p>射线检测并不是90年代中游戏渲染体素信息的唯一方式。也出现了其他解决方案，每一种都有自己的优势，如可破坏的地形或支持车辆和角色渲染。这可是最前沿的技术！但是具有讽刺意味的是，正是这种创造性的多样性成为该技术被终结的另外一个原因。</p>
+<p><img src="https://miro.medium.com/max/700/1*fnskLoLovaRppC8l6hbwnw.jpeg"></p>
+<center><font size=2>Vangers, K-D Lab, 1998</center>
+
+<p>时间来到2000年，图形加速卡开始普及。这些图形加速卡是用于投影和光栅化3D多边形的专用硬件（今天我们将这些芯片称为图形处理单元或GPU）。图形加速卡绘制三角形的速度非常快，但是它们能做的也仅限于此。包括射线检测在内的自定义体素渲染算法都超出了它们的能力范围。</p>
+<p><img src="https://miro.medium.com/max/1280/1*IG2hgOMKvhxpn1hO5kabMw.jpeg"></p>
+<center><font size=2>Hexplore, Doki Denki Studio, 1998</center>
+
+<p>体素引擎仍然需要在CPU（中央处理单元）中实现，但是CPU也需要处理其他内容，如物理、游戏玩法和AI。在GPU上进行图形计算的目的是将渲染剥离到专用芯片上，使渲染更快，并释放CPU去做更复杂的模拟计算。而体素引擎无法跟上多边形图形的性能，最终体素的历史终于画上了句号……</p>
+<p>直到大约十年后，一款游（译者注：《我的世界》）戏让体素的人气达到了一个全新的水平。这款游戏抛弃了旧的方法，为“体素即立方体”的方法铺设了道路。而到目前为止，这都可以用GPU进行有效地渲染，其余的都已经成为历史。</p>
+<p><img src="https://miro.medium.com/max/3840/1*lWosn7HLMsInD98VaNgSeg.jpeg"></p>
+<center><font size=2>我的世界, Mojang, 2009–present</center>
+
+<h1 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h1><p>让我们回顾一下我们学过的知识，并使用数学的方式回答最初的问题：什么是像素，什么是体素？</p>
+<blockquote>
+<p>像素是将二维空间划分为离散的、均匀（大小相等）的区域时的最小单位。</p>
+</blockquote>
+<p>每个像素都可以由两个分量的向量寻址，其中x和y都是整数。与矢量图的连续特性相比，像素空间是离散的，而矢量图的每个坐标都是一个实数（用浮点数表示）。</p>
+<blockquote>
+<p>同样，体素是将三维空间划分为离散的、均匀的区域时最小的体积单位。</p>
+</blockquote>
+<p>这就是答案。</p>
+<p>这就完了？很显然，并没有。</p>
+<p>有了这样的一般性的定义，像素和体素可以以许多不同的方式出现，我们可以创造性地将这些概念转化为不同的视觉外观。尤其是我们还可以组合了光栅图&#x2F;矢量图、2D&#x2F;3D形成四个象限。</p>
+<h1 id="纯2D图形"><a href="#纯2D图形" class="headerlink" title="纯2D图形"></a>纯2D图形</h1><p><img src="https://miro.medium.com/max/1150/1*Knf2Vt9enb0OtHp6Z_hJfg.png"></p>
+<p>在过去，如果你想在屏幕上绘制一个2D精灵，你必须直接将存储精灵颜色的内存复制到存储屏幕上显示的颜色的内存中（这种复制也被称为bit blit或bit BLT，缩写为位块传输）。今天几乎没有人像这样渲染二维图形。<a href="http://www.lexaloffle.com/pico-8.php">PICO-8</a>作为使用现代渲染技术的应用，表达了对过去的美好时光的敬意，在那时位块传输是唯一的途径。</p>
+<p><img src="https://miro.medium.com/max/512/1*EgF2wgiDowiPwcNzTl-w-g.gif"></p>
+<center><font size=2>PICO-8, Lexallofle Games (and respective authors of featured carts), 2014–present</center>
+
+<h1 id="3D图形中的纹理"><a href="#3D图形中的纹理" class="headerlink" title="3D图形中的纹理"></a>3D图形中的纹理</h1><p><img src="https://miro.medium.com/max/575/1*MScrl43eGCknHPZovbfAhA.png"></p>
+<p>如今，大多数图形引擎都是在最底层使用向量，因为GPU就是这样工作的。在这个系统中，使二维图像出现在屏幕上的主要方法是使用一种称为<em>纹理映射</em>（<em>texture mapping</em>）的技术在多边形上绘制它们。</p>
+<p>纹理是放置（或映射）到三维多边形上的2D光栅图。</p>
+<p><img src="https://miro.medium.com/max/700/1*PsxtK0zdFMWAfwWSz_s9Jg.png"></p>
+<p>这就是绝大多数3D视频游戏（以及一般的3D图像）是如何以最简单的方式创建的。</p>
+<p>例如，这是一个当我们有一个高多边形3D模型（译者注：也即是高精度模型）并向其添加高分辨率纹理时的外观：</p>
+<p><img src="https://miro.medium.com/max/3840/1*tJmGbaOLdNKwUVduENyJwg.jpeg"></p>
+<p><img src="https://miro.medium.com/max/3840/1*jnPwbv5ht_ZHfQ5C-rXZCw.jpeg"></p>
+<center><font size=2>镜之边缘：催化剂 Keyart, Per Haagensen, 2016</center>
+
+<p>因为我们使用平滑多边形着色和纹理映射，所以我们甚至不需要那么多三角形来创建好看的角色。以下是具有高分辨率纹理的低多边形3D模型：</p>
+<p><img src="https://miro.medium.com/max/2400/1*kmgVMyBiihueW-k0HWbgiw.jpeg"></p>
+<center><font size=2>Low Poly Peon, Mark Henriksen, 2015</center>
+
+<p>当我们将高分辨率纹理换成低分辨率的版本时，我们会得到一种线条类似于像素风格的低多边形3D模型：</p>
+<p><img src="https://miro.medium.com/max/3840/1*MPsZ2w3Ms4iSsxxXeFaTNA.jpeg"></p>
+<center><font size=2>Drift Stage, 2014–present (work in progress)</center>
+
+<p>最典型的例子当然是《我的世界》。虽然《我的世界》的中方块就是上文定义一节中的体素（它们是游戏中最小的，离散的体积单位），但它们有各种各样的类型，由带有像素风格纹理的低多边形模型表示。尽管它们是块状的，但其中许多都不是简单的立方体。</p>
+<p><img src="https://miro.medium.com/max/5760/1*RolSrD_iybMwqqbAsvvxdw.png"></p>
+<center><font size=2>我的世界, Mojang, 2009–present</center>
+
+<p>目前已经涵盖了所有的3D模型案例（不需要讨论高多边形模型和低分辨率纹理的组合，但如果我搞错了，请纠正我）。</p>
+<p><img src="https://miro.medium.com/max/1150/1*b6twwj1cNKuUL8sbcBtBGg.png"></p>
+<center><font size=2>镜像边缘（左上），马克思·佩恩（左下）和我的世界（右下）</center>
+
+<h1 id="2D图形中的纹理"><a href="#2D图形中的纹理" class="headerlink" title="2D图形中的纹理"></a>2D图形中的纹理</h1><p><img src="https://miro.medium.com/max/575/1*rBQJ-Z8P0MH8DIQAo0pl4Q.png"></p>
+<p>轮到2D了，当我们将纹理映射应用于2D矩形时，我们得到了常规的现代2D游戏。在今天的硬件中，每个2D图像（通常被称为精灵）都被放置在由2个三角形组成的矩形上。这两个三角形（合起来也称为四边形）通过映射到它们上的精灵进行渲染，使图像出现在它们的位置上。</p>
+<center class="half">
+  <img src="https://miro.medium.com/max/630/1*KBunkhSbQiVLm2cSHRtVsg.png"/>
+  <img src="https://miro.medium.com/max/630/1*nxQ_uup6FSK2S30Ek985Zw.gif"/>
+</center>
+
+
+<center><font size=2>角色的图像部分（左）被纹理映射到动画四边形（右） Badminton, Matej ‘Retro’ Jan, 2006</center>
+
+<p>在高分辨率图像中，这事也是非常直接……</p>
+<p><img src="https://miro.medium.com/max/2560/1*4RoGA-8NHHwc8cBzOTU-3A.jpeg"></p>
+<center><font size=2>Braid, Number None, 2008</center>
+
+<p><img src="https://miro.medium.com/max/3840/1*2NPYuRT1CXTbHe1reB1sPA.jpeg"></p>
+<center><font size=2>Limbo, Playdead, 2010</center>
+
+<p>但是对于低分辨率的像素风格纹理来说，情况就复杂了。这完全取决于我们渲染精灵的显示分辨率。</p>
+<p><img src="https://miro.medium.com/max/1148/1*IINKznZauNM_dkyfWE_K2A.png"></p>
+<center><font size=2>Braid (top-left), Path to the Sky (top-right), Kingdom (bottom-right)</center>
+
+<p>我们已经看到我们可以将像素风格纹理应用到低多边形的3D模型上，但仍然以非常高的分辨率渲染它。想一下《我的世界》：它是低多边形模型，16×16像素的低分辨率纹理，可以放在以1920×1080的显示分辨率进行渲染的场景中。</p>
+<p><img src="https://miro.medium.com/max/5760/1*7RVKqfVRvOBVoWd1Yu5aNw.png"></p>
+<center><font size=2>我的世界, Mojang, 2009–present</center>
+
+<p>同样的操作也适用于2D多边形。我们可以将像素风格图像放在2D四边形上，并将其渲染到高分辨率屏幕上，使得源图像中的每个像素覆盖显示器中的多个像素。</p>
+<p><img src="https://miro.medium.com/max/2732/1*xliNhVpJFY4XWMihNyc-ZQ.png"></p>
+<center><font size=2>Hotline Miami, Dennaton Games, 2012</center>
+
+<p>我们称之为大像素（<em>big pixel</em>）美术风格。每个精灵像素的渲染比显示器中的像素更大，所以它在图像中呈现为一个更大的正方形。</p>
+<p><img src="https://miro.medium.com/max/3068/1*LElUGGMInnIAl4QpKwuP1Q.png"></p>
+<center><font size=2>源精灵中的每个像素被渲染到3x3显示像素上, Moonman, Ben Porter, 2011–present (work in progress)</center>
+
+<p>当精灵旋转或倾斜时，大像素风格会比较明显：</p>
+<p><img src="https://miro.medium.com/max/700/1*XuYZULoFqN4lBQMqUg-zGw.gif"></p>
+<center><font size=2>Path to the Sky, Johannes ‘Dek’ Märtterer, 2011–present (work in progress)</center>
+
+<p>观察上图的树叶，并且和下面以低分辨率渲染的旋转精灵进行比较：</p>
+<p><img src="https://miro.medium.com/max/700/1*n9m8k60SVzIm1ucRDu_L9w.gif"></p>
+<center><font size=2>Kingdom, Noio & Licorice, 2015</center>
+
+<p>你看到水车的像素是如何水平&#x2F;垂直对齐的，而在《Path to the Sky》中，树叶、小鸟和桥的“大像素”是如何倾斜和转换的了吗？（译者注：注意观察倾斜时的树叶，会发现锯齿感明显要小）</p>
+<p>《Kingdom》通过低分辨率渲染游戏，然后将渲染后的图像放大到显示分辨率来实现这一目标。而《Path to the Sky》、《Hotline Miami》和《Moonman》则将精灵直接渲染到高分辨率的屏幕上。</p>
+<p><img src="https://miro.medium.com/max/499/1*Y4P1wZPxIWE3d9EDsNoNYA.gif"></p>
+<h1 id="回到3D"><a href="#回到3D" class="headerlink" title="回到3D"></a>回到3D</h1><p>《Kingdom》是一个2D游戏，但是它的制作方法也可以被延伸到3D中。</p>
+<p><img src="https://miro.medium.com/max/575/1*xd1rd2dpn487MYQZomVuNA.png"></p>
+<p>我们也可以使用像素风格材质的3D模型，但是将其渲染到低分辨率上，类似这样：</p>
+<p><img src="https://miro.medium.com/max/500/1*JJgV0c2bWspdepYvvrwkBA.gif"></p>
+<center><font size=2>Pixel Art Academy tech demo, Matej ‘Retro’ Jan, 2016</center>
+
+<p>你可以看到我们可以得到有正确3D阴影投影的着色。尽管看起来像是某种2D像素风格，但实际上却是使用了像素风格纹理且低分辨率渲染的3D场景：</p>
+<p><img src="https://miro.medium.com/max/700/1*ZlytGus34LUTnkBd4HoCBw.png"></p>
+<center><font size=2>Pixel Art Academy tech demo (scene view), Matej ‘Retro’ Jan, 2016</center>
+
+<p>基于矢量的动画（使用绑定）也可以利用这一点。以下是它们在大像素风格下的样子：</p>
+<p><img src="https://miro.medium.com/max/440/1*ctJVU49KRTQWnXSsqgSAtw.gif"></p>
+<center><font size=2>Animation rig with reference, Matej ‘Retro’ Jan, 2016</center>
+
+<p>但当它们以低分辨率渲染时，它们看起来更像像素风格，像素风格类似于上面的《Kingdom》。</p>
+<p><img src="https://miro.medium.com/max/1240/1*wIvCh0p9JyBfkfXn11DMOA.gif"></p>
+<center><font size=2>Pixel Art Academy animation test, Matej ‘Retro’ Jan, 2016</center>
+
+<p>这可远远不是那种可爱的手绘的逐帧动画，但是仍然保持某种美术风格，让人想起90年代的动画。</p>
+<p><img src="https://miro.medium.com/max/900/1*iEPNNPvKAkDc8QLK2C0T_g.gif"></p>
+<center><font size=2>波斯王子, Jordan Mechner, 1989</center>
+
+<h1 id="3D特效"><a href="#3D特效" class="headerlink" title="3D特效"></a>3D特效</h1><p>回到高分辨率的话题上，Odd Tales的《The Last Night》便是一款充分利用了3D元素的游戏。</p>
+<p><img src="https://miro.medium.com/max/700/1*jgfDIpPSwxyJKOpqoDchLQ.png"></p>
+<center><font size=2>The Last Night, Odd Tales, 2014–present (work in progress)</center>
+
+<p>它们的美术资源本质上是2D的，但却被分层构建到一个3D世界中，并且使用了你所能想到的所有现代图形特效（如动态光照，全屏泛光，动态模糊，景深，电影运镜、反射等等）。</p>
+<p><img src="https://miro.medium.com/max/700/1*IfFix_Cx770hSusMJvcPYA.gif"></p>
+<center><font size=2>WIP scene from The Last Night, Tim Soret, 2016</center>
+
+<p>通过这种方式，他们构建了一个非常3D的世界，你可以从不同的角度看这个世界。</p>
+<p><img src="https://miro.medium.com/max/700/1*xZpXOiP7mOKop-Qu1Ph8Bw.gif"></p>
+<center><font size=2>3D scene construction in The Last Night, Tim Soret, 2016</center>
+
+<p>另一个动态3D光照的例子是氛围超赞，但命运多舛的《<a href="https://www.kickstarter.com/projects/829559023/confederate-express/description">Confederate Express</a>》：</p>
+<center class="half">
+  <img src="https://miro.medium.com/max/1000/1*N9-pfws3L3AWqN0Py_dibQ.png"/>
+  <img src="https://miro.medium.com/max/1000/1*9uiGuP2wuA64b_RGl8NZQg.gif"/>
+</center>
+
+<center><font size=2>Confederate Express, Maksym Pashanin, 2013–2014 (unreleased)</center>
+
+<p>虽然美术资源仍然是2D的，但《Confederate Express》也包含了来自多个方向的阴影贴图。这些都可以通过<a href="http://www.snakehillgames.com/spritelamp/">Sprite Lamp</a>等工具进行处理，并从光源的任何位置生成精灵的平滑光照。</p>
+<h1 id="体素的像素风格"><a href="#体素的像素风格" class="headerlink" title="体素的像素风格"></a>体素的像素风格</h1><p>上述方法的问题在于，仅可以精确地对精灵进行着色，而它们所投射的阴影由于缺少必要的3D几何图形而不能正确生成。要想做到这一点，最终就必须有大量的信息。那我们就来谈谈体素吧！</p>
+<p><img src="https://miro.medium.com/max/575/1*QTwffrMXk0_MAKlt7G12LQ.png"></p>
+<p>这个方法的一个很好的例子就是最近发布的<a href="http://www.pathway-game.com/">《Pathway》</a>:</p>
+<p><img src="https://miro.medium.com/max/560/1*PtzoAgsG75O_AMicv7yERQ.gif"></p>
+<center><font size=2>Pathway, Robotality, 2016 (work in progress)</center>
+
+<p>图像看起来像是在使用像素风格的2D资源，但这些资源实际上都是有3D体积的。不像90年代的体素引擎试图尽可能地让效果起来很现代和真实，开发者Robotality不需要做额外的工作，他只需要将体素匹配到显示像素的大小。这样子很巧妙地创造了一个看起来像像素风格的假象，但是在幕后，他们包含完整的3D信息来创建正确的动态光照。</p>
+<p>使用体素来创造像素风格并不是一种很新的方法。这方面的先驱是使用了被叫做trixels（3D像素）的<a href="http://fezgame.com/">FEZ</a>。而trixels只是一组由16×16×16 triles（3d贴图）的组合。</p>
+<center class="half">
+  <img src="https://miro.medium.com/max/1616/1*LJngMrtqdPgqKSjLSfm8jw.png" width=400/>
+  <img src="https://miro.medium.com/max/1874/1*5ABmldgNQewjVVUP9CzUyw.jpeg" width=400/>
+</center>
+
+<center><font size=2>Development screenshots from FEZ, Polytron, 2007</center>
+
+<p>当FEZ场景在游戏中渲染时，通常会使用2D正交投影，这是它们实现传统像素风格的方式，但是也允许进行FEZ风格的旋转。</p>
+<p><img src="https://miro.medium.com/max/1804/1*Vw9KC3gxePL_r6Ip18xP_g.png"></p>
+<center><font size=2>FEZ GDC ’09 trailer, Polytron Corporation, 2009</center>
+
+<p><img src="https://miro.medium.com/max/1600/1*knESI_LwZ5F7QlAKA73iLQ.gif"></p>
+<center><font size=2>FEZ, Polytron Corporation, 2012</center>
+
+<h1 id="纯粹体素"><a href="#纯粹体素" class="headerlink" title="纯粹体素"></a>纯粹体素</h1><p>最后，转了一圈后我们回到了体素，所以我们可以抛开像素风格不谈，只在3D空间中渲染纯粹的、离散的体素（使用没有任何纹理的立方体）。</p>
+<p><img src="https://miro.medium.com/max/575/1*eB-D_ayNoSYmTmkc_sKSDQ.png"></p>
+<p>Lexallofle的<a href="http://www.lexaloffle.com/voxatron.php">Voxatron</a>正是这个领域的主角。</p>
+<p><img src="https://miro.medium.com/max/2560/1*3vKO2Vu5Gjl_fR9Kx_rq6A.png"></p>
+<center><font size=2>Voxatron, Lexallofle Games, 2010–present (work in progress)</center>
+
+<p>您是否注意到Lexallofle的虚拟控制台中的主题？（译者注：这句不知道怎么翻译，原文为：Do you notice a theme in Lexallofle’s virtual consoles?）Pico-8具有纯2D的图形引擎，而对于3D体素，Voxatron也是如此。他们真是完美的伴侣。</p>
+<center class="half">
+  <img src="https://miro.medium.com/max/480/1*k3IpuMqtdpAiWsnDRcLWUA.gif" width=300/>
+  <img src="https://miro.medium.com/max/480/1*ICd3fEo38Kcfvuec9Fnv5g.gif" width=300/>
+  <img src="https://miro.medium.com/max/480/1*UVLGeiZRbShCsoApGmPTLg.gif" width=300/>
+</center>
+
+<center><font size=2>Voxatron, Lexallofle Games, 2010–present (work in progress)</center>
+
+<p>Voxatron是为数不多的（如果不是唯一的话）在3D离散空间内使用纯粹体素的示例之一。但是它有一个类似于2D下的大像素风格的兄弟，在许多游戏中都占有一席之地，尤其是在移动领域。</p>
+<p><img src="https://miro.medium.com/max/2272/1*RqJKuyUx0X6WqC2-3WhCsw.jpeg"></p>
+<center><font size=2>Crossy Road, Hipster Whale, 2014</center>
+
+<center class="half">
+  <img src="https://miro.medium.com/max/1600/1*eolJWK2BmhCKzs4-5OkueA.jpeg" width=300/>
+  <img src="https://miro.medium.com/max/1600/1*tmqeBESuSLsNv2ZvdfPQiw.jpeg" width=300/>
+  <img src="https://miro.medium.com/max/1600/1*JmNXiBLIdcu5r5PNTAKusg.jpeg" width=300/>
+</center>
+
+<center><font size=2><a href=http://shootyskies.com>Shooty Skies</a>, Mighty Games, 2016</center>
+
+<p><img src="https://miro.medium.com/max/3840/1*ICzVMPvYSd08p7Pmjq3A_A.jpeg"></p>
+<center><font size=2><a href=https://www.bandainamcoent.eu/pac-man-256>PAC-MAN 256</a>, Hipster Whale, 2015</center>
+
+<p>绕了一圈后让我们再次回到<a href="https://twitter.com/Sir_carma">Sir Carma</a>。在成为最知名的体素艺术家之一之后，他现在正在使用Unity将纯粹体素的美学推向更高的高度，并提供大量的视觉效果，就像是《Odd Tales》（译者注：参考上文）在像素风格中所做的那样。</p>
+<p><img src="https://miro.medium.com/max/2164/1*e8vPqBqWmI_Nqz0EJpXEnw.jpeg"></p>
+<center><font size=2>The Way Back, Sir Carma, 2016 (work in progress)</center>
+
+<p><img src="https://miro.medium.com/max/1500/1*AIQ3ChT-s3D5GUkoMBOHog.gif"></p>
+<center><font size=2>The Way Back, Sir Carma, 2016 (work in progress)</center>
+
+<p>体素风格的《塞尔达》&#x2F;《Atic Atac》？（译者注：原文为：Voxel Zelda&#x2F;Atic Atac anyone?）</p>
+<p><img src="https://miro.medium.com/max/4096/1*hDy95QLrE_HEX1GszB7ukw.jpeg"></p>
+<center><font size=2>The Way Back, Sir Carma, 2016 (work in progress)</center>
+
+<p>到目前为止，我们涵盖了我能想到的所有2D &#x2F; 3D &#x2F;光栅图&#x2F;矢量图&#x2F;低分辨率&#x2F;高分辨率的组合。我能确定我会遗漏某些细节，也确定在将来会出现更多有趣的方法，但是就目前而言，这已经足够了。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BF%BB%E8%AF%91/" rel="tag"># 翻译</a>
+              <a href="/tags/%E8%89%BA%E6%9C%AF/" rel="tag"># 艺术</a>
+              <a href="/tags/%E6%B8%B8%E6%88%8F%E7%BE%8E%E6%9C%AF/" rel="tag"># 游戏美术</a>
+              <a href="/tags/%E5%83%8F%E7%B4%A0/" rel="tag"># 像素</a>
+              <a href="/tags/%E4%BD%93%E7%B4%A0/" rel="tag"># 体素</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/03/26/netty%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="prev" title="netty源码学习笔记">
+                  <i class="fa fa-angle-left"></i> netty源码学习笔记
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/04/01/%E5%83%8F%E7%B4%A0%E7%94%BB%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="next" title="像素画学习笔记">
+                  像素画学习笔记 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">临江听雨</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

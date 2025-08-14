@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.gamedo.org","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.24.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="OAuth2认证（记忆法则：3次302） 用户请求登录（第1次302）： 用户在你的应用中点击“使用GitHub登录”，本例为：**&#x2F;login** Vert.x 服务器（通过 OAuth2AuthHandler）响应用户的浏览器，发送一个 HTTP 302 重定向响应，其location为OAuth2服务器地址。 Location Header 指向 GitHub 的授权页面，并附带">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vert.x OAuth2认证">
+<meta property="og:url" content="https://blog.gamedo.org/2025/07/01/Vert.x%20OAuth2%E8%AE%A4%E8%AF%81/index.html">
+<meta property="og:site_name" content="听雨">
+<meta property="og:description" content="OAuth2认证（记忆法则：3次302） 用户请求登录（第1次302）： 用户在你的应用中点击“使用GitHub登录”，本例为：**&#x2F;login** Vert.x 服务器（通过 OAuth2AuthHandler）响应用户的浏览器，发送一个 HTTP 302 重定向响应，其location为OAuth2服务器地址。 Location Header 指向 GitHub 的授权页面，并附带">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-07-01T09:50:00.000Z">
+<meta property="article:modified_time" content="2025-08-13T10:04:49.384Z">
+<meta property="article:author" content="临江听雨">
+<meta property="article:tag" content="源码阅读">
+<meta property="article:tag" content="vert.x">
+<meta property="article:tag" content="笔记">
+<meta property="article:tag" content="obsidian">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://blog.gamedo.org/2025/07/01/Vert.x%20OAuth2%E8%AE%A4%E8%AF%81/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://blog.gamedo.org/2025/07/01/Vert.x%20OAuth2%E8%AE%A4%E8%AF%81/","path":"2025/07/01/Vert.x OAuth2认证/","title":"Vert.x OAuth2认证"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Vert.x OAuth2认证 | 听雨</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.9.0/mermaid.min.js","integrity":"sha256-Cz7UN0EXNjgV2u/a38wg/3BNfdRRO1XtgDq93L2GqJg="}}</script>
+  <script src="/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">听雨</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#OAuth2%E8%AE%A4%E8%AF%81%EF%BC%88%E8%AE%B0%E5%BF%86%E6%B3%95%E5%88%99%EF%BC%9A3%E6%AC%A1302%EF%BC%89"><span class="nav-number">1.</span> <span class="nav-text">OAuth2认证（记忆法则：3次302）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="nav-number">2.</span> <span class="nav-text">流程图</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">临江听雨</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/pcloves" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;pcloves" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2025/07/01/Vert.x%20OAuth2%E8%AE%A4%E8%AF%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="临江听雨">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="听雨">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Vert.x OAuth2认证 | 听雨">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Vert.x OAuth2认证
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-07-01 17:50:00" itemprop="dateCreated datePublished" datetime="2025-07-01T17:50:00+08:00">2025-07-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-08-13 18:04:49" itemprop="dateModified" datetime="2025-08-13T18:04:49+08:00">2025-08-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF%E6%B2%89%E6%B7%80/" itemprop="url" rel="index"><span itemprop="name">技术沉淀</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="OAuth2认证（记忆法则：3次302）"><a href="#OAuth2认证（记忆法则：3次302）" class="headerlink" title="OAuth2认证（记忆法则：3次302）"></a>OAuth2认证（记忆法则：3次302）</h1><ol>
+<li><strong>用户请求登录（第1次302）</strong>：<ul>
+<li>用户在你的应用中点击“使用GitHub登录”，本例为：**&#x2F;login**</li>
+<li>Vert.x 服务器（通过 <code>OAuth2AuthHandler</code>）响应用户的浏览器，发送一个 <strong>HTTP 302 重定向</strong>响应，其location为<strong>OAuth2</strong>服务器地址。</li>
+<li><code>Location</code> Header 指向 GitHub 的授权页面，并附带 <code>client_id</code> 和 <code>redirect_uri</code> (<code>http://localhost:8888/callback</code>) 等参数。</li>
+</ul>
+</li>
+<li><strong>用户在GitHub授权</strong>：<ul>
+<li>用户的浏览器跳转到 GitHub 网站。</li>
+<li>用户输入用户名密码，并点击“授权”，同意让你的应用访问其信息。</li>
+</ul>
+</li>
+<li><strong>GitHub重定向回你的应用（第2次302跳转）</strong>：<ul>
+<li>GitHub 的服务器在用户授权后，并<strong>不会直接调用</strong>你的服务器。</li>
+<li>它会向用户的<strong>浏览器</strong>发送一个 <strong>HTTP 302 重定向</strong>响应。</li>
+<li>这个响应的 <code>Location</code> Header 就是你在第一步中提供的回调URL，并且附加上了授权码 <code>code</code> 和一个 <code>state</code> 值，例如：<a href="http://localhost:8888/callback?code=ABCDEFG&state=HIJKLMNOP%60%E3%80%82">http://localhost:8888/callback?code=ABCDEFG&state=HIJKLMNOP</a></li>
+</ul>
+</li>
+<li><strong>浏览器发起回调请求</strong>：<ul>
+<li>用户的<strong>浏览器</strong>收到这个 302 响应后，会立即根据 <code>Location</code> Header 的指示，向 <code>http://localhost:8888/callback?code=...</code> <strong>发起一个新的GET请求</strong>。</li>
+<li>所以，最终是用户的浏览器，而不是 GitHub 的服务器，向你的 Vert.x 应用发起了 <code>/callback</code> 请求。</li>
+</ul>
+</li>
+<li><strong>你的服务器处理回调（第3次302）</strong>：<ul>
+<li>你的 Vert.x 应用收到来自浏览器的 <code>/callback</code> 请求。</li>
+<li>后续流程就和我们之前讨论的一样了：<code>Router</code> 将这个请求交给了 <code>oauth2Handler</code> 设置的内部处理器。</li>
+<li>这个处理器从 URL 中提取 <code>code</code>，然后在<strong>后台</strong>（服务器到服务器的通信）向 GitHub 的 API 发送请求，用 <code>code</code> 换取最终的 <code>access_token</code></li>
+<li>向用户的<strong>浏览器</strong>发送一个 <strong>HTTP 302 重定向</strong>响应，location为：&#x2F;login（也即第1次请求的路径）。</li>
+</ul>
+</li>
+<li><strong>浏览器继续发起登录请求</strong><ul>
+<li>进入到用户路由<strong>Handler</strong></li>
+</ul>
+</li>
+</ol>
+<h1 id="流程图"><a href="#流程图" class="headerlink" title="流程图"></a>流程图</h1><pre>
+<code class="mermaid">
+sequenceDiagram
+%% 时序图例子,-&gt; 直线，--&gt;虚线，-&gt;&gt;实线箭头
+    participant 浏览器
+    participant OAuth2AuthHandlerImpl
+    participant OAuth2AuthProviderImpl
+    participant OAuth2API
+    participant GitHub
+    Note over OAuth2AuthHandlerImpl,OAuth2API: Vert.x OAuth2框架
+    浏览器 -&gt;&gt; OAuth2AuthHandlerImpl: &#x2F;login
+	Note over 浏览器,OAuth2AuthHandlerImpl: http:&#x2F;&#x2F;localhost:8888&#x2F;login
+    loop ctx.user()为空
+        OAuth2AuthHandlerImpl --&gt;&gt; OAuth2AuthHandlerImpl: HttpException(302, redirect_url)
+        OAuth2AuthHandlerImpl --&gt;&gt; OAuth2AuthHandlerImpl: session.put(&quot;state&quot;, wj9awH9D)
+        OAuth2AuthHandlerImpl -&gt;&gt; 浏览器: http status: 302
+        Note over 浏览器,OAuth2AuthHandlerImpl: location:&lt;br&#x2F;&gt;https:&#x2F;&#x2F;github.com&#x2F;login&#x2F;oauth&#x2F;authorize?&lt;br&#x2F;&gt;redirect_uri&#x3D;http:&#x2F;&#x2F;localhost:8888&#x2F;callback&amp;&lt;br&#x2F;&gt;state&#x3D;wj9awH9D&amp;response_type&#x3D;code&amp;&lt;br&#x2F;&gt;client_id&#x3D;xxx
+    end
+    浏览器 -&gt;&gt; GitHub: https:&#x2F;&#x2F;github.com&#x2F;login&#x2F;oauth&#x2F;authorize?redirect_uri&#x3D;http:&#x2F;&#x2F;localhost:8888&#x2F;callback&amp;state&#x3D;wj9awH9D&amp;response_type&#x3D;code&amp;client_id&#x3D;xxx
+    Note over 浏览器,GitHub: 用户在GitHub登录并授权
+    GitHub -&gt;&gt; 浏览器: http status: 302
+    Note over 浏览器,GitHub: http:&#x2F;&#x2F;localhost:8888&#x2F;callback?code&#x3D;172376f83cd7cd78f6d3&amp;state&#x3D;wj9awH9D
+    浏览器 -&gt;&gt; OAuth2AuthHandlerImpl: &#x2F;callback
+    Note over 浏览器,OAuth2AuthHandlerImpl: http:&#x2F;&#x2F;localhost:8888&#x2F;callback?&lt;br&#x2F;&gt;code&#x3D;172376f83cd7cd78f6d3&amp;&lt;br&#x2F;&gt;state&#x3D;wj9awH9D
+    OAuth2AuthHandlerImpl -&gt;&gt; OAuth2AuthHandlerImpl: callback.handler
+    OAuth2AuthHandlerImpl --&gt;&gt; OAuth2AuthHandlerImpl: check state &amp;&amp; session.remove(&quot;state&quot;)
+    Note over OAuth2AuthHandlerImpl,OAuth2AuthHandlerImpl: 防止重放攻击
+    OAuth2AuthHandlerImpl -&gt;&gt; OAuth2AuthProviderImpl: authProvider.authenticate
+    OAuth2AuthProviderImpl -&gt;&gt; OAuth2API: api.token(grantType, params)
+    OAuth2API -&gt;&gt; GitHub: POST &#x2F;login&#x2F;oauth&#x2F;access_token
+    Note over OAuth2API,GitHub: header&lt;br&#x2F;&gt;User-Agent : vertx-auth-oauth2&lt;br&#x2F;&gt;Accept : application&#x2F;json,...&lt;br&#x2F;&gt;Content-Type : application&#x2F;x-www-form-urlencoded
+    GitHub -&gt;&gt; OAuth2AuthHandlerImpl: response
+    Note over GitHub, OAuth2AuthHandlerImpl: {&quot;access_token&quot; :&quot;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&quot;,&lt;br&#x2F;&gt;  &quot;token_type&quot; : &quot;bearer&quot;,&lt;br&#x2F;&gt;  &quot;scope&quot; : &quot;user:email&quot;}
+    OAuth2AuthHandlerImpl -&gt;&gt; OAuth2AuthHandlerImpl: session.regenerateId()
+    OAuth2AuthHandlerImpl -&gt;&gt; 浏览器: http status 302
+    Note over OAuth2AuthHandlerImpl, 浏览器: cache-control : no-cache, no-store, must-revalidate&lt;br&#x2F;&gt;expires : 0&lt;br&#x2F;&gt;location : &#x2F;login&lt;br&#x2F;&gt;set-cookie : vertx-web.session&#x3D;dfdxxxx950bfe1ac580
+	loop ctx.user()不为空
+	    浏览器 -&gt;&gt; OAuth2AuthHandlerImpl: &#x2F;login
+	    Note over 浏览器,OAuth2AuthHandlerImpl: vertx-web.session : dfdxxxx950bfe1ac580
+	    OAuth2AuthHandlerImpl -&gt;&gt; OAuth2AuthHandlerImpl: postAuthentication(ctx)
+	    OAuth2AuthHandlerImpl -&gt;&gt; OAuth2AuthHandlerImpl: 检查用户的scope是否满足路由的scope
+	    OAuth2AuthHandlerImpl -&gt;&gt; OAuth2AuthHandlerImpl: ctx.next()继续流转到用户路由
+	end
+</code>
+</pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" rel="tag"># 源码阅读</a>
+              <a href="/tags/vert-x/" rel="tag"># vert.x</a>
+              <a href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag"># 笔记</a>
+              <a href="/tags/obsidian/" rel="tag"># obsidian</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/01/11/%E7%AC%AC1%E9%83%A8%E5%88%86%EF%BC%9AG1%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E7%AE%80%E4%BB%8B/" rel="prev" title="[译]第一篇：G1垃圾回收器简介">
+                  <i class="fa fa-angle-left"></i> [译]第一篇：G1垃圾回收器简介
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/07/02/Vert.x%20JWT%E8%AE%A4%E8%AF%81%E5%AE%9E%E6%88%98/" rel="next" title="Vert.x JWT认证实战">
+                  Vert.x JWT认证实战 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">临江听雨</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

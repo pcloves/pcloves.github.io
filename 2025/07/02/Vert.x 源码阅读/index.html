@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.gamedo.org","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.24.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="VertxImpl sharedNetServers（Map&lt;ServerID, NetServerInternal&gt;） 解决多个Verticle实例监听同一个host和port的问题 key为ServerID，当ServerID内的host和port都相同时，代表同一个ServerID 可以参考文档：共享 TCP 服务端    线程相关ExecutorService VertxImp">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vert.x 源码阅读">
+<meta property="og:url" content="https://blog.gamedo.org/2025/07/02/Vert.x%20%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/index.html">
+<meta property="og:site_name" content="听雨">
+<meta property="og:description" content="VertxImpl sharedNetServers（Map&lt;ServerID, NetServerInternal&gt;） 解决多个Verticle实例监听同一个host和port的问题 key为ServerID，当ServerID内的host和port都相同时，代表同一个ServerID 可以参考文档：共享 TCP 服务端    线程相关ExecutorService VertxImp">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-07-02T15:09:38.000Z">
+<meta property="article:modified_time" content="2025-08-13T10:16:07.924Z">
+<meta property="article:author" content="临江听雨">
+<meta property="article:tag" content="源码阅读">
+<meta property="article:tag" content="vert.x">
+<meta property="article:tag" content="笔记">
+<meta property="article:tag" content="obsidian">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://blog.gamedo.org/2025/07/02/Vert.x%20%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://blog.gamedo.org/2025/07/02/Vert.x%20%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/","path":"2025/07/02/Vert.x 源码阅读/","title":"Vert.x 源码阅读"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Vert.x 源码阅读 | 听雨</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.9.0/mermaid.min.js","integrity":"sha256-Cz7UN0EXNjgV2u/a38wg/3BNfdRRO1XtgDq93L2GqJg="}}</script>
+  <script src="/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">听雨</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#VertxImpl"><span class="nav-number">1.</span> <span class="nav-text">VertxImpl</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E7%9B%B8%E5%85%B3"><span class="nav-number">1.1.</span> <span class="nav-text">线程相关</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ExecutorService"><span class="nav-number">1.1.1.</span> <span class="nav-text">ExecutorService</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#WorkerPool%EF%BC%88%E5%8C%85%E5%90%AB%E4%B8%80%E4%B8%AAExecutorService%E5%92%8CPoolMetrics%EF%BC%89"><span class="nav-number">1.1.2.</span> <span class="nav-text">WorkerPool（包含一个ExecutorService和PoolMetrics）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#stickyEventLoop"><span class="nav-number">1.1.3.</span> <span class="nav-text">stickyEventLoop</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ContextImpl"><span class="nav-number">2.</span> <span class="nav-text">ContextImpl</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ThreadModel"><span class="nav-number">2.0.1.</span> <span class="nav-text">ThreadModel</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#NetServerImpl"><span class="nav-number">3.</span> <span class="nav-text">NetServerImpl</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">临江听雨</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/pcloves" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;pcloves" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2025/07/02/Vert.x%20%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="临江听雨">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="听雨">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Vert.x 源码阅读 | 听雨">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Vert.x 源码阅读
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-07-02 23:09:38" itemprop="dateCreated datePublished" datetime="2025-07-02T23:09:38+08:00">2025-07-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-08-13 18:16:07" itemprop="dateModified" datetime="2025-08-13T18:16:07+08:00">2025-08-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF%E6%B2%89%E6%B7%80/" itemprop="url" rel="index"><span itemprop="name">技术沉淀</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="VertxImpl"><a href="#VertxImpl" class="headerlink" title="VertxImpl"></a>VertxImpl</h1><ul>
+<li><code>sharedNetServers（Map&lt;ServerID, NetServerInternal&gt;）</code><ul>
+<li>解决多个<code>Verticle</code>实例监听同一个<code>host</code>和<code>port</code>的问题</li>
+<li>key为<code>ServerID</code>，当ServerID内的<code>host</code>和<code>port</code>都相同时，代表同一个ServerID</li>
+<li>可以参考文档：<a href="https://vertx-china.github.io/docs/vertx-core/java/#_scaling_sharing_tcp_servers">共享 TCP 服务端</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="线程相关"><a href="#线程相关" class="headerlink" title="线程相关"></a>线程相关</h2><h3 id="ExecutorService"><a href="#ExecutorService" class="headerlink" title="ExecutorService"></a>ExecutorService</h3><ul>
+<li>VertxImpl#eventLoopGroup（EventLoopGroup）<ul>
+<li>源于transport的默认实现：<code>Transport#eventLoopGroup(int type, int nThreads, ThreadFactory threadFactory, int ioRatio)</code></li>
+<li>本质为：<code>MultiThreadIoEventLoopGroup</code>，其<code>children</code>数量为：<strong>2 * CPU核数</strong>，每个child是一个：<code>SingleThreadIoEventLoop</code></li>
+<li>线程前缀：<code>vert.x-eventloop-thread-</code></li>
+</ul>
+</li>
+<li>VertxImpl#acceptorEventLoopGroup（EventLoopGroup）<ul>
+<li>源于transport的默认实现：<code>Transport#eventLoopGroup(int type, int nThreads, ThreadFactory threadFactory, int ioRatio)</code></li>
+<li>本质为：<code>MultiThreadIoEventLoopGroup</code>，其<code>children</code>数量为：<strong>1</strong>，每个child是一个：<code>SingleThreadIoEventLoop</code></li>
+<li>线程前缀：<code>vert.x-acceptor-thread-</code></li>
+</ul>
+</li>
+<li>VertxImpl#virtualThreadExecutor（ExecutorService）<ul>
+<li>通过反射的方式获取到<code>VirtualThreadBuilder</code></li>
+<li>本质为：<code>ThreadPerTaskExecutorService</code></li>
+<li>线程前缀：<code>vert.x-virtual-thread-</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="WorkerPool（包含一个ExecutorService和PoolMetrics）"><a href="#WorkerPool（包含一个ExecutorService和PoolMetrics）" class="headerlink" title="WorkerPool（包含一个ExecutorService和PoolMetrics）"></a>WorkerPool（包含一个ExecutorService和PoolMetrics）</h3><ul>
+<li>VertxImpl#workerPool<ul>
+<li><code>ExecutorService</code>本质为：<code>ThreadPoolExecutor</code></li>
+<li>corePoolSize&#x2F;maximumPoolSize默认为：<strong>2 * CPU核数</strong></li>
+<li>当使用<code>WORKER</code>的方式部署一个<code>Verticle</code>时，如果没有指定<code>workerPoolName</code>，默认是该WorkerPool</li>
+</ul>
+</li>
+<li>VertxImpl#internalWorkerPool<ul>
+<li><code>ExecutorService</code>本质为：<code>ThreadPoolExecutor</code></li>
+<li>corePoolSize&#x2F;maximumPoolSize默认为：<strong>2 * CPU核数</strong></li>
+</ul>
+</li>
+<li>VertxImpl#virtualThreaWorkerPool<ul>
+<li><code>ExecutorService</code>本质为：ThreadPerTaskExecutorService</li>
+<li>其内部的<code>ExecutorService</code>和<code>VertxImpl#virtualThreadExecutor</code>共享同一个实例引用</li>
+</ul>
+</li>
+</ul>
+<h3 id="stickyEventLoop"><a href="#stickyEventLoop" class="headerlink" title="stickyEventLoop"></a>stickyEventLoop</h3><ul>
+<li>本质为：<code>ThreadLocal&lt;WeakReference&lt;EventLoop&gt;&gt;</code></li>
+<li>起到线程<code>亲和</code>作用，同一个线程调用<code>stickyEventLoop()</code>时，尽量返回之前的线程</li>
+<li>每次从<code>eventLoopGroup.next()</code>返回一个线程</li>
+</ul>
+<h1 id="ContextImpl"><a href="#ContextImpl" class="headerlink" title="ContextImpl"></a>ContextImpl</h1><p>当调用<code>Vertx#deployVerticle(...)</code>部署一个<code>Verticle</code>时，被<code>VertxImpl#getOrCreateContext()</code>创建，内部包含的重要变量：</p>
+<ul>
+<li><code>threadingModel（ThreadingModel）</code>：可选值为：<code>EVENT_LOOP</code>、<code>WORKER</code>、<code>VIRTUAL_THREAD</code>、<code>EXTERNAL</code></li>
+<li><code>eventLoop（EventLoopExecutor）</code>：TODO</li>
+<li><code>executor（EventExecutor）</code>：TODO</li>
+<li><code>workerPool（WorkerPool）</code>：TODO<br>根据<code>threadingModel</code>的不同，决定了<code>eventLoop</code>、<code>executor</code>、<code>workerPool</code>使用不同的线程及线程池</li>
+</ul>
+<h3 id="ThreadModel"><a href="#ThreadModel" class="headerlink" title="ThreadModel"></a>ThreadModel</h3><ul>
+<li><code>EVENT_LOOP</code><ul>
+<li><code>executor</code><ul>
+<li>本质为<code>EventLoopExecutor</code>，内部包含1个netty的<code>EventLoop（SingleThreadIoEventLoop）</code>的引用</li>
+<li>线程来自于：<code>VertxImpl#stickyEventLoop()</code>也即<code>VertxImpl#eventLoopGroup.next()</code></li>
+</ul>
+</li>
+<li><code>eventLoop</code><ul>
+<li>和<code>executor</code>共享同一个实例引用</li>
+</ul>
+</li>
+<li><code>workerPool</code><ul>
+<li>线程来自于调用函数的参数或者<code>VertxImpl#workerPool</code>（当参数为空时）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>WORKER</code><ul>
+<li><code>executor</code><ul>
+<li>本质为：<code>WorkerExecutor</code>，内部包含1个<code>WorkerPool</code>的引用</li>
+<li>线程来自于调用函数的参数或者<code>VertxImpl#workerPool</code>（当参数为空时）</li>
+</ul>
+</li>
+<li><code>eventLoop</code><ul>
+<li>同<code>EVENT_LOOP</code>下的<code>eventLoop</code></li>
+</ul>
+</li>
+<li><code>workerPool</code><ul>
+<li>当进行部署时，如果指定了<code>workerPoolName</code>，则新创建一个<code>WorkerPool</code>，否则使用默认的：<code>VertxImpl#workerPool</code></li>
+<li><code>workerPool</code>的线程池和<code>executor</code>的线程池共享同一个实例引用</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>VIRTUAL_THREAD</code><ul>
+<li><code>executor</code><ul>
+<li>本质为：<code>WorkerExecutor</code>，内部包含1个<code>WorkerPool</code>的引用</li>
+<li>线程来自于<code>VertxImpl#virtualThreaWorkerPool</code></li>
+</ul>
+</li>
+<li><code>eventLoop</code><ul>
+<li>同<code>EVENT_LOOP</code>下的<code>eventLoop</code></li>
+</ul>
+</li>
+<li><code>workerPool</code><ul>
+<li>线程来自于<code>VertxImpl#virtualThreaWorkerPool</code></li>
+<li><code>workerPool</code>的线程池和<code>executor</code>的线程池共享同一个实例引用</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="NetServerImpl"><a href="#NetServerImpl" class="headerlink" title="NetServerImpl"></a>NetServerImpl</h1><p>可以通过<code>Vertx#createNetServer</code>创建，其实例也被<code>HttpServerImpl#tcpServer</code>持有，可以内部实现基于Netty。当其<code>bind(...)</code>被调用时，并非真正执行绑定，当且仅当<code>vertx.sharedTcpServers()</code>不存在相同的绑定时，执行真正的Netty <code>Bootstrap</code>的创建及绑定操作（可以参考文档：<a href="https://vertx-china.github.io/docs/vertx-core/java/#_scaling_sharing_tcp_servers">共享 TCP 服务端</a>），主要成员包括：</p>
+<ul>
+<li><code>worker（Handler&lt;Channel&gt;）</code><ul>
+<li>当<code>Channel</code>初始化时，将channel加入到<code>NetServerImpl#channelGroup</code>中</li>
+<li>为<code>Channel</code>配置<code>Pipeline</code></li>
+</ul>
+</li>
+<li><code>listenContext（ContextInternal）</code><ul>
+<li>如果是在<code>VertxThread</code>线程（例如在<code>Verticle#start()</code>函数）中调用了<code>listen(...)</code>，则<code>listenContext</code>为当前线程（或Verticle）的Context，否则会触发<code>Vertx#getOrCreateContext</code>创建一个新的<code>Context</code></li>
+</ul>
+</li>
+<li><code>eventLoop（EventLoop）</code>：<ul>
+<li>线程来自于<code>ContextInternal#nettyEventLoop()</code>也即<code>ContextImpl#eventLoop#eventLoop</code></li>
+<li>在执行<code>bind(...)</code>操作时<code>eventLoop</code>也会被加入到<code>channelBalancer</code>的workers（被用作Netty的<code>Bootstrap</code>的<strong>子</strong><code>EventLoopGroup</code>）列表，也就是说：Verticle的线程会参与到Netty的子<code>EventLoopGroup</code>中，当一个<code>Channel</code>被创建时，Netty会从所有的子<code>EventLoopGroup</code>选择一个<code>EventLoop</code>，当进行初始化时，Vert.x会通过<code>Channel</code>身上的<code>EventLoop</code>，找到</li>
+</ul>
+</li>
+<li><code>channelGroup（ChannelGroup）</code><ul>
+<li>本质为：<code>DefaultChannelGroup</code></li>
+<li>线程来自于<code>ContextInternal#nettyEventLoop()</code>也即<code>ContextImpl#eventLoop#eventLoop</code></li>
+<li>和<code>eventLoop</code>共享同一个实例引用</li>
+<li>每一个<code>NetServerImpl</code></li>
+</ul>
+</li>
+<li><code>handler（Handler&lt;NetSocket&gt;）</code><ul>
+<li>提供给上层逻辑的回调接口，上层逻辑在调用<code>NetServer#listen</code>之前必须先赋值</li>
+<li>具体作用TODO</li>
+</ul>
+</li>
+<li><code>exceptionHandler（Handler&lt;Throwable&gt;）</code><ul>
+<li>提供给上传逻辑的回调接口，HttpServerImpl的默认实现为：<code>t -&gt; log.trace(&quot;Connection failure&quot;, t);</code></li>
+</ul>
+</li>
+<li><code>channelBalancer（ServerChannelLoadBalancer）</code><ul>
+<li>继承自<code>ChannelInitializer&lt;Channel&gt;</code>，实现<code>Channel</code>的初始化</li>
+<li>被用作Netty的<code>Bootstrap</code>的<code>childHandler</code></li>
+<li>其内部成员：<code>workers（VertxEventLoopGroup）</code>被用作Netty的<code>Bootstrap</code>的子<code>EventLoopGroup</code></li>
+</ul>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" rel="tag"># 源码阅读</a>
+              <a href="/tags/vert-x/" rel="tag"># vert.x</a>
+              <a href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag"># 笔记</a>
+              <a href="/tags/obsidian/" rel="tag"># obsidian</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/07/02/Vert.x%20JWT%E8%AE%A4%E8%AF%81%E5%AE%9E%E6%88%98/" rel="prev" title="Vert.x JWT认证实战">
+                  <i class="fa fa-angle-left"></i> Vert.x JWT认证实战
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/07/03/Vert.x%20%E7%BD%91%E7%BB%9C%E9%80%9A%E8%AE%AF%E6%9C%BA%E5%88%B6/" rel="next" title="Vert.x 网络通讯机制">
+                  Vert.x 网络通讯机制 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">临江听雨</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

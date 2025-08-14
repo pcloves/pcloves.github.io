@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.gamedo.org","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.24.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="sed命令执行时包含了若干个循环（cycle），而每个循环又包含若干个命令（command），完整的执行流程图为（图片来源）：   tips: 如果sed语法的第一个字符是“&#x2F;”，那么表示这是一个正则表达式的地址定位方式。（细品）  sed使用场景示例：  12345678910111213141516171819202122232425262728293031323334353637">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SED命令实践">
+<meta property="og:url" content="https://blog.gamedo.org/2020/05/11/SED%E5%91%BD%E4%BB%A4%E5%AE%9E%E8%B7%B5/index.html">
+<meta property="og:site_name" content="听雨">
+<meta property="og:description" content="sed命令执行时包含了若干个循环（cycle），而每个循环又包含若干个命令（command），完整的执行流程图为（图片来源）：   tips: 如果sed语法的第一个字符是“&#x2F;”，那么表示这是一个正则表达式的地址定位方式。（细品）  sed使用场景示例：  12345678910111213141516171819202122232425262728293031323334353637">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img.linux.net.cn/data/attachment/album/201811/14/190635j1ycygaxrcj1vege.png">
+<meta property="article:published_time" content="2020-05-11T14:00:00.000Z">
+<meta property="article:modified_time" content="2021-03-13T11:39:30.942Z">
+<meta property="article:author" content="临江听雨">
+<meta property="article:tag" content="SED ">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img.linux.net.cn/data/attachment/album/201811/14/190635j1ycygaxrcj1vege.png">
+
+
+<link rel="canonical" href="https://blog.gamedo.org/2020/05/11/SED%E5%91%BD%E4%BB%A4%E5%AE%9E%E8%B7%B5/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://blog.gamedo.org/2020/05/11/SED%E5%91%BD%E4%BB%A4%E5%AE%9E%E8%B7%B5/","path":"2020/05/11/SED命令实践/","title":"SED命令实践"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>SED命令实践 | 听雨</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.9.0/mermaid.min.js","integrity":"sha256-Cz7UN0EXNjgV2u/a38wg/3BNfdRRO1XtgDq93L2GqJg="}}</script>
+  <script src="/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">听雨</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">临江听雨</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/pcloves" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;pcloves" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2020/05/11/SED%E5%91%BD%E4%BB%A4%E5%AE%9E%E8%B7%B5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="临江听雨">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="听雨">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="SED命令实践 | 听雨">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SED命令实践
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-05-11 22:00:00" itemprop="dateCreated datePublished" datetime="2020-05-11T22:00:00+08:00">2020-05-11</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2021-03-13 19:39:30" itemprop="dateModified" datetime="2021-03-13T19:39:30+08:00">2021-03-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%AE%9E%E8%B7%B5%E7%BB%8F%E9%AA%8C/" itemprop="url" rel="index"><span itemprop="name">实践经验</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><ol>
+<li><p>sed命令执行时包含了若干个循环（cycle），而每个循环又包含若干个命令（command），完整的执行流程图为（<a href="https://linux.cn/article-10232-1.html">图片来源</a>）：</p>
+<p><img src="https://img.linux.net.cn/data/attachment/album/201811/14/190635j1ycygaxrcj1vege.png" alt="The Sed execution model"></p>
+</li>
+<li><p><strong>tips:</strong> 如果sed语法的第一个字符是“&#x2F;”，那么表示这是一个正则表达式的地址定位方式。（细品）</p>
+</li>
+<li><p>sed使用场景示例：</p>
+<blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3&#x27;</span> | sed <span class="string">&#x27;s/line/&quot;&amp;&quot;/g&#x27;</span> <span class="comment">#将所有的line加上双引号</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line\t1\nline\t2\nline\t3&#x27;</span> | sed -n <span class="string">&#x27;l&#x27;</span> <span class="comment">#显示文本中的控制字符</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3&#x27;</span> | sed -n <span class="string">&#x27;/1/=&#x27;</span> <span class="comment">#显示包含1的行的行号，输出：1</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 1\nline 2\nline 3&#x27;</span> | sed -n <span class="string">&#x27;$=&#x27;</span> <span class="comment">#显示总行数，输出：3</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#删除某几行文字（可以延伸到保留某几行，或删除或保留匹配的行）</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3&#x27;</span> | sed  <span class="string">&#x27;1d&#x27;</span> <span class="comment">#删除第1行</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3&#x27;</span> | sed -n <span class="string">&#x27;1!p&#x27;</span> <span class="comment">#功能同上</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#sed默认会将pattern space中的数据输出到屏幕，如果使用FLAG p，还会每次额外把current pattern space输出到屏幕，举例</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3&#x27;</span> | sed  <span class="string">&#x27;/.*/p&#x27;</span> <span class="comment">#匹配所有的字符，并且会把pattern space和current pattern space中的内容都输出到屏幕上，因此每一行文字都会重复输出两次</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3&#x27;</span> | sed -n <span class="string">&#x27;/1/p&#x27;</span> <span class="comment">#匹配包含“1”的行，但是-n选项会禁止pattern space输出到屏幕，而FLAG p又会把current pattern space中的内容都输出到屏幕上，因此屏幕上显示的是：line 1，也即实现了grep的功能。记住：option -n和command p是一家。</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#在日常工作中，经常需要使用sed进行替换（例如部署服务器时，进行模板变量的替换），而需求是屏幕上只输出被修改的行，可以使用FLAG w将修改内容输出的stdout，如下所示：</span></span><br><span class="line">☺  <span class="built_in">cat</span> 1.txt</span><br><span class="line">123</span><br><span class="line">456</span><br><span class="line">789</span><br><span class="line">zhengtongshan@DESKTOP-R7DT0R0 /mnt/e/Tetris/src/1_Branches/rtm_tetris_zhugan</span><br><span class="line">☺  sed -i <span class="string">&#x27;s/1/s/gw /dev/stdout&#x27;</span> 1.txt</span><br><span class="line">s23</span><br><span class="line">zhengtongshan@DESKTOP-R7DT0R0 /mnt/e/Tetris/src/1_Branches/rtm_tetris_zhugan</span><br><span class="line">☺  <span class="built_in">cat</span> 1.txt</span><br><span class="line">s23</span><br><span class="line">456</span><br><span class="line">789</span><br><span class="line"></span><br><span class="line"><span class="comment">#在日常工作中，会遇到将制定的两行合并为一行的情况，情景为：如果发现某行包含某个字符，则将下面一行和本行合并，如下面的例子，如果行的第一个字符为a，则将后面的一行合并过来</span></span><br><span class="line">☺  <span class="built_in">echo</span> <span class="string">&#x27;a\nb\nc\na\nb&#x27;</span>  |sed -e <span class="string">&#x27;/^a/N&#x27;</span> -e <span class="string">&#x27;s/\n//&#x27;</span></span><br><span class="line">ab</span><br><span class="line">c</span><br><span class="line">ab</span><br><span class="line"></span><br><span class="line"><span class="comment">#下面两个语句是等效的：（细品）</span></span><br><span class="line">man <span class="built_in">cp</span> | sed <span class="string">&#x27;s/copy/&#123;&amp;&#125;/w cp.txt&#x27;</span>  <span class="comment">#将man page中的〝copy〞字串加上大括号〝&#123;&#125;〞，并将current pattern space写入“cp.txt”</span></span><br><span class="line">man <span class="built_in">cp</span> | sed -n <span class="string">&#x27;s/copy/&#123;&amp;&#125;/p&#x27;</span> &gt; cp.txt</span><br><span class="line"></span><br><span class="line"><span class="comment">#多个FLAG可以叠加使用，但是和其他Linux指令一样，与文件有关的FLAG要放在最后</span></span><br><span class="line">man <span class="built_in">cp</span> | sed <span class="string">&#x27;s/copy/&#123;&amp;&#125;/Igpw cp.txt&#x27;</span> <span class="comment">#不区分大小写（FLAG I）将每行	（FLAG g）的“copy”加上大括号（Command s），将pattern space输出到屏幕（FLAG p），并将current pattern space写入文件“cp.txt”(FLAG w)</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\n\nline 2\nline 3&#x27;</span> | sed  <span class="string">&#x27;/^$/d&#x27;</span> <span class="comment">#删除空白行</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3\nline 4&#x27;</span> | sed -e <span class="string">&#x27;N&#x27;</span> -e <span class="string">&#x27;N&#x27;</span> -e <span class="string">&#x27;s/\n/+/g&#x27;</span> <span class="comment">#用两次N连续读取两个下一行（此时pattern space里有三行），然后把换行符都换成+，执行完毕后，输出为：</span></span><br><span class="line">line 1+line 2+line 3</span><br><span class="line">line 4 </span><br></pre></td></tr></table></figure>
+</blockquote>
+</li>
+<li><p>使用t label可以实现事务性的修改，比如两个替换要么同时进行，要么就都不做。</p>
+</li>
+<li><p>command n命令的流程是：1、如果没有配置地址或匹配则输出pattern space（如果不满足则跳过下一步）；2、然后读取下一行到pattern space。详情参考：<a href="https://linux.cn/article-10232-1.html">Sed 命令完全指南</a>中的<strong>次行命令</strong>一节，例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;line 1\nline 2\nline 3\nline 4\nline 5\nline 6&#x27;</span> | sed -e <span class="string">&#x27;n&#x27;</span> -e <span class="string">&#x27;n&#x27;</span> -ne <span class="string">&#x27;p&#x27;</span> <span class="comment">#当第1个n执行后，pattern space变成：line 2，当第2个n执行后，pattern space变成：line 3，然后执行p后，打印current pattern space：line 3，然后进入下一个循环，打印出：line 6，上述sed可以简写成：sed -ne &#x27;n;n;p&#x27;，此外我们发现p命令的n选项是一个全局选项，它对整个sed语句生效而不仅限于p命令自己</span></span><br></pre></td></tr></table></figure>
+
+
+</li>
+<li><p>command N、D可以实现联合多行条件判断（例如：满足某一行有ID字符串，且下面两行分别包含NAME和ADDRESS字符串，则执行删除ID行的操作），实现更复杂的操作，如果不使用command N、D，那么sed的操作仅限于行内。</p>
+</li>
+<li><p>command D为删除current pattern space的第一个字符到换行，而command P类似，只是将删除变为打印。</p>
+</li>
+<li><p>command c和s的区别在于，前者是整行替换，后者还需要指定要替换的pattern。</p>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/SED/" rel="tag"># SED </a>
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/05/11/Windows%E4%B8%8A%E6%90%AD%E5%BB%BASOCKS%E4%BB%A3%E7%90%86/" rel="prev" title="Windows上搭建SOCKS代理">
+                  <i class="fa fa-angle-left"></i> Windows上搭建SOCKS代理
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/09/11/%E3%80%8A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA%E3%80%8B%EF%BC%88%E7%AC%AC%E4%B8%89%E7%89%88%EF%BC%89%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" rel="next" title="《深入理解Java虚拟机》（第三版）阅读笔记">
+                  《深入理解Java虚拟机》（第三版）阅读笔记 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">临江听雨</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

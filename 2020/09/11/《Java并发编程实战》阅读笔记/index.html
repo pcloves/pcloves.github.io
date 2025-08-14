@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.gamedo.org","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.24.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="（2.2.1 竞态条件）静态条件的两种场景类型：“先检查后执行（Check-Then-Act）”和“读取-修改-写入”，例如对于线程安全的Vector，当执行如下代码时： 12if(!vector.contains(element))	vector.add(element);  就存在“先检查后执行”的竞态条件。  （2.4 用锁来保护状态）一种常见的加锁约定是，将所有的可变状态都封装在对象内部">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《Java并发编程实战》阅读笔记">
+<meta property="og:url" content="https://blog.gamedo.org/2020/09/11/%E3%80%8AJava%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98%E3%80%8B%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="听雨">
+<meta property="og:description" content="（2.2.1 竞态条件）静态条件的两种场景类型：“先检查后执行（Check-Then-Act）”和“读取-修改-写入”，例如对于线程安全的Vector，当执行如下代码时： 12if(!vector.contains(element))	vector.add(element);  就存在“先检查后执行”的竞态条件。  （2.4 用锁来保护状态）一种常见的加锁约定是，将所有的可变状态都封装在对象内部">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-09-11T04:00:00.000Z">
+<meta property="article:modified_time" content="2021-04-01T11:47:45.944Z">
+<meta property="article:author" content="临江听雨">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="并发编程">
+<meta property="article:tag" content="多线程">
+<meta property="article:tag" content="笔记">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://blog.gamedo.org/2020/09/11/%E3%80%8AJava%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98%E3%80%8B%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://blog.gamedo.org/2020/09/11/%E3%80%8AJava%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98%E3%80%8B%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/","path":"2020/09/11/《Java并发编程实战》阅读笔记/","title":"《Java并发编程实战》阅读笔记"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>《Java并发编程实战》阅读笔记 | 听雨</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.9.0/mermaid.min.js","integrity":"sha256-Cz7UN0EXNjgV2u/a38wg/3BNfdRRO1XtgDq93L2GqJg="}}</script>
+  <script src="/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">听雨</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">临江听雨</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/pcloves" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;pcloves" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2020/09/11/%E3%80%8AJava%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98%E3%80%8B%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="临江听雨">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="听雨">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="《Java并发编程实战》阅读笔记 | 听雨">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          《Java并发编程实战》阅读笔记
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-09-11 12:00:00" itemprop="dateCreated datePublished" datetime="2020-09-11T12:00:00+08:00">2020-09-11</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2021-04-01 19:47:45" itemprop="dateModified" datetime="2021-04-01T19:47:45+08:00">2021-04-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF%E6%B2%89%E6%B7%80/" itemprop="url" rel="index"><span itemprop="name">技术沉淀</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><ol>
+<li><p>（2.2.1 竞态条件）静态条件的两种场景类型：“先检查后执行（Check-Then-Act）”和“读取-修改-写入”，例如对于线程安全的Vector，当执行如下代码时：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(!vector.contains(element))</span><br><span class="line">	vector.add(element);</span><br></pre></td></tr></table></figure>
+
+<p>就存在“先检查后执行”的竞态条件。</p>
+</li>
+<li><p>（2.4 用锁来保护状态）一种常见的加锁约定是，将所有的可变状态都封装在对象内部，并通过对象的内置锁对所有访问可变状态的代码路径进行同步，使得在该对象上不会发生并发访问。换一个方式解读就是：如果存在的可变状态多于一个，并且要保证这些可变状态的修改是原子的，那么约定做法就是封装在一个类中，并且对该类进行操作时，都要先获取该类对象的内置锁。</p>
+</li>
+<li><p>（2.5　活跃性与性能）如果只有一个变量需要原子操作，那么使用<strong>Atomic</strong><em>是很有用的，但是如果多个变量需要原子性操作，那么就比较适合使用同步代码块，并且取消<strong>Atomic</strong></em>的使用。</p>
+</li>
+<li><p>（3.1.3　加锁与可见性）这一节有一个重要的结论：</p>
+<blockquote>
+<p><strong>加锁的含义不仅仅局限于互斥行为，还包括内存可见性</strong>。为了确保所有线程都能看到共享变量的最新值，所有执行读操作或者写操作的线程都必须在同一个锁上同步。</p>
+</blockquote>
+<p>换句话说，加锁有两层用途：互斥排他和内存可见性。而后者是大家很容易忽视的。那内存可见性的一个应用场景就是：某一个线程写，其他线程读，这种情况下不存在并发竞争，而值存在内存可见性的问题。而这种情况下，大部分都是使用<strong>volatile</strong>，这也是为什么加锁的内存可见性的用途被忽视的另外一个原因。</p>
+</li>
+<li><p>（3.2　发布与逸出）构造函数中this逸出的三种场景：</p>
+<ul>
+<li>在构造函数中new了内部匿名类，那么匿名类中就包含this指针</li>
+<li>在构造函数中启用了新的线程，并且构造后直接启动</li>
+<li>在构造函数中调用一个可改写的实例方法时（既不是私有方法，也不是终结方法）</li>
+</ul>
+</li>
+<li><p>（3.3.1　Ad-hoc线程封闭）只要你能确保只有单个线程对共享的volatile变量执行写入操作，那么就可以安全地在这些共享的volatile变量上执行“读取-修改-写入”的操作。在这种情况下，相当于将修改操作封闭在单个线程中以防止发生竞态条件，并且volatile变量的可见性保证还确保了其他线程能看到最新的值。</p>
+</li>
+<li><p>（3.5.1　不正确的发布：正确的对象被破坏）本节中的<code>AssertionError</code>异常的例子的简单解释：1、JMM规范中并没有要求对象字段的初始化要happens before与另一个线程对该对象的可见性；2、<code>if(n != n)</code>并非一个原子性操作，而需要3步操作，因此会出现第一次读取的n值和第二次读取的n值不相同的情况。而如果将对象的字段改成volatile后就能避免<code>AssertionError</code>，这是因为JMM有规范要求：volatile sore要可见于其他线程。关于本节例子的两个很好的补充解释：<a href="https://www.zhihu.com/question/264579989">知乎</a>、<a href="https://stackoverflow.com/questions/16107683/improper-publication-of-java-object-reference">StackOverflow</a></p>
+<blockquote>
+<p>由<code>if(n != n)</code>这行代码可以联想到一种并发编程易出错场景:某个函数里引用一个会被并发修改的字段，那么可能会出现在函数逻辑过程中发生变化的情况。这就引入了<code>4.1.2　依赖状态的操作</code>的内容，已经并发编程的一个基本思想：但在并发程序中，先验条件可能会由于其他线程执行的操作而变成真。在并发程序中要一直等到先验条件为真，然后再执行该操作（死循环加CAS？）。</p>
+</blockquote>
+</li>
+<li><p>（4.3.3　当委托失效时）虽然AtomicInteger是线程安全的，但经过组合得到的类却不是。也就是说，如果一个类中的字段即使都是线程安全的，但是这个类也不一定是线程安全的。当这些字段之间存在某些不变性条件时，就会导致“先检查后执行”操作的出现。而这是前面所讲的竞态条件的一种常见场景。</p>
+</li>
+<li><p>（4.3.5　示例：发布状态的车辆追踪器）注意本节的批注[1]，很重要但是很容易忽视的一个并发编程错误场景！</p>
+</li>
+<li><p>（5.1.3　隐藏迭代器）Synchronized*容器的<code>toString</code>、<code>hashCode</code>、<code>equals</code>函数会调用迭代器，因此在调用这些方法时，记得加锁，例如记录日志时或者将这些容器作为另一个容器的key或value时。这都是很容易忽视的！否则在迭代的过程中如果其他线程执行了并发增删操作，很有可能抛出<code>ConcurrentModificationException</code>。另外Synchronized*容器没有<code>putIfAbsent</code>之类的函数，如果要实现类似的<strong>检查并执行</strong>的操作，需要自己加锁！或者使用专用的并发容器，例如：ConcurrentMap</p>
+</li>
+<li><p>（5.4 阻塞方法与中断方法）当捕获到<code>InterruptedException</code>时，不要私自吞掉该异常，要么继续向上传递该异常或者干脆不不捕获该异常，要么重新恢复中断：<code>Thread.currentThread().interrupt();</code></p>
+</li>
+<li><p>（5.5 同步工具类）闭锁（CountDownLatch）：属于消耗性的只减不增的递减计数器，计时器为零时解锁；FutureTask：属于特殊的二元闭锁，运行中时阻塞，运行结束时解锁；信号量（Semaphore）：属于池化的计数器，可赠可减，当池中计数器为0时阻塞，可以用任何容器加Semphore组合为有界容器。栅栏（CyclicBarrier）：可以复用的递增计数器，初始化时，计数器为0，计数器未满时阻塞，计时器满时解锁，并且重置计数器。Exchanger：特殊的两方栅栏，任何一方都先发起交换请求，等待另一方响应后，交换达成，适用于读写线程进行无GC的缓冲交换（示例：<a href="https://www.baeldung.com/java-exchanger">baeldung</a>）。</p>
+</li>
+<li><p>（7.1.1 中断）对中断的正确理解是：它并不会真正地中断一个正在运行的线程，而是发出中断请求，然后由线程（自己决定）在下一个合适的时刻中断自己。<strong>通常，中断是实现取消的最合理方式。</strong>这句话的意思是，程序不需要自己顶一个类似volatile的cancelled的状态，并轮询检测该状态，已决定是否取消。如果采用中断的方式，那么可以调用：inerrupt()，如果线程处于阻塞中，会收到<code>InterruptedException</code>，如果处于非阻塞中，其interrupted状态会被标记。因此完整的程序框架类似于：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">MyThread</span> <span class="keyword">extends</span> <span class="title class_">Thread</span> &#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    	<span class="keyword">while</span>(!Thread.currentThread().isInterrupted()) &#123;</span><br><span class="line">      	<span class="comment">//执行业务逻辑</span></span><br><span class="line">    	&#125;</span><br><span class="line">  	&#125;</span><br><span class="line">  	<span class="keyword">catch</span>(InterruptedException e) &#123;</span><br><span class="line">    	<span class="comment">//线程退出</span></span><br><span class="line">  	&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">cancel</span><span class="params">()</span> &#123;interrupt();&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>（7.1.2 中断策略）这一节有时间再继续消化！</p>
+</li>
+<li><p>（7.1.5 通过Future来实现取消）<code>Future.get(long, TimeUnit)</code>会返回4种异常，需要对这4种异常进行进行处理，特别是<code>InterruptedException</code>，不要私自吞掉！当一个Future已经完成后，再次调用cancel也不会有什么影响。</p>
+</li>
+<li><p>（7.1.7 通过newTaskFor来封装非标准的取消）这一节主要讲了一件事：如果想在执行<code>Future.cancel</code>时执行额外的操作，那么：1、集成Callable接口，实现自己的Callable；2、继承<code>ThreadPoolExecutor</code>，重写newTaskFor函数，如果发现不是自己实现的Callable，那么调用super，否则返回一个自己实现的FutureTask，这个FutureTask的cancel函数先执行自己的一些操作，然后再调用super。</p>
+</li>
+<li><p>（7.2 停止基于线程的服务）一个重要的概念：只有线程的所有者有权关闭线程，而线程池是其工作线程的所有者。</p>
+</li>
+<li><p>（8.1.1 线程饥饿死锁）在单线程的Executor中，如果任务一将任务二提交到同一个Executor，那么会导致饥饿死锁！而在多线程的Executor中，如果这种现象比较多，也可能发生死锁。因此有一条规则：不要在同一个Executor中递归提交任务。当Executor A依赖Executor B时，A的有效线程数量（有可能）实际上隐式地依赖于B的线程数量。例如某逻辑线程池使用了包含10个连接的JDBC线程池。</p>
+</li>
+<li><p>（8.2 设置线程池的大小）对于计算密集型任务，线程池的大小为<strong>CPU数量 + 1</strong>时，能实现最优利用率。而对于IO密集型线程池大小的评估公式为：<strong>CPU数量 * CPU利用率（大于等于0且小于等于1）* ( 1 + IO等待时间 &#x2F; 计算时间)</strong></p>
+</li>
+<li><p>（12.3.5 无用代码的消除）在性能测试过程中，有一些技巧可以避免编译器对某些无用的代码进行消除，大致思路就是保证计算结果被使用，但是不要引入IO操作，而导致了性能偏差。下面的例子是一个很好的技巧：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(foo.x.hashCode() == System.nanoTime())</span><br><span class="line">  System.out.print(<span class="string">&quot; &quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这段代码绝大数情况下不会成功，即使成功，也只是输出一个空字符。</p>
+</li>
+<li><p>（14.2.2 过早唤醒）Object的内置对象锁存在一个条件队列，而唤醒这个条件队列的<strong>条件谓词</strong>可能不止一个，也就是说导致唤醒一个Object线程的条件不止是一个，因此当Object在wait后被唤醒时，仍然需要继续检测当时导致wait的同一个条件谓词，这也从另外一个角度说明了为什么要循环检测条件谓词（另外一个条件是：<a href="#spuriousWakeUp">唤醒现象的发生</a>）</p>
+</li>
+<li><p>（14.2.4 通知）<strong>每当在等待一个条件时，一定要确保在条件谓词变为真时通过某种方式发出通知。</strong>换句话说：wait和notify（notifyAll）一般都是在同一个函数内成对出现？另外由于同一个条件队列可以对应于多个条件谓词，因此尽量使用notifyAll而非notify（如果非得使用notify，需要满足两个条件：1、唯一条件谓词：条件谓词只有一个；2、单进单出：最多只能唤醒一个线程来执行，换句话说就是唤醒后，只有一个线程可以继续工作，剩下的线程会竞争失败而继续wait），否则会面临信号丢失的风险。</p>
+</li>
+<li><p>（14.2.5 示例：阀门类）这一节的例子中，generation字段可以理解为批次，用一个形象的比喻就是这个Gate前可以等待一批又一批的线程，在await函数里，当线程被notifyAll后，当且仅当门是关闭状态并且当前的批次还是自己等待时的批次，才会再次wait（如果门已经开启，或者已经换了批次，那就证明gate肯定是开过，那我必须过去！）。</p>
+</li>
+<li><p>（14.3 显示的Condition对象）与内置锁和条件队列一样，当使用显示的Lock和Condition时，也必须满足锁、条件谓词和条件变量之间的三元关系。在条件谓词中包含的变量必须有Lock来保护，并且在检查条件谓词以及调用await和signal时，必须持有Lock对象。</p>
+</li>
+<li><p>（15.3 原子变量类）原子标量类（AtomicInteg、AtomicLong、AtomicBoolean、AtomicReference）没有重新定义hashCode和equals方法，因此每一个实例都是不同的，因此也不适用于做散列容器的键值。</p>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"># Java</a>
+              <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag"># 并发编程</a>
+              <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag"># 多线程</a>
+              <a href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag"># 笔记</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/09/11/%E3%80%8A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA%E3%80%8B%EF%BC%88%E7%AC%AC%E4%B8%89%E7%89%88%EF%BC%89%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" rel="prev" title="《深入理解Java虚拟机》（第三版）阅读笔记">
+                  <i class="fa fa-angle-left"></i> 《深入理解Java虚拟机》（第三版）阅读笔记
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/12/06/AQS%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" rel="next" title="AQS源码阅读笔记">
+                  AQS源码阅读笔记 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">临江听雨</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

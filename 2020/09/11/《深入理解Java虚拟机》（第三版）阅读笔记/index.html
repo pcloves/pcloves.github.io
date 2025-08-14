@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.gamedo.org","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.24.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="（2.2 运行时数据区域）jvm内存划分为5个区域，简单说就是2个堆（堆和非堆（方法区的别称））、2个栈（虚拟机栈和本地方法栈）、1个程序计数器  （2.2.5 方法区）方法区和永久代的区别在于（JDK 8以前），前者是java虚拟机规范的定义，而永久代是HotSpot虚拟机下特有的实现，且属于方法区的一部分，这么设计的目的就是为了垃圾收集器能够像管理Java堆一样管理这部分内存，省去专门为方法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《深入理解Java虚拟机》（第三版）阅读笔记">
+<meta property="og:url" content="https://blog.gamedo.org/2020/09/11/%E3%80%8A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA%E3%80%8B%EF%BC%88%E7%AC%AC%E4%B8%89%E7%89%88%EF%BC%89%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="听雨">
+<meta property="og:description" content="（2.2 运行时数据区域）jvm内存划分为5个区域，简单说就是2个堆（堆和非堆（方法区的别称））、2个栈（虚拟机栈和本地方法栈）、1个程序计数器  （2.2.5 方法区）方法区和永久代的区别在于（JDK 8以前），前者是java虚拟机规范的定义，而永久代是HotSpot虚拟机下特有的实现，且属于方法区的一部分，这么设计的目的就是为了垃圾收集器能够像管理Java堆一样管理这部分内存，省去专门为方法">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s3.ax1x.com/2021/03/08/6QaSat.png">
+<meta property="article:published_time" content="2020-09-11T04:00:00.000Z">
+<meta property="article:modified_time" content="2021-04-01T11:47:42.459Z">
+<meta property="article:author" content="临江听雨">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="并发编程">
+<meta property="article:tag" content="多线程">
+<meta property="article:tag" content="笔记">
+<meta property="article:tag" content="JVM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s3.ax1x.com/2021/03/08/6QaSat.png">
+
+
+<link rel="canonical" href="https://blog.gamedo.org/2020/09/11/%E3%80%8A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA%E3%80%8B%EF%BC%88%E7%AC%AC%E4%B8%89%E7%89%88%EF%BC%89%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://blog.gamedo.org/2020/09/11/%E3%80%8A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA%E3%80%8B%EF%BC%88%E7%AC%AC%E4%B8%89%E7%89%88%EF%BC%89%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/","path":"2020/09/11/《深入理解Java虚拟机》（第三版）阅读笔记/","title":"《深入理解Java虚拟机》（第三版）阅读笔记"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>《深入理解Java虚拟机》（第三版）阅读笔记 | 听雨</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.9.0/mermaid.min.js","integrity":"sha256-Cz7UN0EXNjgV2u/a38wg/3BNfdRRO1XtgDq93L2GqJg="}}</script>
+  <script src="/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">听雨</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">临江听雨</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/pcloves" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;pcloves" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2020/09/11/%E3%80%8A%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA%E3%80%8B%EF%BC%88%E7%AC%AC%E4%B8%89%E7%89%88%EF%BC%89%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="临江听雨">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="听雨">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="《深入理解Java虚拟机》（第三版）阅读笔记 | 听雨">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          《深入理解Java虚拟机》（第三版）阅读笔记
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-09-11 12:00:00" itemprop="dateCreated datePublished" datetime="2020-09-11T12:00:00+08:00">2020-09-11</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2021-04-01 19:47:42" itemprop="dateModified" datetime="2021-04-01T19:47:42+08:00">2021-04-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF%E6%B2%89%E6%B7%80/" itemprop="url" rel="index"><span itemprop="name">技术沉淀</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><ol>
+<li><p>（2.2 运行时数据区域）jvm内存划分为5个区域，简单说就是2个堆（堆和非堆（方法区的别称））、2个栈（虚拟机栈和本地方法栈）、1个程序计数器</p>
+</li>
+<li><p>（2.2.5 方法区）方法区和永久代的区别在于（JDK 8以前），前者是java虚拟机规范的定义，而永久代是HotSpot虚拟机下特有的实现，且属于方法区的一部分，这么设计的目的就是为了垃圾收集器能够像管理Java堆一样管理这部分内存，省去专门为方法区编写内存管理代码的 工作。</p>
+</li>
+<li><p>（2.3.1 对象的创建）本节讲到：<strong>由字节码流中new指令后面是否跟随invokespecial指令所决定，Java编译器会在遇到new关键字的地方同时生成 这两条字节码指令</strong>，验证测试代码如下所示：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.demo.test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Test2</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="keyword">final</span> <span class="type">Test2</span> <span class="variable">test2</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Test2</span>();</span><br><span class="line">        System.out.println(test2);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>执行：<code>javac Test2.java</code>，然后执行：<code>javap -v Test2.class</code>查看字节码文件，输出内容为：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line">Classfile /mnt/f/Develop/Project/demo/src/main/java/com/example/demo/test/Test2.class</span><br><span class="line">  Last modified Dec 14, 2020; size 436 bytes</span><br><span class="line">  MD5 checksum b6b5fa11a474d65891c6991ba0d7143a</span><br><span class="line">  Compiled from <span class="string">&quot;Test2.java&quot;</span></span><br><span class="line">public class com.example.demo.test.Test2</span><br><span class="line">  minor version: 0</span><br><span class="line">  major version: 52</span><br><span class="line">  flags: ACC_PUBLIC, ACC_SUPER</span><br><span class="line">Constant pool:</span><br><span class="line">   <span class="comment">#1 = Methodref          #6.#15         // java/lang/Object.&quot;&lt;init&gt;&quot;:()V</span></span><br><span class="line">   <span class="comment">#2 = Class              #16            // com/example/demo/test/Test2</span></span><br><span class="line">   <span class="comment">#3 = Methodref          #2.#15         // com/example/demo/test/Test2.&quot;&lt;init&gt;&quot;:()V</span></span><br><span class="line">   <span class="comment">#4 = Fieldref           #17.#18        // java/lang/System.out:Ljava/io/PrintStream;</span></span><br><span class="line">   <span class="comment">#5 = Methodref          #19.#20        // java/io/PrintStream.println:(Ljava/lang/Object;)V</span></span><br><span class="line">   <span class="comment">#6 = Class              #21            // java/lang/Object</span></span><br><span class="line">   <span class="comment">#7 = Utf8               &lt;init&gt;</span></span><br><span class="line">   <span class="comment">#8 = Utf8               ()V</span></span><br><span class="line">   <span class="comment">#9 = Utf8               Code</span></span><br><span class="line">  <span class="comment">#10 = Utf8               LineNumberTable</span></span><br><span class="line">  <span class="comment">#11 = Utf8               main</span></span><br><span class="line">  <span class="comment">#12 = Utf8               ([Ljava/lang/String;)V</span></span><br><span class="line">  <span class="comment">#13 = Utf8               SourceFile</span></span><br><span class="line">  <span class="comment">#14 = Utf8               Test2.java</span></span><br><span class="line">  <span class="comment">#15 = NameAndType        #7:#8          // &quot;&lt;init&gt;&quot;:()V</span></span><br><span class="line">  <span class="comment">#16 = Utf8               com/example/demo/test/Test2</span></span><br><span class="line">  <span class="comment">#17 = Class              #22            // java/lang/System</span></span><br><span class="line">  <span class="comment">#18 = NameAndType        #23:#24        // out:Ljava/io/PrintStream;</span></span><br><span class="line">  <span class="comment">#19 = Class              #25            // java/io/PrintStream</span></span><br><span class="line">  <span class="comment">#20 = NameAndType        #26:#27        // println:(Ljava/lang/Object;)V</span></span><br><span class="line">  <span class="comment">#21 = Utf8               java/lang/Object</span></span><br><span class="line">  <span class="comment">#22 = Utf8               java/lang/System</span></span><br><span class="line">  <span class="comment">#23 = Utf8               out</span></span><br><span class="line">  <span class="comment">#24 = Utf8               Ljava/io/PrintStream;</span></span><br><span class="line">  <span class="comment">#25 = Utf8               java/io/PrintStream</span></span><br><span class="line">  <span class="comment">#26 = Utf8               println</span></span><br><span class="line">  <span class="comment">#27 = Utf8               (Ljava/lang/Object;)V</span></span><br><span class="line">&#123;</span><br><span class="line">  public com.example.demo.test.Test2();</span><br><span class="line">    descriptor: ()V</span><br><span class="line">    flags: ACC_PUBLIC</span><br><span class="line">    Code:</span><br><span class="line">      stack=1, locals=1, args_size=1</span><br><span class="line">         0: aload_0</span><br><span class="line">         1: invokespecial <span class="comment">#1                  // Method java/lang/Object.&quot;&lt;init&gt;&quot;:()V</span></span><br><span class="line">         4: <span class="built_in">return</span></span><br><span class="line">      LineNumberTable:</span><br><span class="line">        line 3: 0</span><br><span class="line"></span><br><span class="line">  public static void main(java.lang.String[]);</span><br><span class="line">    descriptor: ([Ljava/lang/String;)V</span><br><span class="line">    flags: ACC_PUBLIC, ACC_STATIC</span><br><span class="line">    Code:</span><br><span class="line">      stack=2, locals=2, args_size=1</span><br><span class="line">         0: new           <span class="comment">#2                  // class com/example/demo/test/Test2</span></span><br><span class="line">         3: dup</span><br><span class="line">         4: invokespecial <span class="comment">#3                  // Method &quot;&lt;init&gt;&quot;:()V</span></span><br><span class="line">         7: astore_1</span><br><span class="line">         8: getstatic     <span class="comment">#4                  // Field java/lang/System.out:Ljava/io/PrintStream;</span></span><br><span class="line">        11: aload_1</span><br><span class="line">        12: invokevirtual <span class="comment">#5                  // Method java/io/PrintStream.println:(Ljava/lang/Object;)V</span></span><br><span class="line">        15: <span class="built_in">return</span></span><br><span class="line">      LineNumberTable:</span><br><span class="line">        line 6: 0</span><br><span class="line">        line 7: 8</span><br><span class="line">        line 8: 15</span><br><span class="line">&#125;</span><br><span class="line">SourceFile: <span class="string">&quot;Test2.java&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>上述输出中，第54行为源码第6行的<code>final Test2 test2 = new Test2();</code>，第56行就是文中说的invokespecial。</p>
+</li>
+<li><p>（2.3.2 对象的内存布局）源码地址：<a href="http://hg.openjdk.java.net/jdk8/jdk8/hotspot/file/87ee5ee27509/src/share/vm/oops/markOop.hpp">jdk8</a></p>
+<table>
+<thead>
+<tr>
+<th align="right">Mark Word(64 bits)</th>
+<th align="center">锁状态</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">unused:25                                                     | hash:31                                                               | unused:1 | age:4 | biased_lock:0 | lock:01</td>
+<td align="center">正常</td>
+</tr>
+<tr>
+<td align="right">thread:54                                                                                                                    | epoch:2 | unused:1 | age:4 | biased_lock:1 | lock:01</td>
+<td align="center">偏向锁</td>
+</tr>
+<tr>
+<td align="right">ptr_to_lock_record:62                                                                                         | lock:00</td>
+<td align="center">轻量级锁</td>
+</tr>
+<tr>
+<td align="right">ptr_to_heavyweight_monitor:62                                                                               | lock:10</td>
+<td align="center">重量级索</td>
+</tr>
+<tr>
+<td align="right">| lock:11</td>
+<td align="center">GC标记</td>
+</tr>
+</tbody></table>
+<p>当开启指针压缩（UseCompressdOops）时，正常状态和偏向锁状态下的两个unused字段会变成：cms_free，具体参考：<a href="https://stackoverflow.com/questions/60985782/details-about-mark-word-of-java-object-header">stackoverflow</a></p>
+</li>
+<li><p>（2.3.3 对象的访问定位）句柄访问和直接指针访问的本质区别在于：前者是间接引用（相当于中间又增加了一层，从而带来了更好的灵活性），后者是直接引用。</p>
+</li>
+<li><p>（2.4.2 虚拟机栈和本地方法栈溢出）经测试64位Linux下Xss最小值为：228k，默认值为：1024K（64位Windows 10下，两个值分别为：108K和0）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">java -Xss128K com.example.demo.test.Test2                                                                             </span><br><span class="line">The stack size specified is too small, Specify at least 228k</span><br><span class="line">Error: Could not create the Java Virtual Machine.</span><br><span class="line">Error: A fatal exception has occurred. Program will <span class="built_in">exit</span>.</span><br><span class="line"></span><br><span class="line">java -XX:+PrintFlagsFinal -version | grep ThreadStackSize                                                             </span><br><span class="line">     intx CompilerThreadStackSize                   = 0                                   &#123;pd product&#125;</span><br><span class="line">     intx ThreadStackSize                           = 1024                                &#123;pd product&#125;</span><br><span class="line">     intx VMThreadStackSize                         = 1024                                &#123;pd product&#125;</span><br><span class="line">openjdk version <span class="string">&quot;1.8.0_275&quot;</span></span><br><span class="line">OpenJDK Runtime Environment (build 1.8.0_275-8u275-b01-0ubuntu1~18.04-b01)</span><br><span class="line">OpenJDK 64-Bit Server VM (build 25.275-b01, mixed mode)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>TIPS：</p>
+<ul>
+<li>如果运行程序出现了OutOfMemoryError异常，发生的区域很小的几率发生在虚拟机栈（主要发生区域是堆），理由是：HotSpot虚拟机不支持栈的动态扩展，所以线程运行期间不会申请内存扩展，从而不会导致OOM，那么只会出现在创建线程申请内存时出现OOM，有3种措施会可以促进这种OOM：1、虚拟机栈空间尽量小；2、每个线程的栈内存尽量大（Xss）；3、创建的线程足够多。更详细地说，如果是在32位Windows系统下，由于单个进程最大内存限制是2G，那么排除掉Xmx的堆最大容量、直接内存、jvm本身消耗内存以及程序计数器（可以忽略不计）内存，剩下的内存才是虚拟机栈和本地方法栈的可用内存，如果虚拟机栈内存足够小，而且Xss配置得又偏大，那么，如果创建非常多线程的情况下，是有可能出现创建线程时导致虚拟机栈OOM的。</li>
+<li>如果允许程序出现了StackOverflowError异常，比较大的可能性是递归调用导致了栈溢出，比较小的可能性是因为调用堆栈过深导致栈溢出，因为对于后者来说，默认Xss的大小为1024k，是很难导致溢出的。</li>
+</ul>
+</blockquote>
+</li>
+<li><p>（2.4.3 方法区和运行时常量池溢出）自JDK 7起，原本存放在永久代的字符串常量池被移至Java堆之中</p>
+</li>
+<li><p>（2.4.4 本机直接内存溢出）OOM后，dump文件比较小，而且又使用的Direct Memory，那么就要考虑是否是直接内存OOM</p>
+</li>
+<li><p>（3.2.3 再谈引用）强引用：打死也不能回收；软引用（SoftReference）：OOM前回收；弱引用（WeakReference）：下次GC时回收；虚引用（PhantomReference）：根本不算引用，因为无法获得引用对象，应用场景：为了能在这个对象被收集器回收时收到一个系统通知。</p>
+</li>
+<li><p>（3.3.1 分代收集理论）</p>
+<ul>
+<li>垃圾分代收集的本质在于对象的年龄。朝生夕灭的小鲜肉放在一起管理（称之为年轻代），相亲无数（也就是躲过了多次垃圾回收）的大龄青年（称之为老年代）放在一起管理，这可真够现实的。</li>
+<li>除了CMS收集器，其他都不存在只针对老年代的收集</li>
+</ul>
+</li>
+<li><p>（3.3.2 标记-清除算法（Mark-Sweep））原理：标记处房间内的垃圾，然后直接清理掉，缺点：房间还是很乱（内存碎片），因为只清理了垃圾，而没有整理房间</p>
+</li>
+<li><p>（3.3.3 标记-复制算法（Mark-Copy））多用于年轻代垃圾收集器，原理：</p>
+<ul>
+<li>基础版：房间分成两部分，每次只用其中一部分，每次回收时，清理垃圾，并将物品搬到另一个房间，缺点：浪费空间。</li>
+<li>进阶版：房间分成三部分，一大两小（8:1:1），每次只用一大和一小，每次回收时，清理垃圾，并将物品搬到另一个房间</li>
+</ul>
+</li>
+<li><p>（3.3.4 标记-整理算法（Mark-Compact））多用于老年代垃圾收集器，原理：在标记-清除算法的基础上，额外增加整理（更形象的说，是“压缩整理”，从标记-整理算法的英文名：Mark-Compact就能看出来）的功能。</p>
+<blockquote>
+<p>TIPS:</p>
+<ul>
+<li>对于CMS收集器，平时多数时间都采用（并发）标记-清除算法，这也应对CMS的全称：Concurrent Mark Sweep，当空间碎片过多时采用标记-整理算法。这也对应CMS算法的缺点：1、容易产生内存碎片；2、一旦由于碎片过多触发了标记整理算法，就会导致长时间的STW</li>
+</ul>
+</blockquote>
+</li>
+<li><p>（3.4.2 安全点）安全点停顿：几乎所有虚拟机不再采用抢先式中断（Preemptive Suspension）而是采用主动式中断（Voluntary Suspension），也即虚拟机负责设置标记位，各个线程负责轮询检查标记位，然后运行到安全点上（有点类似于游戏服务器的某个全局模块设置标记位，在线玩家心跳逻辑里轮询检测这个标记位）。</p>
+</li>
+<li><p>（3.4.4 记忆集与卡表）通俗地讲，从垃圾收集区域来看，Remembered Set指的是谁指向了我的集合（如果有人指向了我，那么这个“我”就不能当做垃圾被回收）！这是一个抽象的逻辑概念模型。从具体实现的角度来看，最原始的Remembered Set就是存储对方所有跨带引用对象的集合，但是这是非常低效的，因此可以把这个“我”的区域（也即垃圾收集区域）划分成若干子区域（每个区域称之为卡页：Card Page），然后用一个数组标记该区域是否含有跨代引用指针（这个数组就是卡表：Card Table），在GC时将Card Table中存在跨代引用的Card Page进行扫描，从而减少GC Roots的扫描的范围（这种分组的思想是不是很熟悉，想一下武汉市在医疗资源紧缺时采取的新冠核酸筛的混检模式，就是讲每10人混合成一个样本，筛查效率理论上可以提升到原来的10倍）。</p>
+</li>
+<li><p>（3.4.5 写屏障）这一节讲了两件事：</p>
+<ul>
+<li><p>卡表的状态维护机制：写屏障，通俗讲就是虚拟机层面的AOP</p>
+</li>
+<li><p>当多线程写同一块内存时，如果这块内存被同一个缓存行的卡表对应，那么意味着这个位于同一个缓存行的卡表会被多个线程修改，导致性能降低，优化机制为：不要无条件修改卡表，而是加一个判断（额，这个优化真的非常非常初级啊）</p>
+</li>
+</ul>
+</li>
+<li><p>（3.4.6 并发的可达性分析）</p>
+<ul>
+<li>三色标记：白色：还未过安检；黑色：已经过安检，安全；灰色：安检中</li>
+<li>两种条件同时满足时，会出现白色误判为垃圾：1、扫描期间某黑色新指向了白色对象；2、同时某灰色到该白色的直接或间接引用也恰巧删除。这就导致了该白色对象仅被黑色对象引用，而黑色对象是安全的，不会再次扫描，这就导致错过扫描而被误判为垃圾。举一个形象的例子：三个包过机场的安检仪：黑包–灰包–白包这3个包用绳子相继连着，此时黑包已过安检，灰包安检中，白包等待安检，突然风雨突变，灰包和白包的绳子莫名断掉，同时有一股神秘力量将黑包和小白连起来（来自用户线程），但是这个连线却没穿过安检仪，那这种情况下白包就会错过安检（这个例子真是绝，我真是大聪明！）</li>
+<li>消除白色误判的两种策略：1、破除上述条件一，也即增量更新（Incremental Update）：如果黑色在扫描期间指向了白色，那就让它变灰；2、破除上述条件二，也即原始快照（Snapshot At The Beginning， SATB）：先拍个照，当进行扫描时，不管灰色是否删除了白色的指向，都按照这个快照扫描。CMS是基于增量更新，G1、Shenandoah则是用原始快照。</li>
+</ul>
+</li>
+<li><p>（3.5.6 CMS收集器）</p>
+<ul>
+<li><p>收集过程分成4个阶段：</p>
+<ol>
+<li>初始标记（CMS initial mark）：标记GC Roots能直接关联到的对象，会引发短暂的STW</li>
+<li>并发标记（CMS concurrent mark）：也即三色标记阶段，会导致某些白色被误判垃圾，也会导致漏过某些白色而产生浮动垃圾</li>
+<li>重新标记（CMS remark）：采用增量更新策略，重新标记，会引发STW</li>
+<li>并发清除（CMS concurrent sweep）：这也是CMS名称的由来，并发清除（concurrent sweep）</li>
+</ol>
+</li>
+<li><p>缺点：</p>
+<ol>
+<li>并发标记对CPU敏感（默认GC线程数&#x3D;处理器核心数量 +3）&#x2F; 4）：CPU核心数大于等于4个时，并发标记线程数不超过25%，当并发线程数小于4个时，有一半运算能力执行GC，因此CPU敏感。</li>
+</ol>
+</li>
+</ul>
+<ol start="2">
+<li>由于GC过程中浮动垃圾无法收集（要留到下一次），因此需要为老年代预留出一部分空闲空间（-XX：CMSInitiatingOccupancyFraction，JDK 6以后该默认值从JDK 5的68%提升至92%），防止并发失败（Concurrent Mode Failure）导致临时启用Serial Old。</li>
+<li>CMS正如它的名字所示，属于标记清除算法，因此在GC结束后会导致大量内存碎片。当申请大对象内存时，可能会出现内存碎片过多无法分配，导致提前触发Full GC（有两个参数：-XX：+UseCMSCompactAtFullCollection和-XX：CMSFullGCsBeforeCompaction可以相对改善，具体细节可以使用时查看相关资料）。</li>
+</ol>
+<blockquote>
+<p>TIPS:</p>
+<ul>
+<li>所有收集器中只有CMS有针对老年代的Old GC</li>
+</ul>
+</blockquote>
+</li>
+<li><p>（3.5.7 Garbage First收集器）</p>
+<ul>
+<li><p>JDK 7 Update 4时，G1的”Experimental“的标识被移除，到JDK 8 Update 40，提供类卸载的支持，变成了Oracle官方称为“全功能的垃圾收集 器”（Fully-Featured Garbage Collector）</p>
+</li>
+<li><p>G1的Remembered Set结构：由于存在多个Region，而每个Region都要维护的Remembered Set都需要存储谁引用了我，因此Remembered本质上是哈希表，key为其他Region的起始地址，value为一个集合，存储的是该Region中卡表的索引号。这存在两个问题：1、Remembered Set是一个双向索引，这维护起来就麻烦了；2、Remembered Set比较多，因此要消耗额外的堆内存，大约在10%~20%之间。</p>
+</li>
+<li><p>Region中有一部分内存用于GC并发回收中的对象分配，这个区域都位于TAMS（Top at Mark Start）指针之上。G1默认TAMS地址以上的对象都是存活的，不进行GC。</p>
+</li>
+<li><p>G 1停顿预测模型一句话总结：每个Region进行回收统计，包括：回收耗时、Remember Set中脏卡数量等，G1根据每个Region的统计状态的新旧评价回收价值，并预测哪些Region集合可以在-XX:MaxGCPauseMillis内回收时获得最高收益。</p>
+</li>
+<li><p>收集过程同样（相对于CMS）分成4个阶段：</p>
+<ol>
+<li>初始标记（Initial Marking）：标记GC Roots能直接关联到的对象，还要额外（相对于CMS）修改TAMS指针的值，会引发短暂的<strong>STW</strong></li>
+<li>并发标记（Concurrent Marking）：也即三色标记阶段，还要额外重新处理SATB记录上并发标记期间引用改动的对象。</li>
+<li>最终标记（Final Marking）：短暂的<strong>STW</strong>，处理上一步中遗留的少量的SATB记录。</li>
+<li>筛选回收（Live Data Counting and Evacuation）：1、更新Region的统计数据，并根据统计价值和成本进行排序；2、筛选Region回收集合；3、把回收Region集合中的存活对象移动到空的Region中，然后清空所有回收集合Region全部空间，由于需要移动存活对象，因此会引发<strong>STW</strong>，但是会多线程并行完成。</li>
+</ol>
+</li>
+<li><p>从G1开始，垃圾收集器的设计导向发生变化：追求全堆清理转向追赶内存分配速率（Allocation Rate）。我个人把这个新原则称之为遇熊逃命原则，也即不追求跑得最快，只要求不是最慢即可，换到GC角度上，那就是只要应付得了内存分配的速率即可。只要我打扫垃圾的速度比你制造垃圾的速度足够快，足以。这个理念非常牛B啊，所以才说G1是收集器的一个里程碑。</p>
+</li>
+</ul>
+<blockquote>
+<p>TIPS:</p>
+<ul>
+<li><p>按理来说，G1是全堆回收的，那为什么仍然存在年轻代和老年代？个人推测是因为仍然沿用了HotSopt垃圾分代框架，而书中也多次用了“扮演新生代”或“扮演老年代”的说法，这也可以证明这个推测。</p>
+</li>
+<li><p>书中没讲到的G1的思想：G1实际上采取的是分治算法的思想，将大问题分解成小问题，逐个击破。从整体上讲，它属于标记-整理算法（根据前文内容，整理算法是让所有存活对象移动到内存一端，如果按照这个标准，那G1整体上并非严格意义上的标记-整理算法），而从局部上讲，又属于标记复制算法（Region A移动到Region B）。</p>
+</li>
+</ul>
+</blockquote>
+</li>
+<li><p>（3.6 低延迟垃圾收集器）</p>
+<ul>
+<li>Shenandoah和G1的3个不同之处：<ul>
+<li>支持并发整理算法，G1在第4个阶段进行筛选回收时，是多线程并行处理，但是不会并发。</li>
+<li>默认不使用分代收集，不存在新生代和老年代的Region</li>
+<li>将G1的Remembered Set改为连接矩阵（Connection Matrix）：降低维护成本，也降低伪共享的发生概率。</li>
+</ul>
+</li>
+<li>Shenandoah收集过程：<ul>
+<li>初始标记（Initial Marking），标记GC Roots能直接关联到的对象，会引发短暂的与堆大小无关的<strong>STW</strong></li>
+<li>并发标记（Concurrent Marking）：与G1一样，并发且并行</li>
+<li>最终标记（Final Marking）：与G1一样，处理剩余的SATB扫描，引发短暂的<strong>STW</strong></li>
+<li>并发清理（Concurrent Cleanup）：清理连一个存活对象都没有找到的Region</li>
+<li>并发回收（Concurrent Evacuation）：这是Shenandoah的核心改进，通过读屏障和Brooks Pointers转发指针实现并发回收。</li>
+<li>初始引用更新（Initial Update Reference）：确保上一个并发回收阶段的线程都已经完成对象移动任务，会引发<strong>STW</strong>。</li>
+<li>最终引用更新（Final Update Reference）：修正存在于GC Roots 中的引用，最后一次引发<strong>STW</strong>，停顿时间只与GC Roots数量有关。</li>
+<li>并发清理（Concurrent Cleanup）：清理Immediate Garbage Regions。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>TIPS:</p>
+<ul>
+<li>本节开头提了：内存占用（Footprint）、吞吐量（Throughput）、延迟（Latency）组成了三元悖论，意指三者只能得其二，类似的三元悖论还有很多，例如分布式系统中著名的CAP定理：一致性（<strong>C</strong>onsistency）、可用性（<strong>A</strong>vailability）、分区容忍性（<strong>P</strong>artition Tolerance）。详情可以参考：周大的另外一本<a href="https://icyfenix.cn/architect-perspective/general-architecture/transaction/distributed.html#cap%E4%B8%8Eacid">开源书籍</a>或<a href="https://www.ibm.com/cloud/learn/cap-theorem">IBM Cloud Learn Hub</a></li>
+<li>Shenandoah将Remembered Set改为连接矩阵，从数据管理的视角上来看，实际上是把数据分散处理调整为全局集中处理，这也符合数据驱动开发的思想。例如在游戏开发领域，双向游戏好友是比较常见的社交功能，相比于把好友数据存储到每个玩家身上，维护一系列全局的好友关系数据将是更好的选择。因为如果使用前一个方案，那么在分布式环境下，单就数据一致性的这个问题，就会要求架构底层需要很好的支持，功能逻辑的复杂性也会大大增加。</li>
+<li>Brooks Pointer通过CAS操作保证并发时对象访问的正确性，CAS真是并发编程一大神器啊！</li>
+</ul>
+</blockquote>
+</li>
+<li><p>（3.6.2 ZGC收集器）：</p>
+<ul>
+<li>Region分成3种：Small Region（2MB，存储&lt;256KB对象）、Medium Region（32MB，存储&gt;&#x3D;256KB&amp;&amp;&lt;4MB 对象）、Large Region（2MB的整数倍，最小为4MB，存储&gt;&#x3D;4MB对象）</li>
+<li>Shenandoah收集过程：<ul>
+<li>并发标记（Concurrent Mark）：操作与G1、Shenandoah类似，也会引发<strong>STW</strong>，区别在于标记是在指针上而不是在对象上进行的，标记阶段会更新染色指针中的Marked 0、Marked 1标志 位。</li>
+<li>并发预备重分配（Concurrent Prepare for Relocate）：1、根据特定的查询条件统计得出 本次收集过程要清理哪些Region，将这些Region组成重分配集（Relocation Set）；2、类卸载和弱引用处理（从JDK 12开始支持）。</li>
+<li>并发重分配（Concurrent Relocate）：复制Relocation Set中的存活对象到新Region，每个Region维护转发表（Forward Table），记录转发关系。并发期间，如果对象访问，由于染色指针的存在，ZGC知道该对象是否处于Reloaction Set，因此会被内存屏障截获，转发到新Region上，并同时更新引用（指针自愈）。</li>
+<li>并发重映射（Concurrent Remap）：重映射所做的就是修正整个堆中指向重分配集中旧对象的所 有引用。实际上即使没有这一步，这些对象也可以在之后的访问时，通过指针自愈实现重映射。ZGC将此工作合并到下一次垃圾收集循环的并发标记阶段中，从而更加节省了一次对象图的遍历。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>TIPS:</p>
+<ul>
+<li>在上述第3个“并发重分配”过程，当复制Relocation Set中的存活对象到新Region时，周大没有详述实现细节，推测应该有类似的CAS操作来更新对象指针的染色指针，这是一个小遗憾。</li>
+<li>根据上述第4个“并发重映射”过程的描述，其过程被合并到下一次GC中，那ZGC岂不是只有3个大的过程？这是一个不太大的疑惑点。</li>
+</ul>
+</blockquote>
+</li>
+<li><p>（3.8.5 空间分配担保）在JDK 6 Update 24以前，当老年代最大连续可用空间小于新生代所有对象总和时，两种情况下会触发Full GC：</p>
+<ul>
+<li>-XX:+HandlePromotionFailure允许担保失败，但是老年代最大可用的连续空间是否小于历次晋升到老年代对象容量的平均大小</li>
+<li>-XX:-HandlePromotionFailure不允许担保失败</li>
+</ul>
+<blockquote>
+<p>TIPS：</p>
+<p>在JDK 6 Update 24之后，HandlePromotionFailure参数已经被去掉，测试代码：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">☺  java -XX:+PrintFlagsFinal -XX:+HandlePromotionFailure  -version</span><br><span class="line">Unrecognized VM option <span class="string">&#x27;HandlePromotionFailure&#x27;</span></span><br><span class="line">Did you mean <span class="string">&#x27;(+/-)PromotionFailureALot&#x27;</span>?</span><br><span class="line">Error: Could not create the Java Virtual Machine.</span><br><span class="line">Error: A fatal exception has occurred. Program will <span class="built_in">exit</span>.</span><br></pre></td></tr></table></figure>
+
+<p>上述规则调整为：只要老年代的连续空间大于等于新生代对象总大小或者历次晋升的平均大小，就会进行 Minor GC，否则将进行Full GC，换言之只有这两个条件同时满足，蔡楚发Full GC。</p>
+</blockquote>
+</li>
+<li><p>（4.2.2 jstat：虚拟机统计信息监视工具）：远程虚拟机进程的VMID为：[protocol:][&#x2F;&#x2F;]lvmid[@hostname[:port]&#x2F;servername]</p>
+</li>
+<li><p>（7.3.5 初始化）关于代码清单7-6中，字段B的值将会是2而不是1：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">Parent</span> &#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="variable">A</span> <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line">  <span class="keyword">static</span> &#123;</span><br><span class="line">    A = <span class="number">2</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">Sub</span> <span class="keyword">extends</span> <span class="title class_">Parent</span> &#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="variable">B</span> <span class="operator">=</span> A;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">	System.out.println(Sub.B);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>书中的解释并不是很彻底，可以使用javac编译，然后借助<code>javap -v</code> 命令得到更清新的答案，其Parent的javap命令解析如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">javap -v StaticMethod\<span class="variable">$Parent</span>                                                                                                                                                   master ✗</span><br><span class="line">Warning: Binary file StaticMethod<span class="variable">$Parent</span> contains com.example.demo.test.StaticMethod<span class="variable">$Parent</span></span><br><span class="line">Classfile /mnt/f/Develop/Project/demo/src/main/java/com/example/demo/test/StaticMethod<span class="variable">$Parent</span>.class</span><br><span class="line">  Last modified Dec 24, 2020; size 399 bytes</span><br><span class="line">  MD5 checksum 0f4fdfb9857a60ee769dbb6b4a2f3a0d</span><br><span class="line">  Compiled from <span class="string">&quot;StaticMethod.java&quot;</span></span><br><span class="line">class com.example.demo.test.StaticMethod<span class="variable">$Parent</span></span><br><span class="line">  minor version: 0</span><br><span class="line">  major version: 52</span><br><span class="line">  flags: ACC_SUPER</span><br><span class="line">Constant pool:</span><br><span class="line">   <span class="comment">#1 = Methodref          #4.#14         // java/lang/Object.&quot;&lt;init&gt;&quot;:()V</span></span><br><span class="line">   <span class="comment">#2 = Fieldref           #3.#15         // com/example/demo/test/StaticMethod$Parent.A:I</span></span><br><span class="line">   <span class="comment">#3 = Class              #17            // com/example/demo/test/StaticMethod$Parent</span></span><br><span class="line">   省略……</span><br><span class="line">&#123;</span><br><span class="line">  省略……</span><br><span class="line"></span><br><span class="line">  static &#123;&#125;;</span><br><span class="line">    descriptor: ()V</span><br><span class="line">    flags: ACC_STATIC</span><br><span class="line">    Code:</span><br><span class="line">      stack=1, locals=0, args_size=0</span><br><span class="line">         0: iconst_1</span><br><span class="line">         1: putstatic     <span class="comment">#2                  // Field A:I</span></span><br><span class="line">         4: iconst_2</span><br><span class="line">         5: putstatic     <span class="comment">#2                  // Field A:I</span></span><br><span class="line">         8: <span class="built_in">return</span></span><br><span class="line">      LineNumberTable:</span><br><span class="line">        line 6: 0</span><br><span class="line">        line 8: 4</span><br><span class="line">        line 9: 8</span><br><span class="line">&#125;</span><br><span class="line">SourceFile: <span class="string">&quot;StaticMethod.java&quot;</span></span><br><span class="line">InnerClasses:</span><br><span class="line">     static <span class="comment">#18= #3 of #16; //Parent=class com/example/demo/test/StaticMethod$Parent of class com/example/demo/test/StaticMethod</span></span><br></pre></td></tr></table></figure>
+
+<p>通过上述代码可以发现，Line 54-55应对与源码中的类变量的定义：<code>public static int A = 1;</code>，而Line 56-57应对与有静态语句块中的赋值：<code>A = 2;</code>，也就是说：<strong>编译后的static静态语句块除了包含程序员的逻辑代码，还额外插入了编译器自动生成的对静态变量初始化的代码</strong>，且这些插入代码的位置符合如下原则：<strong>如果静态变量定义在static静态语句块上面，那么在程序员逻辑代码上面按照声明顺序插入，否则在程序员的逻辑代码下面按照声明顺序插入</strong>。当Parent类完成<strong>初始化</strong>后，成员变量A的值为2，当Sub类进行初始化时，要调用自己的<code>&lt;clinit&gt;()</code>，按照文中所述：<strong>Java虚拟机会保证在子类的()方法执行前，父类的()方法已经执行 完毕。</strong>Sub进行初始化时A的值已经是2，因此赋值给B后就是2了。</p>
+</li>
+<li><p>（7.4.2 双亲委派模型）</p>
+<blockquote>
+<p>“双亲委派”这个术语实在是翻译得败笔，根据<a href="https://www.zhihu.com/question/24923480">知乎</a>上一个比较形象的回答，翻译为“啃老模式”更为形象。也就是说遇到类加载请求时，先让父加载器去加载，父加载器加载不了了自己才去加载。</p>
+</blockquote>
+</li>
+<li><p>（8.3.1 解析）静态方法、私有方法、实例构造器、父类以及final方法（由于历史设计的原因，final方法是使用invokevirtual指令来调用）在类加载的时候就可以把符号引 用解析为该方法的直接引用。这些方法统称为“非虚方法”（Non-Virtual Method）</p>
+</li>
+<li><p>（8.3.2 分派）</p>
+<blockquote>
+<ul>
+<li>静态分派对应的是方法的重载（Overload），动态分配对应的是类的重写（Override）。</li>
+<li>当子类声明了与父类同名的字段时，虽然在子类的内存中两 个字段都会存在，但是子类的字段会遮蔽父类的同名字段</li>
+</ul>
+</blockquote>
+</li>
+<li><p>（8.4.3 java.lang.invoke包）一句话解释Reflection和MethodHandle的区别：Reflection是重量级，而MethodHandle 是轻量级。</p>
+</li>
+<li><p>主内存与工作内存之间具体的交互协议：<br><a href="https://imgtu.com/i/6QaSat"><img src="https://s3.ax1x.com/2021/03/08/6QaSat.png" alt="6QaSat.png"></a></p>
+</li>
+<li><p>对于普通变量（相对于volatile变量）：要求read&#x2F;load、write&#x2F;store<strong>成对</strong>、<strong>顺序</strong>出现，但是允许不连续出现（也即中间可以插入其他指令）。</p>
+</li>
+<li><p>对于volatile变量：</p>
+<ul>
+<li>只有当前一个指令是load时，才允许执行use；且只有后一个动作是use时，才能执行load动作。换句话说：额外要求load和use是<strong>连续成对</strong>出现的，结合上面第2条，那就是use&#x2F;load&#x2F;read一条龙。这条规则要求在工作内存中，每次使用volatile变量前都必须先从主内存刷新最新的值，保证能看见其他线程对该变量的修改。</li>
+<li>只有当前一个指令是assign时，才允许执行store；且只有后一个动作是store时才能执行assign动作。换句话说：额外要求assign和store是<strong>连续成对</strong>出现，结合上面第2条，那就是assign&#x2F;store&#x2F;write一条龙。这条规则要求在工作内存中，每次修改volatile变量后都必须立刻同步回主内存中，用于保证其他线程可以看到自己对该变量所做的修改。</li>
+<li>对于任意两条龙A和B，如果A的龙头（assign或use）发生在B的龙头之前，那么A的龙尾要在B的龙尾之前（我这个解释真是太牛了！）</li>
+</ul>
+</li>
+<li><p>关于互斥量（mutex）和信号量（semaphore）的区别：</p>
+<ul>
+<li>正如他们的名字一样，前者的使用场景是保护资源的独占性，注重的是竞争关系；而后者的场景是等待“信号”的发生，更倾向于生产者&#x2F;消费者模型中的消费者，注重的是供需关系。[知乎回答](semaphore和mutex的区别？ - 人马座的回答 - 知乎 <a href="https://www.zhihu.com/question/47704079/answer/528324049">https://www.zhihu.com/question/47704079/answer/528324049</a>)</li>
+<li>对于mutex，只有上锁的线程才有资格解锁；而对于semaphore，它可以被任意的线程获取和释放。</li>
+</ul>
+</li>
+<li><p>简述java的synchronized关键字：</p>
+<ul>
+<li>它是java中最基本的互斥同步的手段，属于一种块结构的同步语法。</li>
+<li>被javac编译后，会在同步块的前后分别形成moniterenter和moniterexit两个字节码指令</li>
+<li>这两个字节码都需要一个reference类型参数指明要锁定的和解锁的对象。如果没有指明，那么就根据synchronized修饰的方法类型决定是锁对象实例还是Class对象。</li>
+<li>在执行monitorenter指令时，首先要去尝试获取对象的锁，并且锁计数器加一，执行 monitorexit指令时会将锁计数器的值减一。计数器清零时，锁被释放。并且可以推论出：对于同一个线程来说，synchronized是可重入的。</li>
+</ul>
+</li>
+<li><p>简述java的并发机制（或者同步机制）</p>
+<ul>
+<li>同步的定义：同步是指在多个线程并发访问共享数据时，保证共享数据在同一个时刻只被一条（或者是一些， 当使用信号量的时候）线程使用。</li>
+<li>基于同步的定义或者目的，有两种实现思路：1、互斥同步，其基本思想是对于共享资源的获取是悲观的（也即悲观锁），因此在访问资源时，都进行加锁操作，例如java语言层面提供的synchronized关键字。2、非阻塞同步，其基本思想是对于共享资源的获取时保持乐观的。不管风险，先进行操作，如果没有其他线程争用共享数据，那操作就直接成功了；如果共享的数 据的确被争用，产生了冲突，那再进行其他的补偿措施。</li>
+</ul>
+</li>
+<li><p>关于JDK 6引入的自适应自旋锁的机制</p>
+<ul>
+<li>自旋时间不再固定，而是由同一把锁前一次的自旋时间以及锁拥有者的状态决定。</li>
+<li>假如刚刚自旋等待获取过<strong>同一把锁</strong>，并且持有锁的线程正在运行中，虚拟机会认为很可能再次成功，就会增加自旋次数</li>
+<li>假如很少成功获得过锁，那么可能直接省略掉自旋，避免浪费CPU资源。</li>
+</ul>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"># Java</a>
+              <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag"># 并发编程</a>
+              <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag"># 多线程</a>
+              <a href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag"># 笔记</a>
+              <a href="/tags/JVM/" rel="tag"># JVM</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/05/11/SED%E5%91%BD%E4%BB%A4%E5%AE%9E%E8%B7%B5/" rel="prev" title="SED命令实践">
+                  <i class="fa fa-angle-left"></i> SED命令实践
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/09/11/%E3%80%8AJava%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98%E3%80%8B%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" rel="next" title="《Java并发编程实战》阅读笔记">
+                  《Java并发编程实战》阅读笔记 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">临江听雨</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

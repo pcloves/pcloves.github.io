@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.gamedo.org","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.24.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="生成KeyStore 通过openssl生成公私钥对：12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970717273747576777879808182838485868788899091">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vert.x JWT认证实战">
+<meta property="og:url" content="https://blog.gamedo.org/2025/07/02/Vert.x%20JWT%E8%AE%A4%E8%AF%81%E5%AE%9E%E6%88%98/index.html">
+<meta property="og:site_name" content="听雨">
+<meta property="og:description" content="生成KeyStore 通过openssl生成公私钥对：12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970717273747576777879808182838485868788899091">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-07-02T10:09:38.000Z">
+<meta property="article:modified_time" content="2025-08-13T10:13:19.654Z">
+<meta property="article:author" content="临江听雨">
+<meta property="article:tag" content="源码阅读">
+<meta property="article:tag" content="vert.x">
+<meta property="article:tag" content="笔记">
+<meta property="article:tag" content="obsidian">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://blog.gamedo.org/2025/07/02/Vert.x%20JWT%E8%AE%A4%E8%AF%81%E5%AE%9E%E6%88%98/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://blog.gamedo.org/2025/07/02/Vert.x%20JWT%E8%AE%A4%E8%AF%81%E5%AE%9E%E6%88%98/","path":"2025/07/02/Vert.x JWT认证实战/","title":"Vert.x JWT认证实战"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Vert.x JWT认证实战 | 听雨</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":{"light":"default","dark":"dark"},"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.9.0/mermaid.min.js","integrity":"sha256-Cz7UN0EXNjgV2u/a38wg/3BNfdRRO1XtgDq93L2GqJg="}}</script>
+  <script src="/js/third-party/tags/mermaid.js" defer></script>
+
+
+
+
+
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">听雨</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%94%9F%E6%88%90KeyStore"><span class="nav-number">1.</span> <span class="nav-text">生成KeyStore</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%94%9F%E6%88%90token"><span class="nav-number">2.</span> <span class="nav-text">生成token</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E5%BC%8F1"><span class="nav-number">2.1.</span> <span class="nav-text">方式1</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E5%BC%8F2"><span class="nav-number">2.2.</span> <span class="nav-text">方式2</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%AA%8C%E8%AF%81token"><span class="nav-number">3.</span> <span class="nav-text">验证token</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">临江听雨</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">38</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/pcloves" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;pcloves" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.gamedo.org/2025/07/02/Vert.x%20JWT%E8%AE%A4%E8%AF%81%E5%AE%9E%E6%88%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="临江听雨">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="听雨">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Vert.x JWT认证实战 | 听雨">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Vert.x JWT认证实战
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-07-02 18:09:38" itemprop="dateCreated datePublished" datetime="2025-07-02T18:09:38+08:00">2025-07-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-08-13 18:13:19" itemprop="dateModified" datetime="2025-08-13T18:13:19+08:00">2025-08-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8A%80%E6%9C%AF%E6%B2%89%E6%B7%80/" itemprop="url" rel="index"><span itemprop="name">技术沉淀</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="生成KeyStore"><a href="#生成KeyStore" class="headerlink" title="生成KeyStore"></a>生成KeyStore</h1><ul>
+<li>通过<strong>openssl</strong>生成公私钥对：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br></pre></td><td class="code"><pre><span class="line">openssl genpkey -algorithm RSA -out private.key -pkeyopt rsa_keygen_bits:2048</span><br><span class="line">````</span><br><span class="line">* 通过**openssl**生成自签名证书</span><br><span class="line">``` bash</span><br><span class="line">openssl req -new -x509 -key private.key -out certificate.crt -days 3650</span><br><span class="line">````</span><br><span class="line">* 通过**openssl**将证书和公私钥存储到**keystore**</span><br><span class="line">    * 由于Vert.x的[源码](https://github.com/eclipse-vertx/vertx-auth/blob/76717f72da6977e14394ef4ca67dfca47d430f31/vertx-auth-common/src/main/java/io/vertx/ext/auth/impl/jose/JWK.java#L168)中加载keystore时，仅识别指定的别名，因此这里选择对应的别名：**RS256**，也即**RSA**秘钥及**SHA256**哈希算法</span><br><span class="line">    * keystore的密码为：`123456`</span><br><span class="line">``` bash</span><br><span class="line">openssl pkcs12 -<span class="built_in">export</span> -<span class="keyword">in</span> certificate.crt -inkey private.key -out keystore.p12 -name <span class="string">&quot;RS256&quot;</span> -password pass:123456</span><br><span class="line"></span><br><span class="line"><span class="comment">#另外，keystore提取私钥的方式：</span></span><br><span class="line">openssl pkcs12 -<span class="keyword">in</span> keystore.p12 -nodes -nocerts -out extracted_private.key -password pass:123456</span><br><span class="line">````</span><br><span class="line">* 将生成的`keystore.p12`文件拷贝到项目工程的`resources`目录下</span><br><span class="line"><span class="comment"># JWT认证及授权服务端</span></span><br><span class="line">* 编写vert.x http服务端，并且使用jwt认证</span><br><span class="line">``` java</span><br><span class="line">package com.example.vertxStudy</span><br><span class="line"></span><br><span class="line">import io.vertx.core.Future</span><br><span class="line">import io.vertx.core.VerticleBase</span><br><span class="line">import io.vertx.core.json.JsonObject</span><br><span class="line">import io.vertx.ext.auth.JWTOptions</span><br><span class="line">import io.vertx.ext.auth.KeyStoreOptions</span><br><span class="line">import io.vertx.ext.auth.authorization.PermissionBasedAuthorization</span><br><span class="line">import io.vertx.ext.auth.jwt.JWTAuth</span><br><span class="line">import io.vertx.ext.auth.jwt.JWTAuthOptions</span><br><span class="line">import io.vertx.ext.auth.jwt.authorization.impl.JWTAuthorizationImpl</span><br><span class="line">import io.vertx.ext.web.Router</span><br><span class="line">import io.vertx.ext.web.handler.AuthorizationHandler</span><br><span class="line">import io.vertx.ext.web.handler.BodyHandler</span><br><span class="line">import io.vertx.ext.web.handler.JWTAuthHandler</span><br><span class="line">import io.vertx.ext.web.handler.SecurityAuditLoggerHandler</span><br><span class="line">import io.vertx.kotlin.core.http.httpServerOptionsOf</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">class JWTAuthVerticle : <span class="function"><span class="title">VerticleBase</span></span>() &#123;</span><br><span class="line"></span><br><span class="line">  override fun start(): Future&lt;*&gt; &#123;</span><br><span class="line"></span><br><span class="line">    val router = Router.router(vertx)</span><br><span class="line">    router.route().handler(SecurityAuditLoggerHandler.create()).handler(BodyHandler.create())</span><br><span class="line"></span><br><span class="line">    val config = JWTAuthOptions()</span><br><span class="line">      .setKeyStore(</span><br><span class="line">        KeyStoreOptions()</span><br><span class="line">          .setType(<span class="string">&quot;pkcs12&quot;</span>) // 或 <span class="string">&quot;pkcs12&quot;</span></span><br><span class="line">          .setPath(<span class="string">&quot;keystore.p12&quot;</span>)</span><br><span class="line">          .setPassword(<span class="string">&quot;123456&quot;</span>)</span><br><span class="line">      )</span><br><span class="line">      .setJWTOptions(JWTOptions().setAlgorithm(<span class="string">&quot;RS256&quot;</span>))</span><br><span class="line"></span><br><span class="line">    val jwtAuthProvider = JWTAuth.create(vertx, config)</span><br><span class="line">    val jWTAuthHandler = JWTAuthHandler.create(jwtAuthProvider)</span><br><span class="line"></span><br><span class="line">    router.post(<span class="string">&quot;/login&quot;</span>).handler &#123; ctx -&gt;</span><br><span class="line"></span><br><span class="line">      val body = ctx.body().asJsonObject()</span><br><span class="line">      <span class="keyword">if</span> (body == null) &#123;</span><br><span class="line">        ctx.response()</span><br><span class="line">          .setStatusCode(400) // Bad Request</span><br><span class="line">          .end(<span class="string">&quot;Bad Request: Body is missing or not a valid JSON. Please ensure the &#x27;Content-Type&#x27; header is &#x27;application/json&#x27;.&quot;</span>)</span><br><span class="line">        <span class="built_in">return</span>@handler</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      // 现在可以安全地访问 body</span><br><span class="line">      val role = body.getString(<span class="string">&quot;role&quot;</span>)</span><br><span class="line"></span><br><span class="line">      // 为简单起见，我们为示例用户创建一个token</span><br><span class="line">      val claims = JsonObject()</span><br><span class="line">        //这里应该使用真正的用户</span><br><span class="line">        .put(<span class="string">&quot;sub&quot;</span>, <span class="string">&quot;987654321&quot;</span>)</span><br><span class="line">        .put(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;Nancy&quot;</span>)</span><br><span class="line">        //指定授权，可以不用放在realm_access下，而是直接放在roles下，这里是为了后面的演示特意为之</span><br><span class="line">        .put(<span class="string">&quot;realm_access&quot;</span>, JsonObject().put(<span class="string">&quot;roles&quot;</span>, listOf(role)))</span><br><span class="line">      val token = jwtAuthProvider.generateToken(claims)</span><br><span class="line"></span><br><span class="line">      ctx.response().putHeader(<span class="string">&quot;content-type&quot;</span>, <span class="string">&quot;text/plain&quot;</span>).end(token)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    //指定permission列表所在的路径，需要和login返回的token的路径保持一致</span><br><span class="line">    val rootClaim = <span class="string">&quot;realm_access/roles&quot;</span></span><br><span class="line">    val authorizationProvider = AuthorizationHandler</span><br><span class="line">      .create(PermissionBasedAuthorization.create(<span class="string">&quot;admin&quot;</span>))</span><br><span class="line">      .addAuthorizationProvider(JWTAuthorizationImpl(rootClaim))</span><br><span class="line"></span><br><span class="line">    router.route(<span class="string">&quot;/protected&quot;</span>)</span><br><span class="line">      //先认证身份</span><br><span class="line">      .handler(jWTAuthHandler)</span><br><span class="line">      //再验证授权（需要有admin的授权）</span><br><span class="line">      .handler(authorizationProvider)</span><br><span class="line"></span><br><span class="line">    router.get(<span class="string">&quot;/protected&quot;</span>).handler &#123; ctx -&gt;</span><br><span class="line">      ctx.response().end(<span class="string">&quot;Hello <span class="variable">$&#123;ctx.user().get&lt;String&gt;(&quot;name&quot;)&#125;</span>!&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">return</span> vertx</span><br><span class="line">      .createHttpServer(httpServerOptionsOf(registerWriteHandler = <span class="literal">true</span>))</span><br><span class="line">      .requestHandler(router)</span><br><span class="line">      .listen(8888).onSuccess &#123; http -&gt;</span><br><span class="line">        println(<span class="string">&quot;HTTP server started on port <span class="variable">$&#123;http.actualPort()&#125;</span>&quot;</span>)</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h1 id="生成token"><a href="#生成token" class="headerlink" title="生成token"></a>生成token</h1><h2 id="方式1"><a href="#方式1" class="headerlink" title="方式1"></a>方式1</h2><ul>
+<li>打开<a href="https://jwt.rocks/">Online JWT tool</a>，在Decoded Header中输入：<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;alg&quot;</span><span class="punctuation">:</span><span class="string">&quot;RS256&quot;</span><span class="punctuation">,</span><span class="attr">&quot;typ&quot;</span><span class="punctuation">:</span><span class="string">&quot;JWT&quot;</span><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure></li>
+<li>在Decoded Payload中输入授权服务器生成的业务数据（本示例没有admin身份）：<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;sub&quot;</span><span class="punctuation">:</span> <span class="string">&quot;1234567890&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;John Doe&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;admin&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;iat&quot;</span><span class="punctuation">:</span> <span class="number">1516239022</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;realm_access&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;roles&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">      <span class="string">&quot;user&quot;</span></span><br><span class="line">    <span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure></li>
+<li>在Private Key中，输入<code>private.key</code>中的私钥，例如：<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">-----BEGIN PRIVATE KEY-----</span><br><span class="line">MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDSXVvT5zcW3laj</span><br><span class="line">0FUZELJrJUpKhsguYCBnWFJIk/54IxEuLh53G6xeI8dWhhSIRwDy6wr/UFfx40pD</span><br><span class="line">44WUBtrOREC599g2yCaUku1b8hf6T7+gU4vpGdBt5HEggGWf9vVsIy6AEFiFx6ta</span><br><span class="line">0wqU2EfX6tVeU37KLmAboRNhQQmsFdxl0TaYv8Z3sVN3UQ61axL/1gpcTQqGw0TC</span><br><span class="line">hvDwXXAodSj6/3LPEts707IJ5S5QKanKEjdLdO0JOdcaR69k5iG+1NMgktQBm5Wb</span><br><span class="line">/ym0rAfP5syC0hhHY+EfLl8sqOzls4u1L4zsr0pTZmDd+IV/GcbeR6saxskQW10J</span><br><span class="line">IWwuNh3FAgMBAAECggEBAIGV1wJS9SGWNwLUTAeTvIS6ROhh3KCMwIlI4+8nk2MI</span><br><span class="line">HwY2jLfMiUK4gYvwLmfAbXo2heC+6l3sKIxndJq6GkFj1Ad7AGrGotV1KNgx6slc</span><br><span class="line">JOwraw1dxIJdbb6auX9vzsEdbwCekRlf5VOem28TSDZex69CeeEr7jI26ExJlx60</span><br><span class="line">fZOVm9f6sqH8xs2w1Subdsjrpcqv11TZJ0D9RwhBZYBnE1bP70LzCUlOYl2KAEFT</span><br><span class="line">ob/oh34Xr0Ra1kdwWPsPbCXFs5JGqEW8IGUZcA/YpADNOEsw2f4arbHFs5nGUrRb</span><br><span class="line">4+dkTVLquIQm3AmQyPucx/Wpd9pfpZqnsgMXUIFvHiECgYEA/uqIMZpLOLk2WhCf</span><br><span class="line">Kk9cPy2pGO7htUBtm5pRkQCD+GUsYYDzrGXQTLLKuH1+Cqr7TnDpu1/CZjJGJnOB</span><br><span class="line">/IsS3LbQ6t5wwXEqfi44vIpOGF9Uw6ESoNQhiYl29QmgqkxeWgIzpMSwmXvwlTJl</span><br><span class="line">9GK4rnzfbh0C4+ysc1chFXjijCkCgYEA00JVeIuwZ31cMggEV1YRWUZwPnBiB8zT</span><br><span class="line">/T2C8kNCO2pAGYnqjzfd2dWu3L9NH2ah4UvKBfIBd0JVOETFh/Z9wEigZjHFeZzC</span><br><span class="line">maziNmUWlDMvtSmzTzP4SOITEvYn+2iSVyx8dQl2OCnRK74o3/RjDRCkpCAUnlaQ</span><br><span class="line">IobAmyM7+D0CgYEAlZOanLhzgPI0sT5llpcAgtXRDh9Fc2w9pHs1d0b9KOh81S2s</span><br><span class="line">TbFkO00B5KVGKw5O7aUVkOvMjtjbDr7iPASC6d2f0uD4+pjjnSyUABWLY4O0oiHG</span><br><span class="line">Y3Z1w1VU5s1iZ+rtxhTapsj+8uClt3XeGzs+MKx3Eg6V3pXGTtuGPyoyjJkCgYEA</span><br><span class="line">0eYXe+T2yWxhnQggIBJQvG3i+fa5P9zAR93E7CXteZEQzQ8dsVylnVjVG1krLGbR</span><br><span class="line">skKWICAaWr7aY0TZKkS7HsBKNh9/gFxDcWK3g6oeq/LLlOkw0iHlr6yHnRBcG0wE</span><br><span class="line">En8NzU8wWY8a16ZhgFqVy5ZcrwF82vFQ1i0i00FHxVUCgYBUc6JC1DePyCApdQXJ</span><br><span class="line">Qn/pYtPwBKSmllLkEkrzUPmJSlWVgdzfynjGU5WF/2DFOaKHxoKW+npaRnXgi3c4</span><br><span class="line">oJs1Ow/nrYFZZSxnXgI/hWCC/+eu2JfHOnPqIcgRniJ25jEINcoK+LjSAVthfad7</span><br><span class="line">vjkKAV0kmZtN6kmFfBNS34k+XA==</span><br><span class="line">-----END PRIVATE KEY-----</span><br></pre></td></tr></table></figure></li>
+<li>生成token，例如：<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMiwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbImFkbWluIiwidXNlciJdfX0.QPrVDABsyOkI4qUhxhhWis5o21T1xYYJqWw5Itp31jirQLHREvwF3lx0DEkFESguJ95qcnwJH9HHAcOT-y_BGyQaosktnBRJsgedAr4FByRO2hwzrAvUpAYHXcLfzbL_5H8KmuheN5sf3TxdFp3LWdvFSiHhom3oPALIkdrOzwSGx75ET4O6SvTTO86N6XimIPbJuhPRl7QIDzYKMPELiQH7LyooXlS0-hQCRIV6n82wYOH8UM1lM75lp4bUtPM4F3w7__Fc3LFzBKSMiOs-fkn-oYkRpv8d6fbjMA39HkN0AOZj4RmCM54-HCFETIWvLuOZ2Yivt6QgCO-F2Su6SQ</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="方式2"><a href="#方式2" class="headerlink" title="方式2"></a>方式2</h2><ul>
+<li>通过<code>/login</code>动态下发token<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">token=$(curl -XPOST -d <span class="string">&#x27;&#123;&quot;role&quot; : &quot;admin&quot;&#125;&#x27;</span> -H <span class="string">&#x27;Content-Type: application/json&#x27;</span> http://10.12.16.218:8888/login) &amp;&amp; <span class="built_in">echo</span> <span class="variable">$token</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<h1 id="验证token"><a href="#验证token" class="headerlink" title="验证token"></a>验证token</h1><ul>
+<li>在curl中发送请求：<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#针对方式1（且没有admin授权）</span></span><br><span class="line">$ curl -i -H <span class="string">&#x27;Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMiwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbInVzZXIiXX19.mQm9BLP-RkKJDaiiuzy-YmtO8-wQyjOpHlb2i_hrrTjwoYFx1AqdP7egvaAhxLdxwgMI9qgstTA-WOA6Vi01jfVoTk0RfV0rzocDDMOHrNaevlqkBSPIB2Jx8EYWQNCTZ8vjvTPezmgWgQjxaA7l21IwzOqA23N-v9ziEdJx46EkRCeee6EO-Bb9jN63DekbiYAz-ccsPT3PxjdFtSklxLmDePNNXeS7HjwnHqbYj6fFAd0RlbXq71lQS5MfgPhkC_SdCjdtOUIe6v6twSMDZcDrpGfX47RY1jDOJ-f-QjnbKbyWdZ6j7_uasgDr9BGlIpcXVV7F4nkeuNMA4kQp7g&#x27;</span> http://10.12.16.218:8888/protected</span><br><span class="line">HTTP/1.1 403 Forbidden</span><br><span class="line">content-length: 9</span><br><span class="line"></span><br><span class="line">Forbidden</span><br><span class="line"></span><br><span class="line"><span class="comment">#针对方式2</span></span><br><span class="line">$ curl -H <span class="string">&quot;Authorization: Bearer <span class="variable">$&#123;token&#125;</span>&quot;</span> http://10.12.16.218:8888/protected                  Hello Nancy!</span><br></pre></td></tr></table></figure></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" rel="tag"># 源码阅读</a>
+              <a href="/tags/vert-x/" rel="tag"># vert.x</a>
+              <a href="/tags/%E7%AC%94%E8%AE%B0/" rel="tag"># 笔记</a>
+              <a href="/tags/obsidian/" rel="tag"># obsidian</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/07/01/Vert.x%20OAuth2%E8%AE%A4%E8%AF%81/" rel="prev" title="Vert.x OAuth2认证">
+                  <i class="fa fa-angle-left"></i> Vert.x OAuth2认证
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/07/02/Vert.x%20%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" rel="next" title="Vert.x 源码阅读">
+                  Vert.x 源码阅读 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">临江听雨</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
